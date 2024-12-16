@@ -451,6 +451,18 @@ mod tests {
     }
 
     #[test]
+    fn bitfield_field_duplicate_padding_name() {
+        #[bitfield(u16)]
+        pub struct Bitfield {
+            a: u8,
+            #[bits(4)]
+            __: u8,
+            #[bits(4)]
+            __: u8,
+        }
+    }
+
+    #[test]
     fn bitfield_field_padding() {
         #[bitfield(u64)]
         pub struct Bitfield {

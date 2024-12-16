@@ -691,7 +691,9 @@ fn check_bitfield_names_unique(fields: &[BitfieldField]) -> syn::Result<()> {
                 ),
             ));
         }
-        field_names.push(field.name.clone());
+        if !field.padding {
+            field_names.push(field.name.clone());
+        }
     }
 
     Ok(())
