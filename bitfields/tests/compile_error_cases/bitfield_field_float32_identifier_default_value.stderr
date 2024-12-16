@@ -1,0 +1,5 @@
+error: Floats are not supported as default values.
+ --> tests/compile_error_cases/bitfield_field_float32_identifier_default_value.rs:5:22
+  |
+5 |     #[bits(default = 0f32)]
+  |                      ^^^^

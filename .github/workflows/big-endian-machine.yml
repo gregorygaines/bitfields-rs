@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+name: Big Endian Machine Build
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+   miri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2024-12-15
+      - run: rustup toolchain install nightly --component miri
+      - run: rustup override set nightly
+      - run: cargo miri setup
+      - run: cargo miri test --all --target s390x-unknown-linux-gnu

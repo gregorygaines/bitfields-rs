@@ -1,0 +1,13 @@
+[package]
+name = "bitfields"
+version = "0.1.0"
+authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
+description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
+keywords = ["bitfield", "proc_macro", "procmacro", "struct", "macro"]
+edition = "2021"
+
+[dependencies]
+bitfields-proc-macro = { path = "../bitfields_proc_macro" }
+
+[dev-dependencies]
+trybuild = "1.0.101"

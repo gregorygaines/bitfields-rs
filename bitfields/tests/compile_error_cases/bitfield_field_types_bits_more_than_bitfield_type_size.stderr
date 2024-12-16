@@ -1,0 +1,5 @@
+error: The total number of bits of the fields (40 bits) is greater than the number of bits of the bitfield type 'u32' (32 bits).
+ --> tests/compile_error_cases/bitfield_field_types_bits_more_than_bitfield_type_size.rs:3:12
+  |
+3 | #[bitfield(u32)]
+  |            ^^^

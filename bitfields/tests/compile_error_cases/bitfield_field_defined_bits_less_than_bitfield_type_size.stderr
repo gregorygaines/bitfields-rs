@@ -1,0 +1,5 @@
+error: The total number of bits of the fields (29 bits) is less than the number of bits of the bitfield type 'u32' (32 bits), you can add a padding field (prefixed with '_') to fill the remaining '3 bits'.
+ --> tests/compile_error_cases/bitfield_field_defined_bits_less_than_bitfield_type_size.rs:3:12
+  |
+3 | #[bitfield(u32)]
+  |            ^^^

@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+name: Rustfmt
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2024-12-15
+          components: rustfmt
+      - run: cargo fmt --all -- --check --verbose

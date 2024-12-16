@@ -1,0 +1,10 @@
+# A predefined .rustfmt.toml file with all configuration options and their
+# associated description, possible values and default values for use in other
+# projects.
+unstable_features = true
+style_edition = "2024"
+newline_style = "Unix"
+wrap_comments = true
+use_small_heuristics = "Max" # "Max" == All granular width settings same as `max_width`.
+group_imports="StdExternalCrate"
+reorder_modules=true

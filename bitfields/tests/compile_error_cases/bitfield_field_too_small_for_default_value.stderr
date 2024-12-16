@@ -1,0 +1,5 @@
+error: The default value '65535' is too large to fit into the specified '8 bits'.
+ --> tests/compile_error_cases/bitfield_field_too_small_for_default_value.rs:5:22
+  |
+5 |     #[bits(default = 0xFFFF)]
+  |                      ^^^^^^

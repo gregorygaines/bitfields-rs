@@ -1,0 +1,8 @@
+error[E0599]: no method named `into_bits` found for struct `Bitfield` in the current scope
+  --> tests/compile_error_cases/bitfield_disable_into_bits.rs:14:29
+   |
+3  | #[bitfield(u64, into_bits = false)]
+   | ----------------------------------- method `into_bits` not found for this struct
+...
+14 |     let val: u64 = bitfield.into_bits();
+   |                             ^^^^^^^^^ method not found in `Bitfield`

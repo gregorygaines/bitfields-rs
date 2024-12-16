@@ -1,0 +1,5 @@
+error: expected `struct`
+ --> tests/compile_error_cases/bitfield_attribute_non_struct.rs:4:5
+  |
+4 | pub enum NonStruct {
+  |     ^^^^

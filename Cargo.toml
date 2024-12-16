@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "./bitfields",
+    "./bitfields_proc_macro"
+]
+resolver = "2"
