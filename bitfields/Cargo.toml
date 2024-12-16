@@ -7,11 +7,11 @@ keywords = ["bit" ,"bitfield", "bitfields", "struct"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/gregorygaines/bitfields-rs"
-readme = "README.md"
+readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "0.1.0" }
+bitfields-impl = { path = "../bitfields_impl", version = "0.1.1" }
 
 [dev-dependencies]
 trybuild = "1.0.101"
