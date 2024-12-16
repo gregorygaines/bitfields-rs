@@ -29,7 +29,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "0.3.0"
+bitfields = "0.4.0"
 ```
 
 ## 🚀 Getting Started
@@ -289,10 +289,18 @@ struct BitFieldU128 {
 
 A bitfield field can be any unsigned (`u8`, `u16`, `u32`, `u64`, `u128`), signed
 type (`i8`, `i16`, `i32`, `i64`, `i128`), or a custom type that implements the
-const functions `from_bits` and `into_bits`.
+const functions `from_bits` and `into_bits`. A default value can also be a const
+variable or a const function. Just be aware that const function and variables defaults
+lose their compile-time field bits checking.
 
 ```rust
 use bitfields::bitfield;
+
+const CONST_VAR: u8 = 0x2;
+
+const fn provide_val() -> u8 {
+    0x1
+}
 
 #[bitfield(u32)]
 struct Bitfield {
@@ -302,7 +310,11 @@ struct Bitfield {
     b: i8,
     #[bits(4, default = 9)]
     c_sign_extended: i8, // Sign-extended by the most significant bit of 4 bits.
-    #[bits(12, default = CustomType::C)]
+    #[bits(2, default = CONST_VAR)] // No compile time checks for const variables.
+    const_var_default: u8,
+    #[bits(2, default = provide_val())] // No compile time checks for const functions.
+    const_fn_default: u8, // No compile time checks for const functions.
+    #[bits(8, default = CustomType::C)]
     custom_type: CustomType
 }
 
@@ -332,6 +344,8 @@ let bitfield = Bitfield::new();
 assert_eq!(bitfield.a(), 0xFF);
 assert_eq!(bitfield.b(), -127);
 assert_eq!(bitfield.c_sign_extended(), -7);
+assert_eq!(bitfield.const_var_default(), 0x2);
+assert_eq!(bitfield.const_fn_default(), 0x1);
 assert_eq!(bitfield.custom_type(), CustomType::C);
 ```
 
