@@ -2,6 +2,6 @@
 
 members = [
     "./bitfields",
-    "./bitfields_proc_macro"
+    "./bitfields_impl"
 ]
 resolver = "2"
