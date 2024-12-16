@@ -5,6 +5,10 @@ authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
 description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
 keywords = ["bitfield", "proc_macro", "procmacro", "struct", "macro"]
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/gregorygaines/bitfields-rs"
+readme = "README.md"
+categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 
 [dependencies]
 bitfields-proc-macro = { path = "../bitfields_proc_macro" }
