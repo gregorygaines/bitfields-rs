@@ -7,7 +7,7 @@ keywords = ["bit" ,"bitfield", "bitfields", "struct"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/gregorygaines/bitfields-rs"
-readme = "README.md"
+readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 
 [lib]
