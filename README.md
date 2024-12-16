@@ -40,7 +40,7 @@ Control Register (DISPCNT) which is an 8-bit register:
 ```text
   Bit   Expl.
   0-1   BG Mode                    (0-7=Video Mode)
-  2-3   Display BG (0-2)           (0=BGx Off, 1=BGx On)
+  2-3   Display BG (0-1)           (0=BGx Off, 1=BGx On)
   4     OBJ Character VRAM Mapping (0=Two dimensional, 1=One dimensional)
   5-7   Always 0x3                 Padding
 ```
@@ -101,7 +101,6 @@ struct DisplayControl {
 struct DisplayMode {
     bg0_on: bool,
     bg1_on: bool,
-    bg2_on: bool,
 }
 
 /// Implement the `from_bits` and `into_bits` funcs for the custom type.
@@ -111,13 +110,12 @@ impl DisplayMode {
         Self {
             bg0_on: bits & 0b001 != 0,
             bg1_on: bits & 0b010 != 0,
-            bg2_on: bits & 0b100 != 0,
         }
     }
 
     /// Convert the custom type into bits.
     const fn into_bits(self) -> u8 {
-        (self.bg0_on as u8) | (self.bg1_on as u8) << 1 | (self.bg2_on as u8) << 2
+        (self.bg0_on as u8) | (self.bg1_on as u8) << 1
     }
 }
 
@@ -125,19 +123,18 @@ impl DisplayMode {
 let display_mode = DisplayMode {
     bg0_on: true,
     bg1_on: false,
-    bg2_on: true,
 };
 
 // Building the display control.
 let display_control = DisplayControlBuilder::new()
-    .with_bg_mode(0b11)
+    .with_bg_mode(0b1)
     .with_display_mode(display_mode)
     .with_obj_char_vram_mapping(true)
     .build();
 
 // Converting into bits.
 let val = display_control.into_bits();
-assert_eq!(val, 0b01110111);
+assert_eq!(val, 0b01110101);
 ```
 
 ## 🤔 What Other Features Does Bitfields Offer?
