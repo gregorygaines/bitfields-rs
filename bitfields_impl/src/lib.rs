@@ -191,11 +191,11 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// ### Bitfield Field Types
 ///
-/// A bitfield field can be any unsigned (`u8`, `u16`, `u32`, `u64`, `u128`), signed
-/// type (`i8`, `i16`, `i32`, `i64`, `i128`), or a custom type that implements the
-/// const functions `from_bits` and `into_bits`. A default value can also be a const
-/// variable or a const function. Just be aware that const function and variables defaults
-/// lose their compile-time field bits checking.
+/// A bitfield field can be any unsigned (`u8`, `u16`, `u32`, `u64`, `u128`),
+/// signed type (`i8`, `i16`, `i32`, `i64`, `i128`), or a custom type that
+/// implements the const functions `from_bits` and `into_bits`. A default value
+/// can also be a const variable or a const function. Just be aware that const
+/// function and variables defaults lose their compile-time field bits checking.
 ///
 /// ```ignore
 /// use bitfields::bitfield;
@@ -251,7 +251,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.const_var_default(), 0x2);
 /// assert_eq!(bitfield.const_fn_default(), 0x1);
 /// assert_eq!(bitfield.custom_type(), CustomType::C);
-///```
+/// ```
 ///
 /// ### Constructing a Bitfield
 ///
