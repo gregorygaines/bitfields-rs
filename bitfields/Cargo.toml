@@ -11,7 +11,7 @@ readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "0.2.0" }
+bitfields-impl = { path = "../bitfields_impl", version = "0.2.1" }
 
 [dev-dependencies]
 trybuild = "1.0.101"
