@@ -833,15 +833,17 @@ fn do_parse_field(
             ));
         }
 
-        // Make sure the default value is within the field bits.
+        // Make sure the default value is within the field bits. If a number was unable
+        // to be parsed, let's take a chance and see if the user is trying to
+        // use a const variable or a const function.
         let parsed_number = if field_type == FieldType::IntegerFieldType
             && bits_attribute.clone().default_value_expr.is_some()
         {
-            Some(check_default_value_fit_in_field(
+            check_default_value_fit_in_field(
                 &bits_attribute.clone().default_value_expr.unwrap(),
                 bits,
                 field_tokens.ty.clone(),
-            )?)
+            )?
         } else {
             None
         };
@@ -912,7 +914,7 @@ fn check_default_value_fit_in_field(
     default_value_expr: &Expr,
     bits: u8,
     field_type: Type,
-) -> syn::Result<ParsedNumber> {
+) -> syn::Result<Option<ParsedNumber>> {
     let default_value_str = &quote!(#default_value_expr).to_string();
 
     let parsed_number = match parse_number_string(default_value_str) {
@@ -923,10 +925,9 @@ fn check_default_value_fit_in_field(
                     default_value_expr.span(),
                     "Floats are not supported as default values.".to_string(),
                 )),
-                NumberParseError::InvalidNumberString => Err(create_syn_error(
-                    default_value_expr.span(),
-                    "Invalid default value, only integer and bool are supported.".to_string(),
-                )),
+                // Maybe the user is trying to use a const variable or a const
+                // function call as a default.
+                NumberParseError::InvalidNumberString => Ok(None),
             };
         }
     };
@@ -1020,7 +1021,7 @@ fn check_default_value_fit_in_field(
         ));
     }
 
-    Ok(parsed_number)
+    Ok(Some(parsed_number))
 }
 
 /// Calculate the offset of a field based on previous fields.

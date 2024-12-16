@@ -1569,4 +1569,35 @@ mod tests {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile_error_cases/bitfield_padding_field_with_access.rs");
     }
+
+    #[test]
+    fn bitfield_const_default_value() {
+        const A_VAL: u8 = 0x12;
+
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(default = A_VAL)]
+            a: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert_eq!(bitfield.a(), 0x12);
+    }
+
+    #[test]
+    fn bitfield_const_func_default_value() {
+        const fn generate_val() -> u8 {
+            0xFF
+        }
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(default = generate_val())]
+            a: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert_eq!(bitfield.a(), 0xFF);
+    }
 }
