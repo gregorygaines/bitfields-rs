@@ -1612,4 +1612,195 @@ mod tests {
 
         assert_eq!(bitfield.a(), 0xFF);
     }
+
+    #[test]
+    fn bitfield_get_bit() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2, default = 0b11)]
+            a: u8,
+            #[bits(2, default = 0b00)]
+            b: u8,
+            #[bits(2, default = 0b10, access = wo)]
+            c: u8,
+            #[bits(2, default = 0b01)]
+            _d: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert!(bitfield.get_bit(0));
+        assert!(bitfield.get_bit(1));
+        assert!(!bitfield.get_bit(2));
+        assert!(!bitfield.get_bit(3));
+        assert!(!bitfield.get_bit(4));
+        assert!(!bitfield.get_bit(5));
+        assert!(bitfield.get_bit(6));
+        assert!(!bitfield.get_bit(7));
+    }
+
+    #[test]
+    fn bitfield_get_bit_out_of_bounds() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2, default = 0b11)]
+            a: u8,
+            #[bits(2, default = 0b00)]
+            b: u8,
+            #[bits(2, default = 0b10, access = wo)]
+            c: u8,
+            #[bits(2, default = 0b01)]
+            _d: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert!(!bitfield.get_bit(50));
+    }
+
+    #[test]
+    fn bitfield_checked_get_bit() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2, default = 0b11)]
+            a: u8,
+            #[bits(2, default = 0b00)]
+            b: u8,
+            #[bits(2, default = 0b10, access = wo)]
+            c: u8,
+            #[bits(2, default = 0b01)]
+            _d: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert!(bitfield.checked_get_bit(0).unwrap());
+        assert!(bitfield.checked_get_bit(1).unwrap());
+        assert!(!bitfield.checked_get_bit(2).unwrap());
+        assert!(!bitfield.checked_get_bit(3).unwrap());
+        assert!(bitfield.checked_get_bit(4).is_err());
+        assert!(bitfield.checked_get_bit(5).is_err());
+        assert!(bitfield.get_bit(6));
+        assert!(!bitfield.get_bit(7));
+    }
+
+    #[test]
+    fn bitfield_checked_get_bit_none_access() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2, default = 0b11)]
+            a: u8,
+            #[bits(2, default = 0b00)]
+            b: u8,
+            #[bits(2, default = 0b10, access = none)]
+            c: u8,
+            #[bits(2, default = 0b01)]
+            _d: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert!(bitfield.checked_get_bit(0).unwrap());
+        assert!(bitfield.checked_get_bit(1).unwrap());
+        assert!(!bitfield.checked_get_bit(2).unwrap());
+        assert!(!bitfield.checked_get_bit(3).unwrap());
+        assert!(bitfield.checked_get_bit(4).is_err());
+        assert!(bitfield.checked_get_bit(5).is_err());
+        assert!(bitfield.get_bit(6));
+        assert!(!bitfield.get_bit(7));
+    }
+
+    #[test]
+    fn bitfield_checked_get_bit_rw_access() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2, default = 0b11)]
+            a: u8,
+            #[bits(2, default = 0b00)]
+            b: u8,
+            #[bits(2, default = 0b10, access = rw)]
+            c: u8,
+            #[bits(2, default = 0b01)]
+            _d: u8,
+        }
+
+        let bitfield = Bitfield::new();
+
+        assert!(bitfield.checked_get_bit(0).unwrap());
+        assert!(bitfield.checked_get_bit(1).unwrap());
+        assert!(!bitfield.checked_get_bit(2).unwrap());
+        assert!(!bitfield.checked_get_bit(3).unwrap());
+        assert!(!bitfield.checked_get_bit(4).unwrap());
+        assert!(bitfield.checked_get_bit(5).unwrap());
+        assert!(bitfield.get_bit(6));
+        assert!(!bitfield.get_bit(7));
+    }
+
+    #[test]
+    fn bitfield_set_bit() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2)]
+            a: u8,
+            #[bits(2, default = 0b11)]
+            b: u8,
+            #[bits(2, default = 0b11, access = ro)]
+            c: u8,
+            #[bits(2, default = 0b00)]
+            _d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bit(0, true);
+        bitfield.set_bit(1, true);
+        bitfield.set_bit(2, false);
+        bitfield.set_bit(3, false);
+        bitfield.set_bit(4, false);
+        bitfield.set_bit(5, false);
+        bitfield.set_bit(6, true);
+        bitfield.set_bit(7, true);
+        assert_eq!(bitfield.into_bits(), 0b110011);
+    }
+
+    #[test]
+    fn bitfield_checked_set_bit() {
+        #[bitfield(u8, bit_ops = true)]
+        #[derive(Copy, Clone)]
+        pub struct Bitfield {
+            #[bits(2)]
+            a: u8,
+            #[bits(2, default = 0b11)]
+            b: u8,
+            #[bits(2, default = 0b11, access = ro)]
+            c: u8,
+            #[bits(2, default = 0b00)]
+            _d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        assert!(bitfield.checked_set_bit(0, true).is_ok());
+        assert!(bitfield.checked_set_bit(1, true).is_ok());
+        assert!(bitfield.checked_set_bit(2, false).is_ok());
+        assert!(bitfield.checked_set_bit(3, false).is_ok());
+        assert!(bitfield.checked_set_bit(4, false).is_err());
+        assert!(bitfield.checked_set_bit(5, false).is_err());
+        assert!(bitfield.checked_set_bit(6, true).is_err());
+        assert!(bitfield.checked_set_bit(7, true).is_err());
+        assert_eq!(bitfield.into_bits(), 0b110011);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_bit_ops_disabled() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_bit_ops_disabled.rs");
+    }
 }
