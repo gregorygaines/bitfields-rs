@@ -21,6 +21,7 @@ or concepts (e.g. embedded or writing an emulator).
 - Compile-time checks for fields, types, and bits bounds checking.
 - Supports most primitive and user-defined custom types.
 - Supports endian conversion (little, big) and field order (msb or lsb).
+- Signed fields are treated as 2's complement data types.
 - Generates checked versions of field setters to catch overflows.
 - Generates bit operations to get or set bits.
 
@@ -294,6 +295,10 @@ const functions `from_bits` and `into_bits`. A default value can also be a const
 variable or a const function. Just be aware that const function and variables defaults
 lose their compile-time field bits checking.
 
+Signed types are treated as 2's complement data types, meaning the most significant
+represents the sign bit. For example, if you had a field with 5 bits, the value range
+would be `-16` to `15`. The more bits you include, the larger the value range.
+
 ```rust
 use bitfields::bitfield;
 
@@ -309,8 +314,11 @@ struct Bitfield {
     a: u8,
     #[bits(default = -127)]
     b: i8,
+    /// Sign-extended by the most significant bit of 4 bits. Also treated as 2's
+    /// complement, meaning this field with 4 bits has the value range of
+    /// `-8` to `7`. You can add more bits to increase this range!
     #[bits(4, default = 9)]
-    c_sign_extended: i8, // Sign-extended by the most significant bit of 4 bits.
+    c_sign_extended: i8,
     #[bits(2, default = CONST_VAR)] // No compile time checks for const variables.
     const_var_default: u8,
     #[bits(2, default = provide_val())] // No compile time checks for const functions.
