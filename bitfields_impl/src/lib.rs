@@ -497,6 +497,77 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert!(res.is_err());
 /// ```
 ///
+/// ### Bit Operations
+///
+/// Individual bits can be get or set using the `get_bit` and `set_bit` functions. They can be enabled using
+/// the bitfield attribute arg For `get_bit`, if the bit is  out-of-bounds or the field doesn't have write access,
+/// `false` is returned. There is a checked version `checked_get_bit` that return an error instead. Similarly,
+/// for `set_bit`, if the bit is out-of-bounds or the  field doesn't have write access, the operation is no-op.
+/// There is a checked version `checked_set_bit` that returns an error instead.
+///
+/// ```ignore
+/// use bitfields::bitfield;
+///
+/// #[bitfield(u8, bit_ops = true)]
+/// #[derive(Copy, Clone)]
+/// pub struct Bitfield {
+///     #[bits(2, default = 0b11)]
+///     a: u8,
+///     #[bits(2, default = 0b00)]
+///     b: u8,
+///     #[bits(2, default = 0b10, access = wo)]
+///     c: u8,
+///     #[bits(2, default = 0b01)]
+///     _d: u8,
+/// }
+///
+/// let bitfield = Bitfield::new();
+///
+/// assert!(bitfield.get_bit(0));
+/// assert!(bitfield.get_bit(1));
+/// assert!(!bitfield.get_bit(2));
+/// assert!(!bitfield.get_bit(3));
+/// assert!(bitfield.get_bit(4)); // No write access, false is returned.
+/// assert!(bitfield.get_bit(5)); // No write access, false is returned.
+/// assert!(bitfield.checked_get_bit(4).is_err()); // No write access, err.
+/// assert!(bitfield.checked_get_bit(5).is_err()); // No write access, err.
+/// assert!(bitfield.get_bit(6));
+/// assert!(!bitfield.get_bit(7));
+/// assert!(bitfield.get_bit(50)); // Out-of-bounds, false is returned.
+/// assert!(bitfield.checked_get_bit(50).is_err()); // Out-of-bounds, err.
+/// ```
+///
+/// ```ignore
+/// #[bitfield(u8, bit_ops = true)]
+/// #[derive(Copy, Clone)]
+/// pub struct Bitfield {
+///     #[bits(2)]
+///     a: u8,
+///     #[bits(2, default = 0b11)]
+///     b: u8,
+///     #[bits(2, default = 0b11, access = ro)]
+///     c: u8,
+///     #[bits(2, default = 0b00)]
+///     _d: u8,
+/// }
+///
+/// let mut bitfield = Bitfield::new();
+///
+/// bitfield.set_bit(0, true);
+/// bitfield.set_bit(1, true);
+/// bitfield.set_bit(2, false);
+/// bitfield.set_bit(3, false);
+/// bitfield.set_bit(4, false); // No-op, no write access.
+/// bitfield.set_bit(5, false); // No-op, no write access.
+/// assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, no write access.
+/// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, no write access.
+/// bitfield.set_bit(6, true); // No-op, padding.
+/// bitfield.set_bit(7, true); // No-op, padding.
+/// assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, padding.
+/// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding..
+/// assert_eq!(bitfield.into_bits(), 0b110011);
+/// ```
+///
 /// ### Padding Fields
 ///
 /// Fields prefixed with an underscore `_` are padding fields, which are
