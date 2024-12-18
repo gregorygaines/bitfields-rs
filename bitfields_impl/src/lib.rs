@@ -499,11 +499,14 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// ### Bit Operations
 ///
-/// Individual bits can be get or set using the `get_bit` and `set_bit` functions. They can be enabled using
-/// the bitfield attribute arg For `get_bit`, if the bit is  out-of-bounds or the field doesn't have write access,
-/// `false` is returned. There is a checked version `checked_get_bit` that return an error instead. Similarly,
-/// for `set_bit`, if the bit is out-of-bounds or the  field doesn't have write access, the operation is no-op.
-/// There is a checked version `checked_set_bit` that returns an error instead.
+/// Individual bits can be get or set using the `get_bit` and `set_bit`
+/// functions. They can be enabled using the bitfield attribute arg For
+/// `get_bit`, if the bit is  out-of-bounds or the field doesn't have write
+/// access, `false` is returned. There is a checked version `checked_get_bit`
+/// that return an error instead. Similarly, for `set_bit`, if the bit is
+/// out-of-bounds or the  field doesn't have write access, the operation is
+/// no-op. There is a checked version `checked_set_bit` that returns an error
+/// instead.
 ///
 /// ```ignore
 /// use bitfields::bitfield;
