@@ -33,6 +33,8 @@ pub(crate) struct BitfieldAttribute {
     pub(crate) generate_builder: bool,
     /// Whether to generate the `debug_impl` function.
     pub(crate) generate_debug_impl: bool,
+    /// Whether to generate the bit operations.
+    pub(crate) generate_bit_ops: bool,
 }
 
 /// The order of the bits in the bitfield.
@@ -118,6 +120,7 @@ impl Parse for BitfieldAttribute {
         let mut generate_default_impl = true;
         let mut generate_builder = true;
         let mut generate_debug_impl = true;
+        let mut generate_bit_ops = false;
 
         // Parse the remaining arguments which is in the form of `[key] = [val]`.
         while !input.is_empty() {
@@ -303,6 +306,20 @@ impl Parse for BitfieldAttribute {
                         }
                     };
                 }
+                "bit_ops" => {
+                    generate_bit_ops = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'big_ops' arg '{}', must be either 'true', or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    };
+                }
                 _ => {
                     return Err(create_syn_error(
                         arg_ident.span(),
@@ -330,6 +347,7 @@ impl Parse for BitfieldAttribute {
             generate_debug_impl,
             generate_builder,
             generate_from_trait_funcs,
+            generate_bit_ops,
         })
     }
 }

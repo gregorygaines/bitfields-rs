@@ -1,3 +1,4 @@
+pub(crate) mod bit_operations;
 pub(crate) mod builder_struct;
 pub(crate) mod common;
 pub(crate) mod debug_impl;

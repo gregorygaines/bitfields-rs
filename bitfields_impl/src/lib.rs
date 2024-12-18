@@ -9,6 +9,7 @@ use quote::{ToTokens, quote};
 use syn::spanned::Spanned;
 use syn::{Expr, ExprLit, ExprUnary, Fields, Lit, LitInt, Meta, Type, Visibility};
 
+use crate::generation::bit_operations::{generate_get_bit_tokens, generate_set_bit_tokens};
 use crate::generation::builder_struct::generate_builder_tokens;
 use crate::generation::common::PANIC_ERROR_MESSAGE;
 use crate::generation::debug_impl::generate_debug_implementation;
@@ -1199,6 +1200,12 @@ fn generate_functions(
     let debug_impl = bitfield_attribute
         .generate_debug_impl
         .then(|| generate_debug_implementation(struct_name.clone(), bitfield_attribute, fields));
+    let get_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
+        generate_get_bit_tokens(struct_tokens.vis.clone(), &bitfield_attribute.ty, fields)
+    });
+    let set_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
+        generate_set_bit_tokens(struct_tokens.vis.clone(), &bitfield_attribute.ty, fields)
+    });
 
     Ok(quote! {
         #struct_attributes
@@ -1217,6 +1224,9 @@ fn generate_functions(
             #field_consts_tokens
             #field_getters_tokens
             #field_setters_tokens
+
+            #get_bit_operations
+            #set_bit_operations
         }
 
         #default_function
