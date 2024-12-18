@@ -159,6 +159,9 @@ pub struct Bitfield {
     signed_int: i8,
     /// If you specify bits, the field will be sign-extended by the most significant
     /// bit of the specified bits. In this case, the most significant bit of 4 bits.
+    /// Also signed fields are 2's complement, meaning this field with 4 bits has
+    /// the value range of `-8` to `7`. You can add more bits to increase this
+    /// range!
     #[bits(4)]
     small_signed_int: i8,
     /// A field can be a bool type.
