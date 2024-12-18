@@ -22,7 +22,7 @@ or concepts (e.g. embedded or writing an emulator).
 - Supports most primitive and user-defined custom types.
 - Supports endian conversion (little, big) and field order (msb or lsb).
 - Generates checked versions of field setters to catch overflows.
-- Generates bit operations.
+- Generates bit operations to get or set bits.
 
 ## 🔧 Usage
 
