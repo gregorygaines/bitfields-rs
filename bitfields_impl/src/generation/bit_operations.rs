@@ -89,10 +89,8 @@ pub(crate) fn generate_set_bit_tokens(
             }
         });
 
-    let error_return_for_non_writable_fields = fields
-        .iter()
-        .filter(|field| !does_field_have_setter(field))
-        .map(|field| {
+    let error_return_for_non_writable_fields =
+        fields.iter().filter(|field| !does_field_have_setter(field)).map(|field| {
             let field_offset = field.offset as usize;
             let field_bits = field.bits as usize;
             let field_end_bits = field_offset + field_bits;
