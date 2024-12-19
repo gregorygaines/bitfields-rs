@@ -1,6 +1,6 @@
 [package]
 name = "bitfields-impl"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
 description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
 keywords = ["bit" ,"bitfield", "bitfields", "struct"]
