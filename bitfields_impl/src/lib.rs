@@ -96,6 +96,9 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///     /// Fields prefixed with "_" are padding fields, which are inaccessible.
 ///     #[bits(4, default = 0x3)]
 ///     _padding: u8,
+///     /// Fields with the ignore attribute are ignored.
+///     #[bits(99, ignore = true)]
+///     ignore_me: u128,
 /// }
 ///
 /// #[bitfield(u8)]
@@ -602,6 +605,25 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
 /// ```
 ///
+/// ### Ignored Fields
+///
+/// Fields with the `#[bits(ignore = true)` attribute are ignored and not
+/// included in the bitfield. This is useful for when you are building a custom
+/// bitfield, but want to include certain fields that aren't a part of the
+/// bitfield without wrapping having to wrap bitfield is a parent struct.
+///
+/// ```ignore
+/// use bitfields::bitfield;
+///
+/// #[bitfield(u16)]
+/// struct Bitfield {
+///     a: u8,
+///     b: u8,
+///     #[bits(ignore = true)] // Ignored field.
+///     field_id: u8,
+/// }
+/// ```
+///
 /// ### Field Constants
 ///
 /// Fields with read or write access have constants generated for their number
@@ -691,6 +713,8 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// - `#[bitfield(default = true)]` - Generates the `Default` trait
 ///   implementation
 /// - `#[bitfield(builder = true)]` - Generates the builder implementation.
+/// - `#[bitfield(bit_ops = true)]` - Generates the bit operations
+///   implementation.
 #[proc_macro_attribute]
 pub fn bitfield(
     args: proc_macro::TokenStream,
@@ -800,6 +824,10 @@ fn parse_fields(
     let mut fields = Vec::new();
     for field_token in fields_tokens.named.clone() {
         let field = do_parse_field(bitfield_attribute, field_token, &fields)?;
+        let field = match field {
+            Some(field) => field,
+            None => continue,
+        };
         fields.push(field);
     }
 
@@ -811,17 +839,7 @@ fn do_parse_field(
     bitfield_attribute: &BitfieldAttribute,
     field_tokens: syn::Field,
     prev_fields: &[BitfieldField],
-) -> syn::Result<BitfieldField> {
-    if !is_supported_field_type(&field_tokens.ty) {
-        return Err(create_syn_error(
-            field_tokens.span(),
-            format!(
-                "The field type {:?} is not supported.",
-                get_type_ident(&field_tokens.ty).unwrap()
-            ),
-        ));
-    }
-
+) -> syn::Result<Option<BitfieldField>> {
     // Parse field attribute, a field could have multiple attributes, but we only
     // care about our 'bits' attribute.
     let field_bit_attribute = field_tokens.attrs.iter().find(|attr| {
@@ -845,6 +863,16 @@ fn do_parse_field(
         field_tokens.ident.clone().unwrap().to_string().starts_with(PADDING_FIELD_NAME_PREFIX);
 
     let bitfield = if field_bit_attribute.is_none() {
+        if !is_supported_field_type(&field_tokens.ty) {
+            return Err(create_syn_error(
+                field_tokens.span(),
+                format!(
+                    "The field type {:?} is not supported.",
+                    get_type_ident(&field_tokens.ty).unwrap()
+                ),
+            ));
+        }
+
         // We have to determine the number of bits from the field type since there's no
         // '#[bits]' attribute.
         if is_size_type(&field_tokens.ty) {
@@ -891,6 +919,20 @@ fn do_parse_field(
         };
 
         let bits_attribute: BitsAttribute = syn::parse2(bit_attribute_tokens.tokens.clone())?;
+
+        if bits_attribute.ignore {
+            return Ok(None);
+        }
+
+        if !is_supported_field_type(&field_tokens.ty) {
+            return Err(create_syn_error(
+                field_tokens.span(),
+                format!(
+                    "The field type {:?} is not supported.",
+                    get_type_ident(&field_tokens.ty).unwrap()
+                ),
+            ));
+        }
 
         let bits = match bits_attribute.bits {
             Some(bits) => {
@@ -1005,7 +1047,7 @@ fn do_parse_field(
         }
     };
 
-    Ok(bitfield)
+    Ok(Some(bitfield))
 }
 
 /// Checks if the default value can fit in the field bits.

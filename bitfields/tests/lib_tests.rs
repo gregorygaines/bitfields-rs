@@ -1803,4 +1803,26 @@ mod tests {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile_error_cases/bitfield_bit_ops_disabled.rs");
     }
+
+    #[test]
+    fn bitfield_ignored_field() {
+        #![allow(dead_code)]
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(2, ignore = true)]
+            ignored: char,
+            #[bits(99, ignore = true)]
+            ignored: Custom,
+            #[bits(4, default = 0b11)]
+            b: u8,
+            #[bits(2, default = 0b11, access = ro)]
+            c: u8,
+            #[bits(2, default = 0b00)]
+            _d: u8,
+        }
+
+        enum Custom {
+            A = 0,
+        }
+    }
 }

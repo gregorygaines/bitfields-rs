@@ -4,6 +4,8 @@ use proc_macro2::TokenStream;
 use syn::Token;
 use syn::parse::{Parse, ParseStream};
 
+use crate::create_syn_error;
+
 /// Represents a field in a bitfield struct.
 #[derive(Clone)]
 pub(crate) struct BitfieldField {
@@ -44,6 +46,7 @@ pub(crate) struct BitsAttribute {
     pub(crate) bits: Option<u8>,
     pub(crate) default_value_expr: Option<syn::Expr>,
     pub(crate) access: Option<FieldAccess>,
+    pub(crate) ignore: bool,
 }
 
 /// Represents the access of a field.
@@ -77,7 +80,7 @@ impl Parse for BitsAttribute {
     /// Parser a field with the '#[bits]' attribute.
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut bitfield_attribute_args =
-            BitsAttribute { bits: None, default_value_expr: None, access: None };
+            BitsAttribute { bits: None, default_value_expr: None, access: None, ignore: false };
 
         // First check for the number of bits.
         if input.peek(syn::LitInt) {
@@ -137,6 +140,20 @@ impl Parse for BitsAttribute {
                         }
                     };
                     bitfield_attribute_args.access = Some(access);
+                }
+                "ignore" => {
+                    bitfield_attribute_args.ignore = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'ignore' arg '{}', must be either 'true' or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    };
                 }
                 _ => {}
             }

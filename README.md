@@ -24,6 +24,7 @@ or concepts (e.g. embedded or writing an emulator).
 - Signed fields are treated as 2's complement data types.
 - Generates checked versions of field setters to catch overflows.
 - Generates bit operations to get or set bits.
+- Ability to ignore fields.
 
 ## 🔧 Usage
 
@@ -193,6 +194,9 @@ pub struct Bitfield {
     /// Fields prefixed with "_" are padding fields, which are inaccessible.
     #[bits(4, default = 0x3)]
     _padding: u8,
+    /// Fields with the ignore attribute are ignored.
+    #[bits(99, ignore = true)]
+    ignore_me: u128,
 }
 
 #[bitfield(u8)]
@@ -686,6 +690,24 @@ assert_eq!(bitfield.a(), 0);
 // assert_eq!(bitfield._padding(), 0xFF00); // Compile error, padding inaccessible.
 // bitfield.set__padding(0xFF); // Compile error, padding fields are inaccessible.
 assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
+```
+
+### Ignored Fields
+
+Fields with the `#[bits(ignore = true)` attribute are ignored and not included in the bitfield. This is useful for
+when you are building a custom bitfield, but want to include certain fields that aren't a part of the bitfield without
+wrapping having to wrap bitfield is a parent struct.
+
+```rust
+use bitfields::bitfield;
+
+#[bitfield(u16)]
+struct Bitfield {
+    a: u8,
+    b: u8,
+    #[bits(ignore = true)] // Ignored field.
+    field_id: u8, 
+}
 ```
 
 ### Field Constants 
