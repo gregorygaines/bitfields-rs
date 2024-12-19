@@ -17,6 +17,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
     const_reference_tokens: Option<TokenStream>,
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     fields
         .iter()
@@ -64,6 +65,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         const_reference_tokens.clone(),
                         quote! { #default_value },
                         /* check_value_bit_size= */ false,
+                        ignored_fields_struct,
                     )
                 }
                 None => {
@@ -74,6 +76,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                             const_reference_tokens.clone(),
                             quote! { false },
                             /* check_value_bit_size= */ false,
+                            ignored_fields_struct,
                         );
                     }
                     generate_setter_impl_tokens(
@@ -82,6 +85,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         const_reference_tokens.clone(),
                         quote! { 0 },
                         /* check_value_bit_size= */ false,
+                        ignored_fields_struct,
                     )
                 }
             }
@@ -94,6 +98,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
     const_reference_tokens: Option<TokenStream>,
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     fields
         .iter()
@@ -104,6 +109,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                     bitfield_type,
                     [field.clone()].as_ref(),
                     None,
+                    ignored_fields_struct,
                 );
             }
 
@@ -140,6 +146,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                     const_reference_tokens.clone(),
                     quote! { false },
                     /* check_value_bit_size= */ false,
+                    ignored_fields_struct,
                 );
             }
 
@@ -149,6 +156,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 const_reference_tokens.clone(),
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
+                ignored_fields_struct,
             )
         })
         .collect()
@@ -160,6 +168,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
     fields: &[BitfieldField],
     const_reference_tokens: Option<TokenStream>,
     respect_defaults: bool,
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     fields
         .iter()
@@ -170,6 +179,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     bitfield_type,
                     [field.clone()].as_ref(),
                     None,
+                    ignored_fields_struct,
                 );
             }
 
@@ -191,6 +201,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                         bitfield_type,
                         [field.clone()].as_ref(),
                         const_reference_tokens.clone(),
+                        ignored_fields_struct,
                     );
                 }
 
@@ -224,6 +235,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     bitfield_type,
                     [field.clone()].as_ref(),
                     const_reference_tokens.clone(),
+                    ignored_fields_struct,
                 );
             }
 
@@ -241,6 +253,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     const_reference_tokens.clone(),
                     quote! { value != 0 },
                     /* check_value_bit_size= */ false,
+                    ignored_fields_struct,
                 );
                 return quote! {
                     #extract_value_bits
@@ -254,6 +267,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 const_reference_tokens.clone(),
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
+                ignored_fields_struct,
             );
 
             quote! {

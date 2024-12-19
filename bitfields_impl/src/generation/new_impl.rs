@@ -17,16 +17,44 @@ use crate::parsing::bitfield_field::BitfieldField;
 pub(crate) fn generate_new_function_tokens(
     vis: Visibility,
     fields: &[BitfieldField],
+    ignored_fields: &[BitfieldField],
     bitfield_type: &syn::Type,
 ) -> TokenStream {
-    let setting_fields_default_values_tokens =
-        generate_setting_fields_default_values_tokens(bitfield_type, fields, None);
+    let setting_fields_default_values_tokens = generate_setting_fields_default_values_tokens(
+        bitfield_type,
+        fields,
+        None,
+        !ignored_fields.is_empty(),
+    );
     let documentation = "Creates a new bitfield instance.";
+
+    let ignored_fields_defaults = ignored_fields.iter().map(|field| {
+        let field_name = &field.name;
+        let field_ty = &field.ty;
+        quote! {
+            #field_name: <#field_ty>::default(),
+        }
+    });
+
+    let initialize_struct_tokens = if !ignored_fields.is_empty() {
+        quote! {
+            Self {
+                val: 0,
+                #( #ignored_fields_defaults )*
+            }
+        }
+    } else {
+        quote! {
+            Self(0)
+        }
+    };
+
+    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
 
     quote! {
         #[doc = #documentation]
-        #vis const fn new() -> Self {
-            let mut this = Self(0);
+        #vis #const_ident_tokens fn new() -> Self {
+            let mut this = #initialize_struct_tokens;
             #setting_fields_default_values_tokens
             this
         }
@@ -44,16 +72,44 @@ pub(crate) fn generate_new_function_tokens(
 pub(crate) fn generate_new_without_defaults_function_tokens(
     vis: Visibility,
     fields: &[BitfieldField],
+    ignored_fields: &[BitfieldField],
     bitfield_type: &syn::Type,
 ) -> TokenStream {
-    let setting_fields_to_zero_tokens =
-        generate_setting_fields_to_zero_tokens(bitfield_type, fields, None);
+    let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
+        bitfield_type,
+        fields,
+        None,
+        !ignored_fields.is_empty(),
+    );
     let documentation = "Creates a new bitfield instance without setting any default values.";
+
+    let ignored_fields_defaults = ignored_fields.iter().map(|field| {
+        let field_name = &field.name;
+        let field_ty = &field.ty;
+        quote! {
+            #field_name: <#field_ty>::default(),
+        }
+    });
+
+    let initialize_struct_tokens = if !ignored_fields.is_empty() {
+        quote! {
+            Self {
+                val: 0,
+                #( #ignored_fields_defaults )*
+            }
+        }
+    } else {
+        quote! {
+            Self(0)
+        }
+    };
+
+    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
 
     quote! {
         #[doc = #documentation]
-        #vis const fn new_without_defaults() -> Self {
-            let mut this = Self(0);
+        #vis #const_ident_tokens fn new_without_defaults() -> Self {
+            let mut this = #initialize_struct_tokens;
             #setting_fields_to_zero_tokens
             this
         }

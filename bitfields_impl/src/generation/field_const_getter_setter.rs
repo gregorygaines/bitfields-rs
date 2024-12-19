@@ -40,6 +40,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
     default_vis: Visibility,
     bitfield_type: &Type,
     fields: &[BitfieldField],
+    ignored_fields_struct: bool,
 ) -> syn::Result<TokenStream> {
     let tokens = fields.iter().filter(|field| !field.padding).filter(|field| does_field_have_getter(field)).map(|field| {
         let field_name = field.name.clone().to_string();
@@ -59,13 +60,19 @@ pub(crate) fn generate_field_getters_functions_tokens(
             None => default_vis.clone(),
         };
 
+        let struct_val_ident = if ignored_fields_struct {
+            quote! { self.val }
+        } else {
+            quote! { self.0 }
+        };
+
         let common_field_getter_documentation = format!("Returns bits [{}..={}].", field_offset, field_bits_end);
         if field.field_type == FieldType::CustomFieldType {
             quote! {
                 #[doc = #common_field_getter_documentation]
                    #vis const fn #field_name_ident(&self) -> #field_type {
                     let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
-                    let this = ((self.0 >> Self::#field_offset_const_ident) & mask);
+                    let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                     #field_type::from_bits(this as _)
                 }
             }
@@ -78,7 +85,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                     #[doc = #bool_field_getter_documentation]
                     #vis const fn #field_name_ident(&self) -> #field_type {
                         let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
-                        let this = ((self.0 >> Self::#field_offset_const_ident) & mask);
+                        let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                         this != 0
                     }
                 }
@@ -101,7 +108,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                 #[doc = #field_getter_documentation]
                 #vis const fn #field_name_ident(&self) -> #field_type {
                     let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
-                    let this = ((self.0 >> Self::#field_offset_const_ident) & mask) as #field_type;
+                    let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask) as #field_type;
                     #sign_extend_tokens
                     this
                 }
@@ -117,6 +124,7 @@ pub(crate) fn generate_field_setters_functions_tokens(
     default_vis: Visibility,
     bitfield_type: &Type,
     fields: &[BitfieldField],
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     fields.iter().filter(|field| !field.padding).filter(|field| does_field_have_setter(field)).map(|field| {
         let field_name = field.name.clone().to_string();
@@ -135,8 +143,8 @@ pub(crate) fn generate_field_setters_functions_tokens(
             None => default_vis.clone(),
         };
 
-        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false);
-        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true);
+        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct);
+        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct);
 
         let setter_documentation = format!("Sets bits [{}..={}].", field_offset, field_bits_end);
         let checked_setter_documentation = format!("Sets bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end);
@@ -163,6 +171,7 @@ pub(crate) fn generate_setter_impl_tokens(
     bitfield_struct_name: Option<TokenStream>,
     value_ident: TokenStream,
     check_value_bit_size: bool,
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     let field_type = field.ty.clone();
 
@@ -200,6 +209,12 @@ pub(crate) fn generate_setter_impl_tokens(
         }
     };
 
+    let struct_val_ident = if ignored_fields_struct {
+        quote! { this.val }
+    } else {
+        quote! { this.0 }
+    };
+
     if field.field_type == FieldType::CustomFieldType {
         if check_value_bit_size {
             quote! {
@@ -208,26 +223,26 @@ pub(crate) fn generate_setter_impl_tokens(
                 if bits as #bitfield_type > mask {
                     return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
                 }
-                this.0 = (this.0 & !(mask << #field_offset)) | ((((bits as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
+                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((bits as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
                 Ok(())
             }
         } else {
             quote! {
                 let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
-                this.0 = (this.0 & !(mask << #field_offset)) | ((((#value_ident.into_bits() as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
+                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((#value_ident.into_bits() as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
             }
         }
     } else if check_value_bit_size {
         quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
             #bits_bigger_than_mask_check
-            this.0 = (this.0 & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
             Ok(())
         }
     } else {
         quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
-            this.0 = (this.0 & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
         }
     }
 }

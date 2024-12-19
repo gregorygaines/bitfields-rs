@@ -10,6 +10,7 @@ pub(crate) fn generate_get_bit_tokens(
     vis: Visibility,
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     let bitfield_type_bits = get_bits_from_type(bitfield_type).unwrap() as usize;
     let get_bit_documentation = "Returns a bit from the given index. Returns false for out-of-bounds and fields without read access.".to_string();
@@ -43,6 +44,12 @@ pub(crate) fn generate_get_bit_tokens(
             }
         });
 
+    let struct_val_ident = if ignored_fields_struct {
+        quote! { self.val }
+    } else {
+        quote! { self.0 }
+    };
+
     quote! {
         #[doc = #get_bit_documentation]
         #vis const fn get_bit(&self, index: usize) -> bool {
@@ -52,7 +59,7 @@ pub(crate) fn generate_get_bit_tokens(
 
             #( #false_return_for_non_readable_fields )*
 
-            (self.0 >> index) & 1 != 0
+            (#struct_val_ident >> index) & 1 != 0
         }
 
         #[doc = #checked_get_bit_documentation]
@@ -63,7 +70,7 @@ pub(crate) fn generate_get_bit_tokens(
 
             #( #error_return_for_write_only_fields )*
 
-            Ok((self.0 >> index) & 1 != 0)
+            Ok((#struct_val_ident >> index) & 1 != 0)
         }
     }
 }
@@ -72,6 +79,7 @@ pub(crate) fn generate_set_bit_tokens(
     vis: Visibility,
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     let bitfield_type_bits = get_bits_from_type(bitfield_type).unwrap() as usize;
     let set_bit_documentation = "Sets a bit at given index with the given value. Is no-op for out-of-bounds and fields without write access.".to_string();
@@ -101,6 +109,12 @@ pub(crate) fn generate_set_bit_tokens(
             }
         });
 
+    let struct_val_ident = if ignored_fields_struct {
+        quote! { self.val }
+    } else {
+        quote! { self.0 }
+    };
+
     quote! {
         #[doc = #set_bit_documentation]
         #vis const fn set_bit(&mut self, index: usize, bit: bool) {
@@ -111,9 +125,9 @@ pub(crate) fn generate_set_bit_tokens(
             #( #no_op_for_non_writable_fields )*
 
             if bit {
-                self.0 |= 1 << index;
+                #struct_val_ident |= 1 << index;
             } else {
-                self.0 &= !(1 << index);
+                #struct_val_ident &= !(1 << index);
             }
         }
 
@@ -126,9 +140,9 @@ pub(crate) fn generate_set_bit_tokens(
             #( #error_return_for_non_writable_fields )*
 
             if bit {
-                self.0 |= 1 << index;
+                #struct_val_ident |= 1 << index;
             } else {
-                self.0 &= !(1 << index);
+                #struct_val_ident &= !(1 << index);
             }
 
             Ok(())

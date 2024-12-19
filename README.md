@@ -696,7 +696,8 @@ assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted t
 
 Fields with the `#[bits(ignore = true)` attribute are ignored and not included in the bitfield. This is useful for
 when you are building a custom bitfield, but want to include certain fields that aren't a part of the bitfield without
-wrapping having to wrap bitfield is a parent struct.
+wrapping having to wrap bitfield is a parent struct. All ignored fields must implement the `Default` trait. Ignored fields
+are accessible directly like normal struct fields.
 
 ```rust
 use bitfields::bitfield;
@@ -706,8 +707,22 @@ struct Bitfield {
     a: u8,
     b: u8,
     #[bits(ignore = true)] // Ignored field.
-    field_id: u8, 
+    field_id: u8,
+    #[bits(ignore = true)] // Ignored field.
+    field_custom: CustomType,
 }
+
+#[derive(Debug, Default, PartialEq)]
+enum CustomType {
+    #[default]
+    A,
+    B,
+}
+
+let bitfield = Bitfield::new();
+
+assert_eq!(bitfield.field_id, 0); // Ignored fields can be accessed directly.
+assert_eq!(bitfield.field_custom, CustomType::A); // Ignored fields can be accessed directly.
 ```
 
 ### Field Constants 

@@ -29,7 +29,9 @@ use crate::generation::from_types_impl::{
 use crate::generation::new_impl::{
     generate_new_function_tokens, generate_new_without_defaults_function_tokens,
 };
-use crate::generation::tuple_struct::generate_tuple_struct_tokens;
+use crate::generation::tuple_struct::{
+    generate_struct_with_fields_tokens, generate_tuple_struct_tokens,
+};
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, BitsAttribute, FieldAccess, FieldType};
 use crate::parsing::number_parser::{NumberParseError, ParsedNumber, parse_number_string};
@@ -610,18 +612,34 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// Fields with the `#[bits(ignore = true)` attribute are ignored and not
 /// included in the bitfield. This is useful for when you are building a custom
 /// bitfield, but want to include certain fields that aren't a part of the
-/// bitfield without wrapping having to wrap bitfield is a parent struct.
+/// bitfield without wrapping having to wrap bitfield is a parent struct. All
+/// ignored fields must implement the `Default` trait. Ignored fields
+/// are accessible directly like normal struct fields.
 ///
-/// ```ignore
+///```ignore
 /// use bitfields::bitfield;
 ///
 /// #[bitfield(u16)]
 /// struct Bitfield {
-///     a: u8,
-///     b: u8,
-///     #[bits(ignore = true)] // Ignored field.
-///     field_id: u8,
+///    a: u8,
+///    b: u8,
+///    #[bits(ignore = true)] // Ignored field.
+///    field_id: u8,
+///    #[bits(ignore = true)] // Ignored field.
+///    field_custom: CustomType,
 /// }
+///
+/// #[derive(Debug, Default, PartialEq)]
+/// enum CustomType {
+///    #[default]
+///    A,
+///    B,
+/// }
+///
+/// let bitfield = Bitfield::new();
+///
+/// assert_eq!(bitfield.field_id, 0); // Ignored fields can be accessed directly.
+/// assert_eq!(bitfield.field_custom, CustomType::A); // Ignored fields can be accessed directly.
 /// ```
 ///
 /// ### Field Constants
@@ -740,12 +758,14 @@ fn parse_bitfield(args: TokenStream, input: TokenStream) -> syn::Result<TokenStr
     };
 
     // Check if the bitfield type can contain the fields.
-    let fields = parse_fields(&bitfield_attribute, &struct_tokens)?;
+    let all_fields = parse_fields(&bitfield_attribute, &struct_tokens)?;
+    let fields = all_fields.0;
+    let ignored_fields = all_fields.1;
     check_bitfield_type_contain_field_bits(&bitfield_attribute, &fields)?;
     check_bitfield_names_unique(&fields)?;
 
     // Generate the bitfield functions.
-    generate_functions(&bitfield_attribute, &fields, &struct_tokens)
+    generate_functions(&bitfield_attribute, &fields, &ignored_fields, &struct_tokens)
 }
 
 /// Check if the bitfield type can contain the field bits.
@@ -810,7 +830,7 @@ fn check_bitfield_names_unique(fields: &[BitfieldField]) -> syn::Result<()> {
 fn parse_fields(
     bitfield_attribute: &BitfieldAttribute,
     struct_tokens: &syn::ItemStruct,
-) -> syn::Result<Vec<BitfieldField>> {
+) -> syn::Result<(Vec<BitfieldField>, Vec<BitfieldField>)> {
     let fields_tokens = match &struct_tokens.fields {
         Fields::Named(named_files) => named_files,
         _ => {
@@ -822,16 +842,17 @@ fn parse_fields(
     };
 
     let mut fields = Vec::new();
+    let mut ignored_fields = Vec::new();
     for field_token in fields_tokens.named.clone() {
         let field = do_parse_field(bitfield_attribute, field_token, &fields)?;
-        let field = match field {
-            Some(field) => field,
-            None => continue,
-        };
-        fields.push(field);
+        if field.ignore {
+            ignored_fields.push(field);
+        } else {
+            fields.push(field);
+        }
     }
 
-    Ok(fields)
+    Ok((fields, ignored_fields))
 }
 
 /// Internal implementation of [`parse_fields`] to parse a single field.
@@ -839,7 +860,7 @@ fn do_parse_field(
     bitfield_attribute: &BitfieldAttribute,
     field_tokens: syn::Field,
     prev_fields: &[BitfieldField],
-) -> syn::Result<Option<BitfieldField>> {
+) -> syn::Result<BitfieldField> {
     // Parse field attribute, a field could have multiple attributes, but we only
     // care about our 'bits' attribute.
     let field_bit_attribute = field_tokens.attrs.iter().find(|attr| {
@@ -906,6 +927,7 @@ fn do_parse_field(
             padding,
             access,
             field_type: FieldType::IntegerFieldType,
+            ignore: false,
         }
     } else {
         let bit_attribute_tokens = match &field_bit_attribute.unwrap().meta {
@@ -921,7 +943,19 @@ fn do_parse_field(
         let bits_attribute: BitsAttribute = syn::parse2(bit_attribute_tokens.tokens.clone())?;
 
         if bits_attribute.ignore {
-            return Ok(None);
+            return Ok(BitfieldField {
+                ty: field_tokens.ty.clone(),
+                vis: Some(field_tokens.vis),
+                bits: 0,
+                offset: 0,
+                default_value_tokens: None,
+                unsigned: false,
+                padding,
+                access: FieldAccess::ReadOnly,
+                name: field_tokens.ident.unwrap(),
+                ignore: true,
+                field_type,
+            });
         }
 
         if !is_supported_field_type(&field_tokens.ty) {
@@ -1044,10 +1078,11 @@ fn do_parse_field(
             padding,
             access,
             field_type,
+            ignore: false,
         }
     };
 
-    Ok(Some(bitfield))
+    Ok(bitfield)
 }
 
 /// Checks if the default value can fit in the field bits.
@@ -1243,24 +1278,40 @@ fn create_expr_lit_with_integer_suffix(lit: &ExprLit, field_type: Type) -> syn::
 fn generate_functions(
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
+    ignored_fields: &[BitfieldField],
     struct_tokens: &syn::ItemStruct,
 ) -> syn::Result<TokenStream> {
     let struct_attributes: TokenStream =
         struct_tokens.attrs.iter().map(ToTokens::to_token_stream).collect();
     let struct_name = &struct_tokens.ident;
 
-    let tuple_struct = generate_tuple_struct_tokens(
-        struct_name.clone(),
-        struct_tokens.vis.clone(),
-        bitfield_attribute.ty.clone(),
-    );
+    let bitfield_struct = if !ignored_fields.is_empty() {
+        generate_struct_with_fields_tokens(
+            struct_name.clone(),
+            struct_tokens.vis.clone(),
+            bitfield_attribute.ty.clone(),
+            ignored_fields,
+        )
+    } else {
+        generate_tuple_struct_tokens(
+            struct_name.clone(),
+            struct_tokens.vis.clone(),
+            bitfield_attribute.ty.clone(),
+        )
+    };
     let new_function = bitfield_attribute.generate_new_func.then(|| {
-        generate_new_function_tokens(struct_tokens.vis.clone(), fields, &bitfield_attribute.ty)
+        generate_new_function_tokens(
+            struct_tokens.vis.clone(),
+            fields,
+            ignored_fields,
+            &bitfield_attribute.ty,
+        )
     });
     let new_without_defaults_function = bitfield_attribute.generate_new_func.then(|| {
         generate_new_without_defaults_function_tokens(
             struct_tokens.vis.clone(),
             fields,
+            ignored_fields,
             &bitfield_attribute.ty,
         )
     });
@@ -1268,6 +1319,7 @@ fn generate_functions(
         generate_from_bits_function_tokens(
             struct_tokens.vis.clone(),
             fields,
+            ignored_fields,
             &bitfield_attribute.ty,
             bitfield_attribute,
         )
@@ -1278,24 +1330,36 @@ fn generate_functions(
             fields,
             &bitfield_attribute.ty,
             bitfield_attribute,
+            !ignored_fields.is_empty(),
         )
     });
-    let generate_into_bits_function = bitfield_attribute
-        .generate_into_bits_func
-        .then(|| generate_into_bits_function_tokens(struct_tokens.vis.clone(), bitfield_attribute));
+    let generate_into_bits_function = bitfield_attribute.generate_into_bits_func.then(|| {
+        generate_into_bits_function_tokens(
+            struct_tokens.vis.clone(),
+            bitfield_attribute,
+            !ignored_fields.is_empty(),
+        )
+    });
     let field_consts_tokens = generate_field_constants_tokens(struct_tokens.vis.clone(), fields);
     let field_getters_tokens = generate_field_getters_functions_tokens(
         struct_tokens.vis.clone(),
         &bitfield_attribute.ty,
         fields,
+        !ignored_fields.is_empty(),
     )?;
     let field_setters_tokens = generate_field_setters_functions_tokens(
         struct_tokens.vis.clone(),
         &bitfield_attribute.ty,
         fields,
+        !ignored_fields.is_empty(),
     );
     let default_function = bitfield_attribute.generate_default_impl.then(|| {
-        generate_default_implementation_tokens(struct_name.clone(), &bitfield_attribute.ty, fields)
+        generate_default_implementation_tokens(
+            struct_name.clone(),
+            &bitfield_attribute.ty,
+            fields,
+            ignored_fields,
+        )
     });
     let builder_tokens = bitfield_attribute.generate_builder.then(|| {
         generate_builder_tokens(
@@ -1303,6 +1367,7 @@ fn generate_functions(
             &bitfield_attribute.ty,
             struct_name.clone(),
             fields,
+            ignored_fields,
         )
     });
 
@@ -1311,6 +1376,7 @@ fn generate_functions(
             generate_from_bitfield_type_for_bitfield_implementation_tokens(
                 struct_name.clone(),
                 fields,
+                ignored_fields,
                 &bitfield_attribute.ty,
             )
         });
@@ -1319,22 +1385,47 @@ fn generate_functions(
             generate_from_bitfield_for_bitfield_type_implementation_tokens(
                 struct_name.clone(),
                 bitfield_attribute,
+                !ignored_fields.is_empty(),
             )
         });
-    let debug_impl = bitfield_attribute
-        .generate_debug_impl
-        .then(|| generate_debug_implementation(struct_name.clone(), bitfield_attribute, fields));
+    let debug_impl = bitfield_attribute.generate_debug_impl.then(|| {
+        generate_debug_implementation(
+            struct_name.clone(),
+            bitfield_attribute,
+            fields,
+            !ignored_fields.is_empty(),
+        )
+    });
     let get_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
-        generate_get_bit_tokens(struct_tokens.vis.clone(), &bitfield_attribute.ty, fields)
+        generate_get_bit_tokens(
+            struct_tokens.vis.clone(),
+            &bitfield_attribute.ty,
+            fields,
+            !ignored_fields.is_empty(),
+        )
     });
     let set_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
-        generate_set_bit_tokens(struct_tokens.vis.clone(), &bitfield_attribute.ty, fields)
+        generate_set_bit_tokens(
+            struct_tokens.vis.clone(),
+            &bitfield_attribute.ty,
+            fields,
+            !ignored_fields.is_empty(),
+        )
     });
+    let default_attrs = if ignored_fields.is_empty() {
+        quote! {
+            #[repr(transparent)]
+        }
+    } else {
+        quote! {
+            #[repr(C)]
+        }
+    };
 
     Ok(quote! {
         #struct_attributes
-        #[repr(transparent)]
-        #tuple_struct
+        #default_attrs
+        #bitfield_struct
 
         impl #struct_name {
             #new_function

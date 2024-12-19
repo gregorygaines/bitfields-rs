@@ -31,6 +31,8 @@ pub(crate) struct BitfieldField {
     pub(crate) access: FieldAccess,
     /// The type of the field.
     pub(crate) field_type: FieldType,
+    /// Whether the field is ignored.
+    pub(crate) ignore: bool,
 }
 
 /// Represents the type of field.

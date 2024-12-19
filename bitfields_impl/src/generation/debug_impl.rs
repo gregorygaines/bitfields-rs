@@ -9,6 +9,7 @@ pub(crate) fn generate_debug_implementation(
     bitfield_struct_name: Ident,
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
+    ignored_fields_struct: bool,
 ) -> TokenStream {
     let mut fields_msb_to_lsb = fields.to_owned();
     if bitfield_attribute.bit_order == BitOrder::Lsb {
@@ -19,6 +20,11 @@ pub(crate) fn generate_debug_implementation(
     debug_impl.push(quote! {
        let mut debug = f.debug_struct(#bitfield_struct_name_str);
     });
+    let struct_val_ident = if ignored_fields_struct {
+        quote! { self.val }
+    } else {
+        quote! { self.0 }
+    };
 
     fields_msb_to_lsb.iter().for_each(|field| {
         let field_name = &field.name;
@@ -28,8 +34,8 @@ pub(crate) fn generate_debug_implementation(
 
         debug_impl.push(quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits as u32);
-            let this = ((self.0 >> #field_offset) & mask) as #bitfield_type;
-            debug.field(stringify!(#field_name), &((self.0 >> #field_offset) & mask));
+            let this = ((#struct_val_ident >> #field_offset) & mask) as #bitfield_type;
+            debug.field(stringify!(#field_name), &((#struct_val_ident >> #field_offset) & mask));
         });
     });
 

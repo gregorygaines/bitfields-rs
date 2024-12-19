@@ -1806,13 +1806,12 @@ mod tests {
 
     #[test]
     fn bitfield_ignored_field() {
-        #![allow(dead_code)]
         #[bitfield(u8)]
         pub struct Bitfield {
             #[bits(2, ignore = true)]
             ignored: char,
             #[bits(99, ignore = true)]
-            ignored: Custom,
+            ignored1: Custom,
             #[bits(4, default = 0b11)]
             b: u8,
             #[bits(2, default = 0b11, access = ro)]
@@ -1821,8 +1820,14 @@ mod tests {
             _d: u8,
         }
 
+        #[derive(Debug, Default, PartialEq)]
         enum Custom {
+            #[default]
             A = 0,
         }
+
+        let bitfield = Bitfield::new();
+
+        assert_eq!(bitfield.ignored1, Custom::A);
     }
 }
