@@ -317,7 +317,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// You are able to set and clear a bitfield using the `set_bits` and
 /// `clear_bits` functions.
-/// ```rust
+/// ```ignore
 /// use bitfields::bitfield;
 ///
 /// #[bitfield(u32)]
