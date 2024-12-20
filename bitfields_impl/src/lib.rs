@@ -152,7 +152,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// // Accessing fields:
 /// let u8int = bitfield.u8int(); // Getters
 /// let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
-///
+/// bitfield.ignore_me; // Ignored fields can be accessed directly.
 /// // Setting fields:
 /// bitfield.set_u8int(0x3); // Setters
 /// bitfield.checked_set_small_u8int(0xF); // Checked setter, error if value overflow bits.

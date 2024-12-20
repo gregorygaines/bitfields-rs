@@ -248,6 +248,7 @@ let mut bitfield = BitfieldBuilder::new()
 // Accessing fields:
 let u8int = bitfield.u8int(); // Getters
 let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
+bitfield.ignore_me; // Ignored fields can be accessed directly.
 
 // Setting fields:
 bitfield.set_u8int(0x3); // Setters
