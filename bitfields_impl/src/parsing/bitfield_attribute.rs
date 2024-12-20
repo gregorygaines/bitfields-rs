@@ -35,6 +35,10 @@ pub(crate) struct BitfieldAttribute {
     pub(crate) generate_debug_impl: bool,
     /// Whether to generate the bit operations.
     pub(crate) generate_bit_ops: bool,
+    /// Whether to generate the set bits implementation.
+    pub(crate) generate_set_bits_impl: bool,
+    /// Whether to generate the clear bits implementation.
+    pub(crate) generate_clear_bits_impl: bool,
 }
 
 /// The order of the bits in the bitfield.
@@ -114,13 +118,15 @@ impl Parse for BitfieldAttribute {
         let mut from_endian = Endian::Big;
         let mut into_endian = Endian::Big;
         let mut generate_new_func = true;
-        let mut generate_into_func = true;
+        let mut generate_into_bits_func = true;
         let mut generate_from_bits_func = true;
         let mut generate_from_trait_funcs = true;
         let mut generate_default_impl = true;
         let mut generate_builder = true;
         let mut generate_debug_impl = true;
         let mut generate_bit_ops = false;
+        let mut generate_set_bits_impl = true;
+        let mut generate_clear_bits_impl = true;
 
         // Parse the remaining arguments which is in the form of `[key] = [val]`.
         while !input.is_empty() {
@@ -223,7 +229,7 @@ impl Parse for BitfieldAttribute {
                     };
                 }
                 "into_bits" => {
-                    generate_into_func = match input.parse::<syn::LitBool>() {
+                    generate_into_bits_func = match input.parse::<syn::LitBool>() {
                         Ok(val) => val.value,
                         Err(err) => {
                             return Err(create_syn_error(
@@ -320,6 +326,34 @@ impl Parse for BitfieldAttribute {
                         }
                     };
                 }
+                "set_bits" => {
+                    generate_set_bits_impl = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'set_bits' arg '{}', must be either 'true', or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    };
+                }
+                "clear_bits" => {
+                    generate_clear_bits_impl = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'set_bits' arg '{}', must be either 'true', or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    };
+                }
                 _ => {
                     return Err(create_syn_error(
                         arg_ident.span(),
@@ -341,13 +375,15 @@ impl Parse for BitfieldAttribute {
             from_endian,
             into_endian,
             generate_new_func,
-            generate_into_bits_func: generate_into_func,
+            generate_into_bits_func,
             generate_from_bits_func,
             generate_default_impl,
             generate_debug_impl,
             generate_builder,
             generate_from_trait_funcs,
             generate_bit_ops,
+            generate_set_bits_impl,
+            generate_clear_bits_impl,
         })
     }
 }

@@ -1830,4 +1830,124 @@ mod tests {
 
         assert_eq!(bitfield.ignored1, Custom::A);
     }
+
+    #[test]
+    fn bitfield_set_bits() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            #[bits(default = 0x34)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bits(0x11223344);
+
+        assert_eq!(bitfield.a(), 0x44);
+        assert_eq!(bitfield.b(), 0x33);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.d(), 0x11);
+        assert_eq!(bitfield.into_bits(), 0x11223344);
+    }
+
+    #[test]
+    fn bitfield_set_bits_non_writable() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            #[bits(default = 0x34, access = ro)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(default = 0x78)]
+            _d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bits(0x11223344);
+
+        assert_eq!(bitfield.a(), 0x44);
+        assert_eq!(bitfield.b(), 0);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.into_bits(), 0x78220044);
+    }
+
+    #[test]
+    fn bitfield_set_bits_with_defaults() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            b: u8,
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bits_with_defaults(0x11223344);
+
+        assert_eq!(bitfield.a(), 0x12);
+        assert_eq!(bitfield.b(), 0x33);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.d(), 0x78);
+        assert_eq!(bitfield.into_bits(), 0x78223312);
+    }
+
+    #[test]
+    fn bitfield_clear_bits() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            #[bits(default = 0x34)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.clear_bits();
+
+        assert_eq!(bitfield.a(), 0);
+        assert_eq!(bitfield.b(), 0);
+        assert_eq!(bitfield.c(), 0);
+        assert_eq!(bitfield.d(), 0);
+        assert_eq!(bitfield.into_bits(), 0);
+    }
+
+    #[test]
+    fn bitfield_clear_bits_with_defaults() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            b: u8,
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.clear_bits_with_defaults();
+
+        assert_eq!(bitfield.a(), 0x12);
+        assert_eq!(bitfield.b(), 0);
+        assert_eq!(bitfield.c(), 0);
+        assert_eq!(bitfield.d(), 0x78);
+        assert_eq!(bitfield.into_bits(), 0x78000012);
+    }
 }

@@ -259,8 +259,15 @@ bitfield.checked_set_small_u8int(0xF); // Checked setter, error if value overflo
 let bits = bitfield.into_bits();
 
 // Converting from bits:
-let bitfield = Bitfield::from_bits(0x3); // Converts from bits
+let mut bitfield = Bitfield::from_bits(0x3); // Converts from bits
 // let bitfield = Bitfield::from_bits_with_defaults(0x3); // Converts, respects defaults.
+
+// Set and clear bitfield:
+bitfield.set_bits(0x12345678); // Sets the bitfield.
+bitfield.set_bits_with_defaults(0x12345678); // Sets the bitfield, respects defaults.
+
+bitfield.clear_bits(); // Clears the bitfield.
+bitfield.clear_bits_with_defaults(); // Clears the bitfield, respects defaults.
 
 // Constants:
 assert_eq!(Bitfield::U8INT_BITS, 8); // Number of bits of the field.
@@ -396,6 +403,41 @@ assert_eq!(bitfield_without_defaults.a(), 0);
 assert_eq!(bitfield_without_defaults.b(), 0);
 assert_eq!(bitfield_without_defaults.c(), 0);
 assert_eq!(bitfield_without_defaults.into_bits(), 0x78000000);
+```
+
+### Setting and Clearing a Bitfield
+
+You are able to set and clear a bitfield using the `set_bits` and `clear_bits` functions.
+
+```rust
+use bitfields::bitfield;
+
+#[bitfield(u32)]
+struct Bitfield {
+    #[bits(default = 0x12)]
+    a: u8,
+    #[bits(default = 0x34)]
+    b: u8,
+    c: u8,
+    #[bits(default = 0x78)]
+    _d: u8, // Padding fields are respected.
+}
+
+let mut bitfield = Bitfield::new();
+bitfield.set_bits(0x11223344);
+assert_eq!(bitfield.into_bits(), 0x78223344);
+
+let mut bitfield = Bitfield::new();
+bitfield.set_bits_with_defaults(0x11223344);
+assert_eq!(bitfield.into_bits(), 0x78223412);
+
+let mut bitfield = Bitfield::new();
+bitfield.clear_bits();
+assert_eq!(bitfield.into_bits(), 0x78000000);
+
+let mut bitfield = Bitfield::new();
+bitfield.clear_bits_with_defaults();
+assert_eq!(bitfield.into_bits(), 0x78003412);
 ```
 
 ### Bitfield Conversions
@@ -809,6 +851,8 @@ The `#[bitfield]` args that control generation are:
 - `#[bitfield(debug = true)]` - Generates the `Debug` trait implementation.
 - `#[bitfield(default = true)]` - Generates the `Default` trait implementation
 - `#[bitfield(builder = true)]` - Generates the builder implementation.
+- `#[bitfield(set_bits = true)]` - Generates the `set_bits` function.
+- `#[bitfield(set_bits = true)]` - Generates the `clear_bits` function.
 - `#[bitfield(bit_ops = true)]` - Generates the bit operations implementation.
 
 ## ⚖️ License

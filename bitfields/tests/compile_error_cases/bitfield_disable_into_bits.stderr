@@ -5,4 +5,11 @@ error[E0599]: no method named `into_bits` found for struct `Bitfield` in the cur
    | ----------------------------------- method `into_bits` not found for this struct
 ...
 14 |     let val: u64 = bitfield.into_bits();
-   |                             ^^^^^^^^^ method not found in `Bitfield`
+   |                             ^^^^^^^^^
+   |
+help: there is a method `set_bits` with a similar name, but with different arguments
+  --> tests/compile_error_cases/bitfield_disable_into_bits.rs:3:1
+   |
+3  | #[bitfield(u64, into_bits = false)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)

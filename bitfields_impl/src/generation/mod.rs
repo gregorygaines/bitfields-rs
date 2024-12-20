@@ -7,4 +7,5 @@ pub(crate) mod field_const_getter_setter;
 pub(crate) mod from_into_bits_conversions;
 pub(crate) mod from_types_impl;
 pub(crate) mod new_impl;
+pub(crate) mod set_clear_bits_impl;
 pub(crate) mod tuple_struct;
