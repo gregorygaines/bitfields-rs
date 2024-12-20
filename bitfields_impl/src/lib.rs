@@ -767,7 +767,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///   implementation
 /// - `#[bitfield(builder = true)]` - Generates the builder implementation.
 /// - `#[bitfield(set_bits = true)]` - Generates the `set_bits` function.
-/// - `#[bitfield(set_bits = true)]` - Generates the `clear_bits` function.
+/// - `#[bitfield(clear_bits = true)]` - Generates the `clear_bits` function.
 /// - `#[bitfield(bit_ops = true)]` - Generates the bit operations
 ///   implementation.
 #[proc_macro_attribute]

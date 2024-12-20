@@ -33,7 +33,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "0.10.1"
+bitfields = "0.10.2"
 ```
 
 ## 🚀 Getting Started
@@ -852,7 +852,7 @@ The `#[bitfield]` args that control generation are:
 - `#[bitfield(default = true)]` - Generates the `Default` trait implementation
 - `#[bitfield(builder = true)]` - Generates the builder implementation.
 - `#[bitfield(set_bits = true)]` - Generates the `set_bits` function.
-- `#[bitfield(set_bits = true)]` - Generates the `clear_bits` function.
+- `#[bitfield(clear_bits = true)]` - Generates the `clear_bits` function.
 - `#[bitfield(bit_ops = true)]` - Generates the bit operations implementation.
 
 ## ⚖️ License
