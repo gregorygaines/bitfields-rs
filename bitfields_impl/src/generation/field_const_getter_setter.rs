@@ -146,8 +146,16 @@ pub(crate) fn generate_field_setters_functions_tokens(
         let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct);
         let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct);
 
-        let setter_documentation = format!("Sets bits [{}..={}].", field_offset, field_bits_end);
-        let checked_setter_documentation = format!("Sets bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end);
+        let setter_documentation = (get_integer_type_from_type(&field_type) == Bool).then(|| {
+            format!("Sets bit [{}].", field_offset)
+        }).unwrap_or_else(|| {
+            format!("Sets bits [{}..={}].", field_offset, field_bits_end)
+        });
+        let checked_setter_documentation = (get_integer_type_from_type(&field_type) == Bool).then(|| {
+            format!("Sets bit [{}].", field_offset)
+        }).unwrap_or_else(|| {
+            format!("Sets bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end)
+        });
         quote! {
             #[doc = #setter_documentation]
             #vis const fn #field_offset_setter_ident(&mut self, bits: #field_type) {
