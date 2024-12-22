@@ -149,7 +149,8 @@ Bitfields offers a wide range of features to help you define and work with bitfi
 use bitfields::bitfield;
 
 /// All fields in the bitfield must sum up to the number of bits of the bitfield type.
-#[bitfield(u64)]
+#[bitfield(u64, to_builder = true)]
+#[derive(Clone)] // Attributes are passed to the struct.
 pub struct Bitfield {
     /// Fields without bits specified default to the size of the field type.
     /// 8 bits.
@@ -245,7 +246,9 @@ let mut bitfield = BitfieldBuilder::new()
 // let bitfield = Bitfield::new(); // Bitfield with default values.
 // let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
 // let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults. 
-// let builder = bitfield.to_builder(); // Convert a bitfield back to builder.
+
+// let builder = bitfield.to_builder(); // Convert a bitfield back to builder, requires
+// `#[bitfield(to_builder = true)]` and `#[derive(Clone)]` on the bitfield.
 
 // Accessing fields:
 let u8int = bitfield.u8int(); // Getters
@@ -685,10 +688,10 @@ assert!(res.is_err());
 ### Bit Operations
 
 Individual bits can be get or set using the `get_bit` and `set_bit` functions. They can be enabled using
-the bitfield attribute arg For `get_bit`, if the bit is  out-of-bounds or the field doesn't have write access,
-`false` is returned. There is a checked version `checked_get_bit` that return an error instead. Similarly, 
-for `set_bit`, if the bit is out-of-bounds or the  field doesn't have write access, the operation is no-op. 
-There is a checked version `checked_set_bit` that returns an error instead.
+the bitfield attribute arg `#[bitfield(bit_ops = true)]` When calling `get_bit`, if the bit is out-of-bounds or 
+the field doesn't have write access, `false` is returned. There is a checked version `checked_get_bit` that return
+an error instead. Similarly, for `set_bit`, if the bit is out-of-bounds or the  field doesn't have write access,
+the operation is no-op. There is a checked version `checked_set_bit` that returns an error instead.
 
 ```rust
 use bitfields::bitfield;
