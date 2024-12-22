@@ -154,7 +154,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// // let bitfield = Bitfield::new(); // Bitfield with default values.
 /// // let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
 /// // let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults.
-/// 
+///
 /// // let builder = bitfield.to_builder(); // Convert a bitfield back to builder, requires
 /// // `#[bitfield(to_builder = true)]` and `#[derive(Clone)]` on the bitfield.
 ///
@@ -606,12 +606,14 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// ### Bit Operations
 ///
-/// Individual bits can be get or set using the `get_bit` and `set_bit` functions. They can be enabled using
-/// the bitfield attribute arg `#[bitfield(bit_ops = true)]` When calling `get_bit`, if the bit is out-of-bounds or
-/// the field doesn't have write access, `false` is returned. There is a checked version `checked_get_bit` that return
-/// an error instead. Similarly, for `set_bit`, if the bit is out-of-bounds or the  field doesn't have write access,
-/// the operation is no-op. There is a checked version `checked_set_bit` that returns an error instead.
-/// ```ignore
+/// Individual bits can be get or set using the `get_bit` and `set_bit`
+/// functions. They can be enabled using the bitfield attribute arg
+/// `#[bitfield(bit_ops = true)]` When calling `get_bit`, if the bit is
+/// out-of-bounds or the field doesn't have write access, `false` is returned.
+/// There is a checked version `checked_get_bit` that return an error instead.
+/// Similarly, for `set_bit`, if the bit is out-of-bounds or the  field doesn't
+/// have write access, the operation is no-op. There is a checked version
+/// `checked_set_bit` that returns an error instead. ```ignore
 /// use bitfields::bitfield;
 ///
 /// #[bitfield(u8, bit_ops = true)]
