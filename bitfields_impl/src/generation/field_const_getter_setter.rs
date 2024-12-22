@@ -143,8 +143,8 @@ pub(crate) fn generate_field_setters_functions_tokens(
             None => default_vis.clone(),
         };
 
-        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct);
-        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct);
+        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct, None);
+        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct, None);
 
         let setter_documentation = (get_integer_type_from_type(&field_type) == Bool).then(|| {
             format!("Sets bit [{}].", field_offset)
@@ -180,6 +180,7 @@ pub(crate) fn generate_setter_impl_tokens(
     value_ident: TokenStream,
     check_value_bit_size: bool,
     ignored_fields_struct: bool,
+    struct_val_ident: Option<TokenStream>,
 ) -> TokenStream {
     let field_type = field.ty.clone();
 
@@ -218,7 +219,13 @@ pub(crate) fn generate_setter_impl_tokens(
     };
 
     let struct_val_ident = if ignored_fields_struct {
-        quote! { this.val }
+        if struct_val_ident.is_some() {
+            quote! { #struct_val_ident.val }
+        } else {
+            quote! { this.val }
+        }
+    } else if struct_val_ident.is_some() {
+        quote! { #struct_val_ident.0 }
     } else {
         quote! { this.0 }
     };

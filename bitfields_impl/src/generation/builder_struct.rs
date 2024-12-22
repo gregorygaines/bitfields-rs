@@ -6,7 +6,8 @@ use crate::generation::common::{
     does_field_have_setter, generate_setting_fields_default_values_tokens,
     generate_setting_fields_to_zero_tokens,
 };
-use crate::parsing::bitfield_field::BitfieldField;
+use crate::generation::field_const_getter_setter::generate_setter_impl_tokens;
+use crate::parsing::bitfield_field::{BitfieldField, FieldAccess};
 
 /// Generates the builder implementation.
 pub(crate) fn generate_builder_tokens(
@@ -21,7 +22,7 @@ pub(crate) fn generate_builder_tokens(
     let builder_setter_tokens = fields
         .iter()
         .filter(|field| !field.padding)
-        .filter(|field| does_field_have_setter(field))
+        .filter(|field| does_field_have_setter(field) || field.access == FieldAccess::ReadOnly)
         .map(|field| {
             let field_name = field.name.clone();
             let field_name_with_builder_setter_ident = format_ident!("with_{}", field_name);
@@ -29,25 +30,57 @@ pub(crate) fn generate_builder_tokens(
             let field_offset_setter_ident = format_ident!("set_{}", field_name);
             let checked_field_offset_setter_ident = format_ident!("checked_set_{}", field_name);
             let field_type = field.ty.clone();
-
             let field_bits = field.bits;
             let field_offset = field.offset;
             let field_bits_end = field_offset + field_bits;
-
             let with_field_documentation = format!("Sets builder bits [{}..={}].", field_offset, field_bits_end);
             let checked_with_field_documentation = format!("Sets builder bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end);
 
-            quote! {
-                #[doc = #with_field_documentation]
-                #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
-                    self.this.#field_offset_setter_ident(bits);
-                    self
-                }
+            if does_field_have_setter(field) {
+                quote! {
+                    #[doc = #with_field_documentation]
+                    #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
+                        self.this.#field_offset_setter_ident(bits);
+                        self
+                    }
 
-                #[doc = #checked_with_field_documentation]
-                #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Result<Self, &'static str> {
-                    self.this.#checked_field_offset_setter_ident(bits)?;
-                    Ok(self)
+                    #[doc = #checked_with_field_documentation]
+                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Result<Self, &'static str> {
+                        self.this.#checked_field_offset_setter_ident(bits)?;
+                        Ok(self)
+                    }
+                }
+            } else {
+                let setter_impl_tokens = generate_setter_impl_tokens(
+                    bitfield_type,
+                    field.clone(),
+                    Some(quote! { #bitfield_struct_name }),
+                    quote! { bits },
+                    /* check_value_bit_size= */ false,
+                    !ignored_fields.is_empty(),
+                    Some( quote! { self.this } ),
+                );
+                let checked_setter_impl_tokens = generate_setter_impl_tokens(
+                    bitfield_type,
+                    field.clone(),
+                    Some(quote! { #bitfield_struct_name }),
+                    quote! { bits },
+                    /* check_value_bit_size= */ false,
+                    !ignored_fields.is_empty(),
+                    Some( quote! { self.this } ),
+                );
+                quote! {
+                    #[doc = #with_field_documentation]
+                    #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
+                        #setter_impl_tokens
+                        self
+                    }
+
+                    #[doc = #checked_with_field_documentation]
+                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Result<Self, &'static str> {
+                        #checked_setter_impl_tokens
+                        Ok(self)
+                    }
                 }
             }
         });

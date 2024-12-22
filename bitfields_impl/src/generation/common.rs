@@ -66,6 +66,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         quote! { #default_value },
                         /* check_value_bit_size= */ false,
                         ignored_fields_struct,
+                        None,
                     )
                 }
                 None => {
@@ -77,6 +78,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                             quote! { false },
                             /* check_value_bit_size= */ false,
                             ignored_fields_struct,
+                            None,
                         );
                     }
                     generate_setter_impl_tokens(
@@ -86,6 +88,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         quote! { 0 },
                         /* check_value_bit_size= */ false,
                         ignored_fields_struct,
+                        None,
                     )
                 }
             }
@@ -147,6 +150,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                     quote! { false },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
+                    None,
                 );
             }
 
@@ -157,6 +161,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
+                None,
             )
         })
         .collect()
@@ -254,6 +259,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     quote! { value != 0 },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
+                    None,
                 );
                 return quote! {
                     #extract_value_bits
@@ -268,6 +274,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
+                None,
             );
 
             quote! {

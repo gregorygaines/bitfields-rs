@@ -578,7 +578,7 @@ assert_eq!(Bitfield::A_OFFSET, 24); // Offset of the a field in the bitfield.
 
 Field access can be controlled by specifying the `#[bits(access = x)]` arg on a field. There are four accesses:
 - `rw` - Read and write access (default)
-- `ro` - Read-only access.
+- `ro` - Read-only access, only set during construction or from bits.
 - `wo` - Write-only access.
 - `none` - No access.
 
@@ -598,12 +598,12 @@ struct Bitfield {
 
 let mut bitfield = BitfieldBuilder::new()
     .with_read_write(0x12)
-    // .with_read_only(0x34) // Compile error, read-only field can't be set.
+    .with_read_only(0x34) // Read-only fields only set during construction or from bits.
     .with_write_only(0x56)
     // .with_none(0x78) // Compile error, none field can't be set.
     .build();
 bitfield.set_read_write(0x12);
-// bitfield.set_read_only(0x34); // Compile error, read-only field can't be set.
+// bitfield.set_read_only(1); // Compile error, read-only field can't be set, after construction.
 bitfield.set_write_only(0x56);
 // bitfield.set_none(0x78); // Compile error, none field can't be set.
 

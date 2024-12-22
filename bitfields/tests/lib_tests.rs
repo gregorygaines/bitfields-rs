@@ -1950,4 +1950,16 @@ mod tests {
         assert_eq!(bitfield.d(), 0x78);
         assert_eq!(bitfield.into_bits(), 0x78000012);
     }
+
+    #[test]
+    fn bitfield_field_access_read_only_can_build() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12, access = ro)]
+            a: u32,
+        }
+
+        assert_eq!(Bitfield::new().a(), 0x12);
+        assert_eq!(BitfieldBuilder::new().with_a(0x22).build().a(), 0x22);
+    }
 }
