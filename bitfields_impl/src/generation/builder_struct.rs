@@ -163,3 +163,19 @@ pub(crate) fn generate_builder_tokens(
         }
     }
 }
+
+/// Generates the to builder implementation.
+pub(crate) fn generate_to_builder_tokens(
+    vis: Visibility,
+    bitfield_struct_name: Ident,
+) -> TokenStream {
+    let builder_name = format_ident!("{}Builder", bitfield_struct_name);
+
+    quote! {
+        #vis fn to_builder(&self) -> #builder_name {
+            #builder_name {
+                this: self.clone(),
+            }
+        }
+    }
+}

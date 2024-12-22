@@ -1962,4 +1962,30 @@ mod tests {
         assert_eq!(Bitfield::new().a(), 0x12);
         assert_eq!(BitfieldBuilder::new().with_a(0x22).build().a(), 0x22);
     }
+
+    #[test]
+    fn bitfield_to_builder() {
+        #[bitfield(u32, to_builder = true)]
+        #[derive(Clone)]
+        pub struct Bitfield {
+            #[bits(ignore = true)]
+            ignore: u8,
+            #[bits(default = 0x12)]
+            a: u8,
+            #[bits(default = 0x34)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let builder = Bitfield::new().to_builder().build();
+
+        assert_eq!(builder.ignore, 0);
+        assert_eq!(builder.a(), 0x12);
+        assert_eq!(builder.b(), 0x34);
+        assert_eq!(builder.c(), 0x56);
+        assert_eq!(builder.d(), 0x78);
+    }
 }

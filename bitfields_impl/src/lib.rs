@@ -10,7 +10,7 @@ use syn::spanned::Spanned;
 use syn::{Expr, ExprLit, ExprUnary, Fields, Lit, LitInt, Meta, Type, Visibility};
 
 use crate::generation::bit_operations::{generate_get_bit_tokens, generate_set_bit_tokens};
-use crate::generation::builder_struct::generate_builder_tokens;
+use crate::generation::builder_struct::{generate_builder_tokens, generate_to_builder_tokens};
 use crate::generation::common::PANIC_ERROR_MESSAGE;
 use crate::generation::debug_impl::generate_debug_implementation;
 use crate::generation::default_impl::generate_default_implementation_tokens;
@@ -144,7 +144,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///     .with_small_u8int(0xF)
 ///     .with_custom_type(CustomType::from_bits(0x3))
 ///     // .with_custom_type(CustomType::default()) // Can pass a [`CustomType`] instance.
-///     // .with_read_only(0x3) // Compile error, read-only field can't be set.
+///     .with_read_only(0x3) // Read-only field can only be set during construction.
 ///     // .with__padding(0x3) // Compile error, padding fields are inaccessible.
 ///     .with_signed_int(-5)
 ///     .with_small_signed_int(0xF)
@@ -153,11 +153,14 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// // let bitfield = Bitfield::new(); // Bitfield with default values.
 /// // let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
 /// // let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults.
+/// // let builder = bitfield.to_builder(); // Convert a bitfield back to builder.
 ///
 /// // Accessing fields:
 /// let u8int = bitfield.u8int(); // Getters
 /// let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
 /// bitfield.ignore_me; // Ignored fields can be accessed directly.
+/// // bitfield.read_only(); // Compile error, read-only fields can't be set.
+///
 /// // Setting fields:
 /// bitfield.set_u8int(0x3); // Setters
 /// bitfield.checked_set_small_u8int(0xF); // Checked setter, error if value overflow bits.
@@ -181,7 +184,9 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// // Constants:
 /// assert_eq!(Bitfield::U8INT_BITS, 8); // Number of bits of the field.
 /// assert_eq!(Bitfield::U8INT_OFFSET, 0); // The offset of the field in the
-/// bitfield. ```
+/// bitfield.
+/// ```
+///
 /// ## Features
 ///
 /// ### Bitfield Types
@@ -207,7 +212,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///     a: u128,
 /// }
 /// ```
-/// 
+///
 /// ### Bitfield Field Types
 ///
 /// A bitfield field can be any unsigned (`u8`, `u16`, `u32`, `u64`, `u128`),
@@ -278,13 +283,19 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.const_fn_default(), 0x1);
 /// assert_eq!(bitfield.custom_type(), CustomType::C);
 /// ```
-/// 
+///
 /// ### Constructing a Bitfield
 ///
 /// A bitfield can be constructed using the `new` and `new_without_defaults`
 /// constructors. The former initializes the bitfield with default values, while
 /// the latter initializes the bitfield without default values, except for
 /// padding fields which always keep their default value or 0.
+///
+/// A bitfield can also be constructed using a fluent builder pattern using the
+/// `<Bitfield>Builder::new` and `<Bitfield>Builder::new_without_defaults`
+/// constructors. They operate the same as the `new` and `new_without_defaults`
+/// constructors.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -311,8 +322,46 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield_without_defaults.b(), 0);
 /// assert_eq!(bitfield_without_defaults.c(), 0);
 /// assert_eq!(bitfield_without_defaults.into_bits(), 0x78000000);
+///
+/// let bitfield = BitfieldBuilder::new()
+///     .with_a(0x12)
+///     .with_b(0x34)
+///     .with_c(0x56)
+///     .build();
+/// assert_eq!(bitfield.a(), 0x12);
+/// assert_eq!(bitfield.b(), 0x34);
+/// assert_eq!(bitfield.c(), 0x56);
+/// assert_eq!(bitfield.into_bits(), 0x78563412);
 /// ```
-/// 
+///
+/// ### To Builder
+///
+/// A constructed bitfield can be converted back to a builder using the
+/// `to_builder` function which is enabled using the `#[bitfield(to_builder =
+/// true)]` attribute arg. The bitfield must also derive `Clone` to support this
+/// feature.
+///
+/// ```ignore
+/// use bitfields::bitfield;
+///
+/// #[bitfield(u32, to_builder = true)]
+/// #[derive(Clone)]
+/// struct Bitfield {
+///     #[bits(default = 0x12)]
+///     a: u8,
+///     #[bits(default = 0x34)]
+///     b: u8,
+///     #[bits(default = 0x56)]
+///     c: u8,
+///     #[bits(default = 0x78)]
+///     _d: u8,
+/// }
+///
+/// let bitfield = Bitfield::new();
+///
+/// let bitfield_builder = bitfield.to_builder();
+/// ```
+///
 /// ### Setting and Clearing a Bitfield
 ///
 /// You are able to set and clear a bitfield using the `set_bits` and
@@ -347,7 +396,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// bitfield.clear_bits_with_defaults();
 /// assert_eq!(bitfield.into_bits(), 0x78003412);
 /// ```
-/// 
+///
 /// ### Bitfield Conversions
 ///
 /// A bitfield can be converted from bits using the `from_bits` or
@@ -414,7 +463,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// let bitfield: Bitfield = val.into();
 /// assert_eq!(bitfield.into_bits(), 0x78220044);
 /// ```
-/// 
+///
 /// ### Conversion Endianess
 ///
 /// Sometimes the outside world is outside our control, like how systems store
@@ -448,7 +497,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.d(), 0x12);
 /// assert_eq!(bitfield.into_bits(), 0x12345678);
 /// ````
-/// 
+///
 /// ### Field Order
 ///
 /// By default, fields are ordered from the least significant bit (lsb) to the
@@ -509,20 +558,20 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// let mut bitfield = BitfieldBuilder::new()
 ///     .with_read_write(0x12)
-///     .with_read_only(0x34) // Read-only fields only set during construction or from bits.
-///     .with_write_only(0x56)
+///     .with_read_only(0x34) // Read-only fields only set during construction
+/// or from bits.     .with_write_only(0x56)
 ///     // .with_none(0x78) // Compile error, none field can't be set.
 ///     .build();
 /// bitfield.set_read_write(0x12);
-/// // bitfield.set_read_only(1); // Compile error, read-only field can't be set, after construction.
-/// set. bitfield.set_write_only(0x56);
+/// // bitfield.set_read_only(1); // Compile error, read-only field can't be
+/// set, after construction. set. bitfield.set_write_only(0x56);
 /// // bitfield.set_none(0x78); // Compile error, none field can't be set.
 ///
 /// assert_eq!(bitfield.read_write(), 0x12);
-/// assert_eq!(bitfield.read_only(), 0);
+/// assert_eq!(bitfield.read_only(), 0x34);
 /// // assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only
 /// can't be read. // assert_eq!(bitfield.none(), 0xFF); // Compile error, none
-/// field can't be accessed. assert_eq!(bitfield.into_bits(), 0xFF560012); //
+/// field can't be accessed. assert_eq!(bitfield.into_bits(), 0xFF563412); //
 /// All fields exposed when converted to bits. ```
 ///
 /// ### Checked Setters
@@ -551,7 +600,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// let res = bitfield.checked_set_b(0x12); // Error, value overflows bits.
 /// assert!(res.is_err());
 /// ```
-/// 
+///
 /// ### Bit Operations
 ///
 /// Individual bits can be get or set using the `get_bit` and `set_bit`
@@ -623,7 +672,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding..
 /// assert_eq!(bitfield.into_bits(), 0b110011);
 /// ```
-/// 
+///
 /// ### Padding Fields
 ///
 /// Fields prefixed with an underscore `_` are padding fields, which are
@@ -746,7 +795,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///     a: u32,
 /// }
 /// ```
-/// 
+///
 /// ### Complete Generation Control
 ///
 /// You have complete control over what gets generated by the bitfield macro.
@@ -770,6 +819,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// - `#[bitfield(clear_bits = true)]` - Generates the `clear_bits` function.
 /// - `#[bitfield(bit_ops = true)]` - Generates the bit operations
 ///   implementation.
+/// - `#[bitfield(to_builder = true)]` - Generates the `to_builder` function.
 #[proc_macro_attribute]
 pub fn bitfield(
     args: proc_macro::TokenStream,
@@ -1449,6 +1499,9 @@ fn generate_functions(
             !ignored_fields.is_empty(),
         )
     });
+    let to_builder_tokens = (bitfield_attribute.generate_builder
+        && bitfield_attribute.generate_to_builder)
+        .then(|| generate_to_builder_tokens(struct_tokens.vis.clone(), struct_name.clone()));
     let set_bits_operations = bitfield_attribute.generate_set_bits_impl.then(|| {
         generate_set_bits_function_tokens(
             struct_tokens.vis.clone(),
@@ -1517,6 +1570,8 @@ fn generate_functions(
 
             #get_bit_operations
             #set_bit_operations
+
+            #to_builder_tokens
         }
 
         #default_function

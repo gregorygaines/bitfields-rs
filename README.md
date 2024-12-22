@@ -236,7 +236,7 @@ let mut bitfield = BitfieldBuilder::new()
     .with_small_u8int(0xF)
     .with_custom_type(CustomType::from_bits(0x3))
     // .with_custom_type(CustomType::default()) // Can pass a [`CustomType`] instance.
-    // .with_read_only(0x3) // Compile error, read-only field can't be set.
+    .with_read_only(0x3) // Read-only field can only be set during construction.
     // .with__padding(0x3) // Compile error, padding fields are inaccessible.
     .with_signed_int(-5)
     .with_small_signed_int(0xF)
@@ -245,11 +245,13 @@ let mut bitfield = BitfieldBuilder::new()
 // let bitfield = Bitfield::new(); // Bitfield with default values.
 // let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
 // let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults. 
+// let builder = bitfield.to_builder(); // Convert a bitfield back to builder.
 
 // Accessing fields:
 let u8int = bitfield.u8int(); // Getters
 let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
 bitfield.ignore_me; // Ignored fields can be accessed directly.
+// bitfield.read_only(); // Compile error, read-only fields can't be set.
 
 // Setting fields:
 bitfield.set_u8int(0x3); // Setters
@@ -375,7 +377,10 @@ assert_eq!(bitfield.custom_type(), CustomType::C);
 
 A bitfield can be constructed using the `new` and `new_without_defaults` constructors. The former initializes 
 the bitfield with default values, while the latter initializes the bitfield without default values, 
-except for padding fields which always keep their default value or 0.
+except for padding fields which always keep their default value or 0. 
+
+A bitfield can also be constructed using a fluent builder pattern using the `<Bitfield>Builder::new` and 
+`<Bitfield>Builder::new_without_defaults` constructors. They operate the same as the `new` and `new_without_defaults` constructors.
 
 ```rust
 use bitfields::bitfield;
@@ -403,6 +408,42 @@ assert_eq!(bitfield_without_defaults.a(), 0);
 assert_eq!(bitfield_without_defaults.b(), 0);
 assert_eq!(bitfield_without_defaults.c(), 0);
 assert_eq!(bitfield_without_defaults.into_bits(), 0x78000000);
+
+let bitfield = BitfieldBuilder::new()
+    .with_a(0x12)
+    .with_b(0x34)
+    .with_c(0x56)
+    .build();
+assert_eq!(bitfield.a(), 0x12);
+assert_eq!(bitfield.b(), 0x34);
+assert_eq!(bitfield.c(), 0x56);
+assert_eq!(bitfield.into_bits(), 0x78563412);
+```
+
+### To Builder
+
+A constructed bitfield can be converted back to a builder using the `to_builder` function which is enabled using the 
+`#[bitfield(to_builder = true)]` attribute arg. The bitfield must also derive `Clone` to support this feature.
+
+```rust
+use bitfields::bitfield;
+
+#[bitfield(u32, to_builder = true)]
+#[derive(Clone)]
+struct Bitfield {
+    #[bits(default = 0x12)]
+    a: u8,
+    #[bits(default = 0x34)]
+    b: u8,
+    #[bits(default = 0x56)]
+    c: u8,
+    #[bits(default = 0x78)]
+    _d: u8,
+}
+
+let bitfield = Bitfield::new();
+
+let bitfield_builder = bitfield.to_builder();
 ```
 
 ### Setting and Clearing a Bitfield
@@ -608,10 +649,10 @@ bitfield.set_write_only(0x56);
 // bitfield.set_none(0x78); // Compile error, none field can't be set.
 
 assert_eq!(bitfield.read_write(), 0x12);
-assert_eq!(bitfield.read_only(), 0);
+assert_eq!(bitfield.read_only(), 0x34);
 // assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only can't be read.
 // assert_eq!(bitfield.none(), 0xFF); // Compile error, none field can't be accessed.
-assert_eq!(bitfield.into_bits(), 0xFF560012); // All fields exposed when converted to bits.
+assert_eq!(bitfield.into_bits(), 0xFF563412); // All fields exposed when converted to bits.
 ```
 
 ### Checked Setters
@@ -854,6 +895,7 @@ The `#[bitfield]` args that control generation are:
 - `#[bitfield(set_bits = true)]` - Generates the `set_bits` function.
 - `#[bitfield(clear_bits = true)]` - Generates the `clear_bits` function.
 - `#[bitfield(bit_ops = true)]` - Generates the bit operations implementation.
+- `#[bitfield(to_builder = true)]` - Generates the `to_builder` function.
 
 ## ⚖️ License
 

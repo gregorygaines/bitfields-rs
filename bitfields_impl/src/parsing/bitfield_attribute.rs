@@ -39,6 +39,8 @@ pub(crate) struct BitfieldAttribute {
     pub(crate) generate_set_bits_impl: bool,
     /// Whether to generate the clear bits implementation.
     pub(crate) generate_clear_bits_impl: bool,
+    /// Whether to generate the `to_builder` function.
+    pub(crate) generate_to_builder: bool,
 }
 
 /// The order of the bits in the bitfield.
@@ -127,6 +129,7 @@ impl Parse for BitfieldAttribute {
         let mut generate_bit_ops = false;
         let mut generate_set_bits_impl = true;
         let mut generate_clear_bits_impl = true;
+        let mut generate_to_builder = false;
 
         // Parse the remaining arguments which is in the form of `[key] = [val]`.
         while !input.is_empty() {
@@ -298,6 +301,20 @@ impl Parse for BitfieldAttribute {
                         }
                     }
                 }
+                "to_builder" => {
+                    generate_to_builder = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'builder' arg '{}', must be either 'true' or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    }
+                }
                 "debug" => {
                     generate_debug_impl = match input.parse::<syn::LitBool>() {
                         Ok(val) => val.value,
@@ -384,6 +401,7 @@ impl Parse for BitfieldAttribute {
             generate_bit_ops,
             generate_set_bits_impl,
             generate_clear_bits_impl,
+            generate_to_builder,
         })
     }
 }
