@@ -52,6 +52,7 @@ pub(crate) const BIT_ATTRIBUTE_NAME: &str = "bits";
 /// The ident prefix for padding fields.
 pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 
+#[rustfmt::skip]
 /// Creates a bitfield for the attributed struct.
 ///
 /// ## Example
@@ -197,6 +198,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// A bitfield can represent unsigned types (`u8`, `u16`, `u32`, `u64`, `u128`)
 /// up to 128-bits, because Rust was weak and stopped at `u128`. The field bits
 /// of a bitfield must add up to the number of bits of the bitfield type.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -228,6 +230,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// significant represents the sign bit. For example, if you had a field with 5
 /// bits, the value range would be `-16` to `15`. The more bits you include, the
 /// larger the value range.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -243,17 +246,17 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///     a: u8,
 ///     #[bits(default = -127)]
 ///     b: i8,
-///     /// Sign-extended by the most significant bit of 4 bits. Also treated as
-/// 2's     /// complement, meaning this field with 4 bits has the value range
-/// of     /// `-8` to `7`. You can add more bits to increase this range!
+///     /// Sign-extended by the most significant bit of 4 bits. Also treated as 2's
+///     /// complement, meaning this field with 4 bits has the value range of `-8` to `7`.
+///     /// You can add more bits to increase this range!
 ///     #[bits(4, default = 9)]
 ///     c_sign_extended: i8,
-///     #[bits(2, default = CONST_VAR)] // No compile time checks for const
-/// variables.     const_var_default: u8,
-///     #[bits(2, default = provide_val())] // No compile time checks for const
-/// functions.     const_fn_default: u8, // No compile time checks for const
-/// functions.    #[bits(8, default = CustomType::C)]
-///    custom_type: CustomType
+///     #[bits(2, default = CONST_VAR)] // No compile time checks for const variables.
+///     const_var_default: u8,
+///     #[bits(2, default = provide_val())] // No compile time checks for const functions.
+///     const_fn_default: u8, // No compile time checks for const functions.
+///     #[bits(8, default = CustomType::C)]
+///     custom_type: CustomType
 /// }
 ///
 /// #[derive(Debug, PartialEq)]
@@ -369,6 +372,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// You are able to set and clear a bitfield using the `set_bits` and
 /// `clear_bits` functions.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -408,6 +412,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// value. The bitfield can also be converted to bits using the `into_bits`
 /// function. The `From` trait is also implemented between the bitfield and the
 /// bitfield type and operates the same as `from_bits`.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -474,6 +479,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// be controlled by specifying the `#[bitfield(from_endian = x, into_endian =
 /// x)]` args. The possible endians are `little` or `big`. By default, the
 /// endian of both is `big`.
+///
 /// ````ignore
 /// use bitfields::bitfield;
 ///
@@ -507,6 +513,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// most significant bit (msb). The order can be changed by specifying the
 /// `#[bitfield(order = x)]` arg on the bitfield struct. There are two field
 /// orderings, `lsb` and `msb`.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -535,7 +542,8 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// //                |    | |  .- d
 /// assert_eq!(val, 0x12_34_56_78);
 /// assert_eq!(Bitfield::A_OFFSET, 24); // Offset of the a field in the
-/// bitfield. ```
+/// bitfield.
+/// ```
 ///
 /// ### Field Access
 ///
@@ -545,6 +553,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// - `ro` - Read-only access, only set during construction or from bits.
 /// - `wo` - Write-only access.
 /// - `none` - No access.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -561,27 +570,28 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// let mut bitfield = BitfieldBuilder::new()
 ///     .with_read_write(0x12)
-///     .with_read_only(0x34) // Read-only fields only set during construction
-/// or from bits.     .with_write_only(0x56)
+///     .with_read_only(0x34) // Read-only fields only set during construction or from bits.
+///     .with_write_only(0x56)
 ///     // .with_none(0x78) // Compile error, none field can't be set.
 ///     .build();
 /// bitfield.set_read_write(0x12);
-/// // bitfield.set_read_only(1); // Compile error, read-only field can't be
-/// set, after construction. set. bitfield.set_write_only(0x56);
+/// // bitfield.set_read_only(1); // Compile error, read-only field can't be set, after construction.
+/// bitfield.set_write_only(0x56);
 /// // bitfield.set_none(0x78); // Compile error, none field can't be set.
 ///
 /// assert_eq!(bitfield.read_write(), 0x12);
 /// assert_eq!(bitfield.read_only(), 0x34);
-/// // assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only
-/// can't be read. // assert_eq!(bitfield.none(), 0xFF); // Compile error, none
-/// field can't be accessed. assert_eq!(bitfield.into_bits(), 0xFF563412); //
-/// All fields exposed when converted to bits. ```
+/// // assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only can't be read.
+/// // assert_eq!(bitfield.none(), 0xFF); // Compile error, none field can't be accessed.
+/// assert_eq!(bitfield.into_bits(), 0xFF563412); // All fields exposed when converted to bits.
+/// ```
 ///
 /// ### Checked Setters
 ///
 /// Normally, when a field is set, the value is truncated to the number of bits
 /// of the field. Fields also have checked setters that returns an error if the
 /// value overflows the number of bits of the field.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -613,7 +623,9 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// There is a checked version `checked_get_bit` that return an error instead.
 /// Similarly, for `set_bit`, if the bit is out-of-bounds or the  field doesn't
 /// have write access, the operation is no-op. There is a checked version
-/// `checked_set_bit` that returns an error instead. ```ignore
+/// `checked_set_bit` that returns an error instead.
+///
+/// ```ignore
 /// use bitfields::bitfield;
 ///
 /// #[bitfield(u8, bit_ops = true)]
@@ -644,6 +656,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert!(bitfield.get_bit(50)); // Out-of-bounds, false is returned.
 /// assert!(bitfield.checked_get_bit(50).is_err()); // Out-of-bounds, err.
 /// ```
+///
 /// ```ignore
 /// #[bitfield(u8, bit_ops = true)]
 /// #[derive(Copy, Clone)]
@@ -666,12 +679,12 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// bitfield.set_bit(3, false);
 /// bitfield.set_bit(4, false); // No-op, no write access.
 /// bitfield.set_bit(5, false); // No-op, no write access.
-/// assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, no write
-/// access. assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, no
-/// write access. bitfield.set_bit(6, true); // No-op, padding.
+/// assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, no write access.
+/// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, no write access.
+/// bitfield.set_bit(6, true); // No-op, padding.
 /// bitfield.set_bit(7, true); // No-op, padding.
 /// assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, padding.
-/// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding..
+/// assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding.
 /// assert_eq!(bitfield.into_bits(), 0b110011);
 /// ```
 ///
@@ -680,6 +693,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// Fields prefixed with an underscore `_` are padding fields, which are
 /// inaccessible. Meaning the field is always 0/false or a default value. They
 /// are useful for padding the bits of the bitfield.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -692,10 +706,10 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// let bitfield = Bitfield::new();
 /// assert_eq!(bitfield.a(), 0);
-/// // assert_eq!(bitfield._padding(), 0xFF00); // Compile error, padding
-/// inaccessible. // bitfield.set__padding(0xFF); // Compile error, padding
-/// fields are inaccessible. assert_eq!(bitfield.into_bits(), 0xFF00); // All
-/// fields exposed when converted to bits. ```
+/// // assert_eq!(bitfield._padding(), 0xFF00); // Compile error, padding inaccessible.
+/// // bitfield.set__padding(0xFF); // Compile error, padding fields are inaccessible.
+/// assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
+/// ```
 ///
 /// ### Ignored Fields
 ///
@@ -705,6 +719,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// bitfield without wrapping having to wrap bitfield is a parent struct. All
 /// ignored fields must implement the `Default` trait. Ignored fields
 /// are accessible directly like normal struct fields.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -729,12 +744,14 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// assert_eq!(bitfield.field_id, 0); // Ignored fields can be accessed
 /// directly. assert_eq!(bitfield.field_custom, CustomType::A); // Ignored
-/// fields can be accessed directly. ```
+/// fields can be accessed directly.
+/// ```
 ///
 /// ### Field Constants
 ///
 /// Fields with read or write access have constants generated for their number
 /// of bits and offset in the bitfield.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -758,12 +775,14 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(Bitfield::C_OFFSET, 16); // The offset of the c field in the
 /// bitfield. assert_eq!(Bitfield::D_BITS, 8); // Number of bits of the d field.
 /// assert_eq!(Bitfield::D_OFFSET, 24); // The offset of the d field in the
-/// bitfield. ```
+/// bitfield.
+/// ```
 ///
 /// ### Debug Implementation
 ///
 /// A debug implementation is generated for the bitfield, which prints the
 /// fields and their values.
+///
 /// ```ignore
 /// use bitfields::bitfield;
 ///
@@ -781,8 +800,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// let bitfield = Bitfield::new();
 ///
-/// assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a:
-/// 18 }"); ```
+/// assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a: 18 }"); ```
 ///
 /// ### Passing Attributes
 ///
