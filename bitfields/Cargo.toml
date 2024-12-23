@@ -1,6 +1,6 @@
 [package]
 name = "bitfields"
-version = "0.12.1"
+version = "0.12.2"
 authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
 description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
 keywords = ["bit" ,"bitfield", "bitfields", "struct"]
@@ -11,7 +11,7 @@ readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "0.9.1" }
+bitfields-impl = { path = "../bitfields_impl", version = "0.9.2" }
 
 [dev-dependencies]
 trybuild = "1.0.101"

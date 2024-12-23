@@ -2000,7 +2000,7 @@ mod tests {
             c: bool,
             d: bool,
             #[bits(4)]
-            __: u32
+            __: u32,
         }
     }
 }

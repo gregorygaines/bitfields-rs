@@ -33,7 +33,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "0.12.1"
+bitfields = "0.12.2"
 ```
 
 ## 🚀 Getting Started
