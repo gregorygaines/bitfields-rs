@@ -1988,4 +1988,19 @@ mod tests {
         assert_eq!(builder.c(), 0x56);
         assert_eq!(builder.d(), 0x78);
     }
+
+    #[test]
+    fn bitfield_bool_fields() {
+        #[bitfield(u8)]
+        #[derive(Copy, Clone)]
+        pub struct PxiCnt {
+            #[bits(access = ro)]
+            a: bool,
+            b: bool,
+            c: bool,
+            d: bool,
+            #[bits(4)]
+            __: u32
+        }
+    }
 }

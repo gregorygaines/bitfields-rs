@@ -256,7 +256,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     bitfield_type,
                     field.clone(),
                     const_reference_tokens.clone(),
-                    quote! { value != 0 },
+                    quote! { (value != 0) },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
                     None,
