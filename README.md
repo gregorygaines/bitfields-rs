@@ -7,6 +7,7 @@
   <a href="https://github.com/gregorygaines/bitfields-rs"><img src="https://img.shields.io/badge/github-gregorygaines/bitfields--rs-8da0cb?labelColor=555555&logo=github" alt="GitHub repo" /></a>
   <a href="#%EF%B8%8F-license"><img src="https://img.shields.io/github/license/Naereen/StrapDown.js.svg" alt="License"></a>
   <a href="https://github.com/gregorygaines/bitfields-rs"><img src="https://img.shields.io/github/stars/gregorygaines/bitfields-rs?style=flat"  alt="Stars"/></a>
+  <a href="https://crates.io/crates/bitfields"><img src="https://img.shields.io/crates/d/bitfields" alt="Downloads" /></a>
   <a href="https://ko-fi.com/T6T07SXPV"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=kofi&logoColor=fff&style=flat" alt="Kofi"></a>
 </p>
 
