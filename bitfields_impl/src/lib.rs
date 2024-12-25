@@ -1450,13 +1450,13 @@ fn generate_functions(
     let field_consts_tokens = generate_field_constants_tokens(struct_tokens.vis.clone(), fields);
     let field_getters_tokens = generate_field_getters_functions_tokens(
         struct_tokens.vis.clone(),
-        &bitfield_attribute,
+        bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
     )?;
     let field_setters_tokens = generate_field_setters_functions_tokens(
         struct_tokens.vis.clone(),
-        &bitfield_attribute,
+        bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
     );
