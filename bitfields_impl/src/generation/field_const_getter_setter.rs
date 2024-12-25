@@ -4,6 +4,7 @@ use quote::quote;
 use syn::{Type, Visibility};
 
 use crate::generation::common::{does_field_have_getter, does_field_have_setter};
+use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
 use crate::parsing::types::IntegerType::Bool;
 use crate::parsing::types::{get_bits_from_type, get_integer_type_from_type};
@@ -38,16 +39,15 @@ pub(crate) fn generate_field_constants_tokens(
 /// Generates the field getters for the bitfield.
 pub(crate) fn generate_field_getters_functions_tokens(
     default_vis: Visibility,
-    bitfield_type: &Type,
+    bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
     ignored_fields_struct: bool,
 ) -> syn::Result<TokenStream> {
     let tokens = fields.iter().filter(|field| !field.padding).filter(|field| does_field_have_getter(field)).map(|field| {
+        let bitfield_type = &bitfield_attribute.ty;
         let field_name = field.name.clone().to_string();
         let field_name_uppercase = field.name.clone().to_string().to_ascii_uppercase();
         let field_bits = field.bits;
-        let field_offset = field.offset;
-        let field_bits_end = field_offset + field_bits;
         let field_type = field.ty.clone();
 
         let field_name_ident = format_ident!("{}", field_name);
@@ -66,6 +66,17 @@ pub(crate) fn generate_field_getters_functions_tokens(
             quote! { self.0 }
         };
 
+        let field_offset = if bitfield_attribute.bit_order == BitOrder::Lsb {
+           field.offset
+        } else {
+            field.offset + field.bits - 1
+        };
+        let field_bits_end = if bitfield_attribute.bit_order == BitOrder::Lsb {
+            field.offset + field.bits - 1
+        } else {
+            field.offset
+        };
+
         let common_field_getter_documentation = format!("Returns bits [{}..={}].", field_offset, field_bits_end);
         if field.field_type == FieldType::CustomFieldType {
             quote! {
@@ -80,7 +91,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
             let field_type_bits = get_bits_from_type(&field_type).unwrap();
 
             if get_integer_type_from_type(&field_type) == Bool {
-                let bool_field_getter_documentation = format!("Returns bit [{}].", field_offset);
+                let bool_field_getter_documentation = format!(r"Returns bit \[{}\].", field_offset);
                 return quote! {
                     #[doc = #bool_field_getter_documentation]
                     #vis const fn #field_name_ident(&self) -> #field_type {
@@ -122,17 +133,25 @@ pub(crate) fn generate_field_getters_functions_tokens(
 /// Generates the field setters for the bitfield.
 pub(crate) fn generate_field_setters_functions_tokens(
     default_vis: Visibility,
-    bitfield_type: &Type,
+    bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
     ignored_fields_struct: bool,
 ) -> TokenStream {
     fields.iter().filter(|field| !field.padding).filter(|field| does_field_have_setter(field)).map(|field| {
         let field_name = field.name.clone().to_string();
         let field_type = field.ty.clone();
+        let bitfield_type = &bitfield_attribute.ty;
 
-        let field_bits = field.bits;
-        let field_offset = field.offset;
-        let field_bits_end = field_offset + field_bits;
+        let field_offset = if bitfield_attribute.bit_order == BitOrder::Lsb {
+            field.offset
+        } else {
+            field.offset + field.bits - 1
+        };
+        let field_bits_end = if bitfield_attribute.bit_order == BitOrder::Lsb {
+            field.offset + field.bits - 1
+        } else {
+            field.offset
+        };
 
         let field_offset_setter_ident = format_ident!("set_{}", field_name);
         let checked_field_offset_setter_ident = format_ident!("checked_set_{}", field_name);
@@ -147,12 +166,12 @@ pub(crate) fn generate_field_setters_functions_tokens(
         let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct, None);
 
         let setter_documentation = (get_integer_type_from_type(&field_type) == Bool).then(|| {
-            format!("Sets bit [{}].", field_offset)
+            format!(r"Sets bit \[{}\].", field_offset)
         }).unwrap_or_else(|| {
             format!("Sets bits [{}..={}].", field_offset, field_bits_end)
         });
         let checked_setter_documentation = (get_integer_type_from_type(&field_type) == Bool).then(|| {
-            format!("Sets bit [{}].", field_offset)
+            format!(r"Sets bit \[{}\].", field_offset)
         }).unwrap_or_else(|| {
             format!("Sets bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end)
         });
