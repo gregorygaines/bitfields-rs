@@ -18,4 +18,4 @@ proc-macro = true
 quote = "1.0.38"
 proc-macro2 = "1.0"
 syn = { version = "2.0.98", features = ["full", "extra-traits"] }
-thiserror = "2.0.11"
+thiserror = "2.0.12"
