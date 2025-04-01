@@ -15,7 +15,7 @@ rust-version = "1.80.0"
 proc-macro = true
 
 [dependencies]
-quote = "1.0.38"
+quote = "1.0.40"
 proc-macro2 = "1.0"
 syn = { version = "2.0.98", features = ["full", "extra-traits"] }
 thiserror = "2.0.12"
