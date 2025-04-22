@@ -28,8 +28,12 @@ pub(crate) fn generate_field_constants_tokens(
             let field_bits_const_ident = format_ident!("{}_BITS", field_name);
             let field_offset_const_ident = format_ident!("{}_OFFSET", field_name);
 
+            let bits_documentation = format!("The number of bits {} occupies in the bitfield.", field_name);
+            let offset_documentation = format!("The bitfield start bit of {}.", field_name);
             quote! {
+                #[doc = #bits_documentation]
                 #vis const #field_bits_const_ident: usize = #field_bits;
+                #[doc = #offset_documentation]
                 #vis const #field_offset_const_ident: usize = #field_offset;
             }
         })
