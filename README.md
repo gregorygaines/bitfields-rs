@@ -784,7 +784,7 @@ assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted t
 
 ### Inverting Bits
 
-Fields with the `#[bits(neg = true)` attribute, generates a `neg_<field>` getter function for each field
+Bitfields with the `#[bitfield(neg = true)` attribute, generates a `neg_<field>` getter function for each field
 that inverts the field's bits.
 
 ```
