@@ -35,7 +35,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "0.13.1"
+bitfields = "0.13.2"
 ```
 
 ## 🚀 Getting Started
@@ -787,7 +787,7 @@ assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted t
 Bitfields with the `#[bitfield(neg = true)` attribute, generates a `neg_<field>` getter function for each field
 that inverts the field's bits.
 
-```
+```rust
 #[bitfield(u8, neg = true)]
 struct Bitfield {
   #[bits(5, default = 0xC)]
