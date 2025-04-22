@@ -41,6 +41,8 @@ pub(crate) struct BitfieldAttribute {
     pub(crate) generate_clear_bits_impl: bool,
     /// Whether to generate the `to_builder` function.
     pub(crate) generate_to_builder: bool,
+    /// Whether to generate the `neg` function.
+    pub(crate) generate_neg_func: bool,
 }
 
 /// The order of the bits in the bitfield.
@@ -130,6 +132,7 @@ impl Parse for BitfieldAttribute {
         let mut generate_set_bits_impl = true;
         let mut generate_clear_bits_impl = true;
         let mut generate_to_builder = false;
+        let mut generate_neg_func = false;
 
         // Parse the remaining arguments which is in the form of `[key] = [val]`.
         while !input.is_empty() {
@@ -371,6 +374,20 @@ impl Parse for BitfieldAttribute {
                         }
                     };
                 }
+                "neg" => {
+                    generate_neg_func = match input.parse::<syn::LitBool>() {
+                        Ok(val) => val.value,
+                        Err(err) => {
+                            return Err(create_syn_error(
+                                input.span(),
+                                format!(
+                                    "Failed to parse the 'neg' arg '{}', must be either 'true', or 'false'.",
+                                    err
+                                ),
+                            ));
+                        }
+                    };
+                }
                 _ => {
                     return Err(create_syn_error(
                         arg_ident.span(),
@@ -402,6 +419,7 @@ impl Parse for BitfieldAttribute {
             generate_set_bits_impl,
             generate_clear_bits_impl,
             generate_to_builder,
+            generate_neg_func,
         })
     }
 }

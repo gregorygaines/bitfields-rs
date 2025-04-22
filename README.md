@@ -27,6 +27,7 @@ or concepts (e.g. embedded or writing an emulator).
 - Generates checked versions of field setters to catch overflows.
 - Generates bit operations to get or set bits.
 - Ability to ignore fields.
+- Supports inverting bits.
 
 ## 🔧 Usage
 
@@ -781,6 +782,32 @@ assert_eq!(bitfield.a(), 0);
 assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
 ```
 
+### Inverting Bits
+
+Fields with the `#[bits(neg = true)` attribute, generates a `neg_<field>` getter function for each field
+that inverts the field's bits.
+
+```
+#[bitfield(u8, neg = true)]
+struct Bitfield {
+  #[bits(5, default = 0xC)]
+  a: u8,
+  #[bits(1, default = true)]
+  b: bool,
+  #[bits(2)]
+  _padding: u8,
+}
+
+let builder = Bitfield::new();
+
+assert_eq!(builder.a(), 0xC);
+assert!(builder.b());
+
+// Inverted bits
+assert_eq!(builder.neg_a(), 0x13);
+assert!(!builder.neg_b());
+```
+
 ### Ignored Fields
 
 Fields with the `#[bits(ignore = true)` attribute are ignored and not included in the bitfield. This is useful for
@@ -900,6 +927,7 @@ The `#[bitfield]` args that control generation are:
 - `#[bitfield(clear_bits = true)]` - Generates the `clear_bits` function.
 - `#[bitfield(bit_ops = true)]` - Generates the bit operations implementation.
 - `#[bitfield(to_builder = true)]` - Generates the `to_builder` function.
+- `#[bitfield(neg = true)]` - Generates `neg_<field>` getter functions for each field.
 
 ## ⚖️ License
 

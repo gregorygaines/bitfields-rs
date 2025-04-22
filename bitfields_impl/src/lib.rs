@@ -711,6 +711,32 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
 /// ```
 ///
+/// ### Inverting Bits
+///
+/// Fields with the `#[bits(neg = true)` attribute, generates a `neg_<field>` getter function for each field
+/// that inverts the field's bits.
+///
+/// ```ignore
+/// #[bitfield(u8, neg = true)]
+/// struct Bitfield {
+///   #[bits(5, default = 0xC)]
+///   a: u8,
+///   #[bits(1, default = true)]
+///   b: bool,
+///   #[bits(2)]
+///   _padding: u8,
+/// }
+///
+/// let builder = Bitfield::new();
+///
+/// assert_eq!(builder.a(), 0xC);
+/// assert!(builder.b());
+///
+/// // Inverted bits
+/// assert_eq!(builder.neg_a(), 0x13);
+/// assert!(!builder.neg_b());
+/// ```
+///
 /// ### Ignored Fields
 ///
 /// Fields with the `#[bits(ignore = true)` attribute are ignored and not
@@ -840,6 +866,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// - `#[bitfield(bit_ops = true)]` - Generates the bit operations
 ///   implementation.
 /// - `#[bitfield(to_builder = true)]` - Generates the `to_builder` function.
+/// - `#[bitfield(neg = true)]` - Generates `neg_<field>` getter functions for each field.
 #[proc_macro_attribute]
 pub fn bitfield(
     args: proc_macro::TokenStream,
@@ -1453,6 +1480,7 @@ fn generate_functions(
         bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
+        bitfield_attribute.generate_neg_func,
     )?;
     let field_setters_tokens = generate_field_setters_functions_tokens(
         struct_tokens.vis.clone(),

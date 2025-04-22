@@ -2003,4 +2003,34 @@ mod tests {
             __: u32,
         }
     }
+
+    #[test]
+    fn bitfield_neg_inverts_bits() {
+        #[bitfield(u32, neg = true)]
+        pub struct Bitfield {
+            #[bits(5, default = 0xC)]
+            a: u8,
+            #[bits(default = 0x34)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(10, default = 0x78)]
+            d: u16,
+            #[bits(default = true)]
+            e: bool,
+        }
+
+        let builder = Bitfield::new();
+
+        assert_eq!(builder.a(), 0xC);
+        assert_eq!(builder.b(), 0x34);
+        assert_eq!(builder.c(), 0x56);
+        assert_eq!(builder.d(), 0x78);
+        assert!(builder.e());
+        assert_eq!(builder.neg_a(), 0x13);
+        assert_eq!(builder.neg_b(), 0xCB);
+        assert_eq!(builder.neg_c(), 0xA9);
+        assert_eq!(builder.neg_d(), 0x387);
+        assert!(!builder.neg_e());
+    }
 }
