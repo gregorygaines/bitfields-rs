@@ -211,7 +211,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 }
 
                 let extract_value_bits = quote! {
-                    let mask = ((1 << #const_reference_tokens::#field_bits_const_ident) - 1) as #bitfield_type;
+                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #const_reference_tokens::#field_bits_const_ident);
                     let value = (bits >> #const_reference_tokens::#field_offset_const_ident) & mask;
                 };
                 if field.field_type == FieldType::CustomFieldType {
@@ -244,10 +244,10 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 );
             }
 
-            let field_bits = field.bits;
-            let field_offset = field.offset;
+            let field_bits = field.bits as u32;
+            let field_offset = field.offset as u32;
             let extract_value_bits = quote! {
-                let mask = ((1 << #field_bits) - 1) as #bitfield_type;
+                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits);
                 let value = (bits >> #field_offset) & mask;
             };
 

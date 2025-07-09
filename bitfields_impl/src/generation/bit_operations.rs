@@ -20,8 +20,8 @@ pub(crate) fn generate_get_bit_tokens(
         .iter()
         .filter(|field| !does_field_have_getter(field) && !field.padding)
         .map(|field| {
-            let field_offset = field.offset as usize;
             let field_bits = field.bits as usize;
+            let field_offset = field.offset as usize;
             let field_end_bits = field_offset + field_bits;
             quote! {
                 if index >= #field_offset && index < #field_end_bits {
@@ -34,8 +34,8 @@ pub(crate) fn generate_get_bit_tokens(
         .iter()
         .filter(|field| !does_field_have_getter(field) && !field.padding)
         .map(|field| {
-            let field_offset = field.offset as usize;
             let field_bits = field.bits as usize;
+            let field_offset = field.offset as usize;
             let field_end_bits = field_offset + field_bits;
             quote! {
                 if index >= #field_offset && index < #field_end_bits {
@@ -87,8 +87,8 @@ pub(crate) fn generate_set_bit_tokens(
 
     let no_op_for_non_writable_fields =
         fields.iter().filter(|field| !does_field_have_setter(field)).map(|field| {
-            let field_offset = field.offset as usize;
             let field_bits = field.bits as usize;
+            let field_offset = field.offset as usize;
             let field_end_bits = field_offset + field_bits;
             quote! {
                 if index >= #field_offset && index < #field_end_bits {
@@ -99,8 +99,8 @@ pub(crate) fn generate_set_bit_tokens(
 
     let error_return_for_non_writable_fields =
         fields.iter().filter(|field| !does_field_have_setter(field)).map(|field| {
-            let field_offset = field.offset as usize;
             let field_bits = field.bits as usize;
+            let field_offset = field.offset as usize;
             let field_end_bits = field_offset + field_bits;
             quote! {
                 if index >= #field_offset && index < #field_end_bits {

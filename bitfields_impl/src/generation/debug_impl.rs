@@ -28,12 +28,12 @@ pub(crate) fn generate_debug_implementation(
 
     fields_msb_to_lsb.iter().for_each(|field| {
         let field_name = &field.name;
-        let field_bits = field.bits as usize;
-        let field_offset = field.offset as usize;
+        let field_bits = field.bits as u32;
+        let field_offset = field.offset as u32;
         let bitfield_type = &bitfield_attribute.ty;
 
         debug_impl.push(quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits as u32);
+            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits);
             let this = ((#struct_val_ident >> #field_offset) & mask) as #bitfield_type;
             debug.field(stringify!(#field_name), &((#struct_val_ident >> #field_offset) & mask));
         });

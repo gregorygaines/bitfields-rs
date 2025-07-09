@@ -22,8 +22,8 @@ pub(crate) fn generate_field_constants_tokens(
         .filter(|field| !field.padding)
         .filter(|field| does_field_have_getter(field) || does_field_have_setter(field))
         .map(|field| {
-            let field_bits = field.bits as usize;
-            let field_offset = field.offset as usize;
+            let field_bits = field.bits as u32;
+            let field_offset = field.offset as u32;
             let field_name = field.name.clone().to_string().to_ascii_uppercase();
             let field_bits_const_ident = format_ident!("{}_BITS", field_name);
             let field_offset_const_ident = format_ident!("{}_OFFSET", field_name);
@@ -33,9 +33,9 @@ pub(crate) fn generate_field_constants_tokens(
             let offset_documentation = format!("The bitfield start bit of {}.", field_name);
             quote! {
                 #[doc = #bits_documentation]
-                #vis const #field_bits_const_ident: usize = #field_bits;
+                #vis const #field_bits_const_ident: u32 = #field_bits;
                 #[doc = #offset_documentation]
-                #vis const #field_offset_const_ident: usize = #field_offset;
+                #vis const #field_offset_const_ident: u32 = #field_offset;
             }
         })
         .collect()
@@ -91,7 +91,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                 quote! {
                     #[doc = #common_neg_field_getter_documentation]
                     #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                         let this = (!(#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                         #field_type::from_bits(this as _)
                     }
@@ -103,7 +103,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
             quote! {
                 #[doc = #common_field_getter_documentation]
                    #vis const fn #field_name_ident(&self) -> #field_type {
-                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                     let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                     #field_type::from_bits(this as _)
                 }
@@ -121,7 +121,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                     quote! {
                         #[doc = #neg_bool_field_getter_documentation]
                         #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                             let this = (!(#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                             this != 0
                         }
@@ -133,7 +133,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                 return quote! {
                     #[doc = #bool_field_getter_documentation]
                     #vis const fn #field_name_ident(&self) -> #field_type {
-                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                         let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                         this != 0
                     }
@@ -165,7 +165,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
                 quote! {
                     #[doc = #neg_field_getter_documentation]
                     #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                         let this = (!(#struct_val_ident >> Self::#field_offset_const_ident) & mask) as #field_type;
                         #sign_extend_tokens
                         this
@@ -178,7 +178,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
             quote! {
                 #[doc = #field_getter_documentation]
                 #vis const fn #field_name_ident(&self) -> #field_type {
-                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident as u32);
+                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                     let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask) as #field_type;
                     #sign_extend_tokens
                     this
@@ -284,7 +284,7 @@ pub(crate) fn generate_setter_impl_tokens(
             Some(quote! { #bitfield_struct_name_ident::#field_bits_const_ident })
         }
         FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
-            let field_bits = field.bits as usize;
+            let field_bits = field.bits as u32;
             Some(quote! { #field_bits })
         }
     };
@@ -294,7 +294,7 @@ pub(crate) fn generate_setter_impl_tokens(
             Some(quote! { #bitfield_struct_name_ident::#field_offset_const_ident })
         }
         FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
-            let field_offset = field.offset as usize;
+            let field_offset = field.offset as u32;
             Some(quote! { #field_offset })
         }
     };
@@ -314,7 +314,7 @@ pub(crate) fn generate_setter_impl_tokens(
     if field.field_type == FieldType::CustomFieldType {
         if check_value_bit_size {
             quote! {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
+                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
                 let bits = #value_ident.into_bits();
                 if bits as #bitfield_type > mask {
                     return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
@@ -324,20 +324,20 @@ pub(crate) fn generate_setter_impl_tokens(
             }
         } else {
             quote! {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
+                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
                 #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((#value_ident.into_bits() as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
             }
         }
     } else if check_value_bit_size {
         quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
+            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
             #bits_bigger_than_mask_check
             #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
             Ok(())
         }
     } else {
         quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident as u32);
+            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
             #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
         }
     }
