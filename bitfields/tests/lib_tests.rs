@@ -1742,6 +1742,28 @@ mod tests {
     }
 
     #[test]
+    fn bitfield_full_field_size_u32() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            data: u32,
+        }
+
+        let bitfield = Bitfield::from_bits(0xaabbccdd);
+        assert_eq!(bitfield.data(), 0xaabbccdd);
+    }
+
+    #[test]
+    fn bitfield_full_field_size_u64() {
+        #[bitfield(u64)]
+        pub struct Bitfield {
+            data: u64,
+        }
+
+        let bitfield = Bitfield::from_bits(0x11223344aabbccdd);
+        assert_eq!(bitfield.data(), 0x11223344aabbccdd);
+    }
+
+    #[test]
     fn bitfield_set_bit() {
         #[bitfield(u8, bit_ops = true)]
         #[derive(Copy, Clone)]
