@@ -4,6 +4,7 @@ use syn::Visibility;
 
 use crate::generation::common::{
     generate_setting_fields_default_values_tokens, generate_setting_fields_to_zero_tokens,
+    supports_const_mut_refs,
 };
 use crate::parsing::bitfield_field::BitfieldField;
 
@@ -49,11 +50,12 @@ pub(crate) fn generate_new_function_tokens(
         }
     };
 
-    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
+    let constness =
+        (supports_const_mut_refs() && ignored_fields.is_empty()).then(|| quote! { const });
 
     quote! {
         #[doc = #documentation]
-        #vis #const_ident_tokens fn new() -> Self {
+        #vis #constness fn new() -> Self {
             let mut this = #initialize_struct_tokens;
             #setting_fields_default_values_tokens
             this
@@ -104,11 +106,12 @@ pub(crate) fn generate_new_without_defaults_function_tokens(
         }
     };
 
-    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
+    let constness =
+        (supports_const_mut_refs() && ignored_fields.is_empty()).then(|| quote! { const });
 
     quote! {
         #[doc = #documentation]
-        #vis #const_ident_tokens fn new_without_defaults() -> Self {
+        #vis #constness fn new_without_defaults() -> Self {
             let mut this = #initialize_struct_tokens;
             #setting_fields_to_zero_tokens
             this

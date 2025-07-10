@@ -3,6 +3,7 @@ use quote::format_ident;
 use quote::quote;
 use syn::{Type, Visibility};
 
+use crate::generation::common::supports_const_mut_refs;
 use crate::generation::common::{does_field_have_getter, does_field_have_setter};
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
@@ -87,10 +88,12 @@ pub(crate) fn generate_field_getters_functions_tokens(
         let common_field_getter_documentation = format!("Returns bits [{}..={}].", field_offset, field_bits_end);
         let common_neg_field_getter_documentation = format!("Returns bits [{}..={}] inverted.", field_offset, field_bits_end);
         if field.field_type == FieldType::CustomFieldType {
+            let constness = supports_const_mut_refs().then(|| quote! { const });
+
             let neg_getter = if generate_neg_getter {
                 quote! {
                     #[doc = #common_neg_field_getter_documentation]
-                    #vis const fn #neg_field_name_ident(&self) -> #field_type {
+                    #vis #constness fn #neg_field_name_ident(&self) -> #field_type {
                         let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                         let this = (!(#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                         #field_type::from_bits(this as _)
@@ -102,7 +105,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
 
             quote! {
                 #[doc = #common_field_getter_documentation]
-                   #vis const fn #field_name_ident(&self) -> #field_type {
+                   #vis #constness fn #field_name_ident(&self) -> #field_type {
                     let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
                     let this = ((#struct_val_ident >> Self::#field_offset_const_ident) & mask);
                     #field_type::from_bits(this as _)
@@ -224,6 +227,8 @@ pub(crate) fn generate_field_setters_functions_tokens(
             None => default_vis.clone(),
         };
 
+        let constness = supports_const_mut_refs().then(|| quote! { const });
+
         let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct, None);
         let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct, None);
 
@@ -239,13 +244,13 @@ pub(crate) fn generate_field_setters_functions_tokens(
         });
         quote! {
             #[doc = #setter_documentation]
-            #vis const fn #field_offset_setter_ident(&mut self, bits: #field_type) {
+            #vis #constness fn #field_offset_setter_ident(&mut self, bits: #field_type) {
                 let this = self;
                 #setter_impl_tokens
             }
 
             #[doc = #checked_setter_documentation]
-            #vis const fn #checked_field_offset_setter_ident(&mut self, bits: #field_type) -> Result<(), &'static str> {
+            #vis #constness fn #checked_field_offset_setter_ident(&mut self, bits: #field_type) -> Result<(), &'static str> {
                 let this = self;
                 #setter_with_size_check_impl_tokens
             }

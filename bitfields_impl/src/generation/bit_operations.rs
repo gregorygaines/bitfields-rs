@@ -2,7 +2,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Visibility;
 
-use crate::generation::common::{does_field_have_getter, does_field_have_setter};
+use crate::generation::common::{
+    does_field_have_getter, does_field_have_setter, supports_const_mut_refs,
+};
 use crate::parsing::bitfield_field::BitfieldField;
 use crate::parsing::types::get_bits_from_type;
 
@@ -115,9 +117,11 @@ pub(crate) fn generate_set_bit_tokens(
         quote! { self.0 }
     };
 
+    let constness = supports_const_mut_refs().then(|| quote! { const });
+
     quote! {
         #[doc = #set_bit_documentation]
-        #vis const fn set_bit(&mut self, index: usize, bit: bool) {
+        #vis #constness fn set_bit(&mut self, index: usize, bit: bool) {
             if index > #bitfield_type_bits {
                 return;
             }
@@ -132,7 +136,7 @@ pub(crate) fn generate_set_bit_tokens(
         }
 
         #[doc = #checked_set_bit_documentation]
-        #vis const fn checked_set_bit(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
+        #vis #constness fn checked_set_bit(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
             if index > #bitfield_type_bits {
                 return Err("Index out of bounds.");
             }

@@ -9,7 +9,7 @@ license = "MIT"
 repository = "https://github.com/gregorygaines/bitfields-rs"
 readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
-rust-version = "1.83.0"
+rust-version = "1.70.0"
 
 [dependencies]
 bitfields-impl = { path = "../bitfields_impl", version = "1.0.0" }
