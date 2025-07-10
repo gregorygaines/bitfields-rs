@@ -79,7 +79,7 @@ impl FromStr for FieldAccess {
 }
 
 impl Parse for BitsAttribute {
-    /// Parser a field with the '#[bits]' attribute.
+    /// Parser a field with the `#[bits]` attribute.
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut bitfield_attribute_args =
             BitsAttribute { bits: None, default_value_expr: None, access: None, ignore: false };

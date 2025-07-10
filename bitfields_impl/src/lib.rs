@@ -826,7 +826,8 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 ///
 /// let bitfield = Bitfield::new();
 ///
-/// assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a: 18 }"); ```
+/// assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a: 18 }");
+/// ```
 ///
 /// ### Passing Attributes
 ///
