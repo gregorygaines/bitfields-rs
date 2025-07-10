@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "bitfields"
-version = "0.13.2"
+version = "1.0.0"
 dependencies = [
  "bitfields-impl",
  "trybuild",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "bitfields-impl"
-version = "0.10.2"
+version = "1.0.0"
 dependencies = [
  "proc-macro2",
  "quote",

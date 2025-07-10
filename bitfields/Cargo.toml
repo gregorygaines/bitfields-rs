@@ -1,6 +1,6 @@
 [package]
 name = "bitfields"
-version = "0.13.2"
+version = "1.0.0"
 authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
 description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
 keywords = ["bit" ,"bitfield", "bitfields", "struct"]
@@ -12,7 +12,7 @@ categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 rust-version = "1.83.0"
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "0.10.2" }
+bitfields-impl = { path = "../bitfields_impl", version = "1.0.0" }
 
 [dev-dependencies]
 trybuild = "1.0.105"
