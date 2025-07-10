@@ -15,9 +15,9 @@ pub(crate) struct BitfieldAttribute {
     pub(crate) bits: u8,
     /// The order of the bits in the bitfield.
     pub(crate) bit_order: BitOrder,
-    /// The endianness of the [`from_bits`] input.
+    /// The endianness of the `from_bits` input.
     pub(crate) from_endian: Endian,
-    /// The endianness of the [`into_bits`] output.
+    /// The endianness of the `into_bits` output.
     pub(crate) into_endian: Endian,
     /// Whether to generate the `new` or `new_without_defaults` function.
     pub(crate) generate_new_func: bool,
