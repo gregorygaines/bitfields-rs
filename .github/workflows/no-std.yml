@@ -22,7 +22,8 @@ jobs:
           toolchain: 1.86.0
       - run: cargo install cargo-generate --locked
       - run: cargo generate --git https://github.com/rust-embedded/cortex-m-quickstart -n nostd-app
-      - run: cd nostd-app
       - run: rustup target add thumbv7em-none-eabihf
-      - run: cargo add bitfields --path .. --package nostd-app
+      - run: |
+          cd nostd-app
+          cargo add bitfields --path ../bitfields --package nostd-app
       - run: cargo build --target thumbv7em-none-eabihf
