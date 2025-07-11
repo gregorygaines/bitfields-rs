@@ -20,6 +20,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: nightly-2024-12-15
+      - run: cargo install cargo-generate
       - run: cargo generate --git https://github.com/rust-embedded/cortex-m-quickstart -n nostd-app
       - run: cd nostd-app
       - run: rustup target add thumbv7em-none-eabihf
