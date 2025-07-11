@@ -19,6 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
         with:
-          components: clippy
           toolchain: 1.86.0
+          components: clippy
       - run: cargo clippy --all-features --all-targets
