@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+name: No-Std Build
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  no_std:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: nightly-2024-12-15
+      - run: cargo generate --git https://github.com/rust-embedded/cortex-m-quickstart -n nostd-app
+      - run: cd nostd-app
+      - run: rustup target add thumbv7em-none-eabihf
+      - run: cargo add bitfields --path ../bitfields
+      - run: cargo build --target thumbv7em-none-eabihf
