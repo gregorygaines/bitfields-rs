@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.86.0
+      - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
+          toolchain: 1.86.0
       - run: cargo fmt --all -- --check --verbose
