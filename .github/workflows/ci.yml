@@ -18,7 +18,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.86.0
       - run: cargo build --all-features --all-targets
       - run: cargo test --all
