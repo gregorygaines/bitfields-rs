@@ -296,3 +296,7 @@ pub(crate) fn does_field_have_getter(field: &BitfieldField) -> bool {
     (field.access == FieldAccess::ReadWrite || field.access == FieldAccess::ReadOnly)
         && !field.padding
 }
+
+pub(crate) const fn supports_const_mut_refs() -> bool {
+    rustversion::cfg!(any(all(stable, since(1.83)), all(nightly, since(1.41))))
+}
