@@ -32,9 +32,17 @@ pub(crate) fn generate_builder_tokens(
             let field_type = field.ty.clone();
             let field_bits = field.bits;
             let field_offset = field.offset;
-            let field_bits_end = field_offset + field_bits;
-            let with_field_documentation = format!("Sets builder bits [{}..={}].", field_offset, field_bits_end);
-            let checked_with_field_documentation = format!("Sets builder bits [{}..={}]. Returns an error if the value is too big to fit within the field bits.", field_offset, field_bits_end);
+            let field_bits_end = field_offset + field_bits - 1;
+            let with_field_documentation = if field_bits == 1 {
+                format!("Sets builder bit `{field_offset}`.")
+            } else {
+                format!("Sets builder bits `{field_offset}..={field_bits_end}`.")
+            };
+            let checked_with_field_documentation = if field_bits == 1 {
+                format!("{with_field_documentation}. Returns an error if the value is too big to fit within the field bit.")
+            } else {
+                format!("{with_field_documentation}. Returns an error if the value is too big to fit within the field bits.")
+            };
 
             if does_field_have_setter(field) {
                 quote! {
