@@ -13,13 +13,11 @@ env:
   RUSTFLAGS: "-Dwarnings"
 
 jobs:
-   miri:
+  miri:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          toolchain: 1.86.0
+      - uses: dtolnay/rust-toolchain@1.86.0
       - run: rustup toolchain install nightly --component miri
       - run: rustup override set nightly
       - run: cargo miri setup

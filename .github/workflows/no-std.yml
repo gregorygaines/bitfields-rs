@@ -17,9 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
-        with:
-          toolchain: 1.86.0
+      - uses: dtolnay/rust-toolchain@1.86.0
       - run: cargo install cargo-generate --locked
       - run: cargo generate --git https://github.com/rust-embedded/cortex-m-quickstart -n nostd-app
       - run: rustup target add thumbv7em-none-eabihf
