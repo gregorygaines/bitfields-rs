@@ -2,7 +2,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Visibility;
 
-use crate::generation::common::generate_setting_fields_from_bits_tokens;
+use crate::generation::common::{
+    generate_setting_fields_from_bits_tokens, supports_const_mut_refs,
+};
 use crate::parsing::bitfield_attribute::{BitfieldAttribute, Endian};
 use crate::parsing::bitfield_field::BitfieldField;
 
@@ -49,11 +51,12 @@ pub(crate) fn generate_from_bits_function_tokens(
         }
     };
 
-    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
+    let constness =
+        (supports_const_mut_refs() && ignored_fields.is_empty()).then(|| quote! { const });
 
     quote! {
         #[doc = "Creates a new bitfield instance from the given bits."]
-        #vis #const_ident_tokens fn from_bits(bits: #bitfield_type) -> Self {
+        #vis #constness fn from_bits(bits: #bitfield_type) -> Self {
             #swap_bits_endian_tokens
             let mut this = #initialize_struct_tokens;
             #setting_fields_from_bits_tokens
@@ -84,11 +87,11 @@ pub(crate) fn generate_from_bits_with_defaults_function_tokens(
         }
     });
 
-    let const_ident_tokens = (!ignored_fields_struct).then(|| quote! { const });
+    let constness = (supports_const_mut_refs() && !ignored_fields_struct).then(|| quote! {const});
 
     quote! {
         #[doc = "Creates a new bitfield instance from the given bits while respecting field default values."]
-        #vis #const_ident_tokens fn from_bits_with_defaults(bits: #bitfield_type) -> Self {
+        #vis #constness fn from_bits_with_defaults(bits: #bitfield_type) -> Self {
             #swap_bits_endian_tokens
             let mut this = Self::from_bits(bits);
             #setting_fields_from_bits_tokens
