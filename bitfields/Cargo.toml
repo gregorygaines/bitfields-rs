@@ -15,4 +15,5 @@ rust-version = "1.70.0"
 bitfields-impl = { path = "../bitfields_impl", version = "1.0.0" }
 
 [dev-dependencies]
+rustversion = "1.0.21"
 trybuild = "1.0.105"
