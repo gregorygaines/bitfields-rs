@@ -9,5 +9,6 @@ error[E0599]: no method named `get_bit` found for struct `Bitfield` in the curre
    |
 help: there is a method `set_bits` with a similar name
    |
-14 |     bitfield.set_bits(0);
-   |              ~~~~~~~~
+14 -     bitfield.get_bit(0);
+14 +     bitfield.set_bits(0);
+   |
