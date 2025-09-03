@@ -18,10 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.86.0
-      - run: git clone https://github.com/rust-embedded/cortex-m-quickstart.git template
-      - run: cd template && git checkout ac02415275d0190a1a7aa730ec2b0bdf7c3ef88f
       - run: cargo install cargo-generate --locked
-      - run: cargo generate --path . --name nostd-app
+      - run: cargo generate --git https://github.com/gregorygaines/cortex-m-quickstart -n nostd-app
       - run: rustup target add thumbv7em-none-eabihf
       - run: |
           cd nostd-app
