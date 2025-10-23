@@ -183,10 +183,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
         .iter()
         .filter(|field| {
             // Include all fields except read-only fields when include_read_only is false
-            if !include_read_only && field.access == FieldAccess::ReadOnly {
-                return false;
-            }
-            true
+            include_read_only || field.access != FieldAccess::ReadOnly
         })
         .map(|field| {
             // Padding fields default values are respected.
