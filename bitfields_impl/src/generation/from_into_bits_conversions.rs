@@ -20,6 +20,7 @@ pub(crate) fn generate_from_bits_function_tokens(
         Some(quote! { Self }),
         false,
         !ignored_fields.is_empty(),
+        true, // from_bits should set read-only fields
     );
 
     let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {
@@ -76,6 +77,7 @@ pub(crate) fn generate_from_bits_with_defaults_function_tokens(
         Some(quote! { Self }),
         true,
         ignored_fields_struct,
+        true, // from_bits_with_defaults should set read-only fields
     );
 
     let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {

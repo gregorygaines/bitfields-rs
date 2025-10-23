@@ -168,15 +168,26 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
 }
 
 /// Generates tokens to set the fields from a `bits` variable.
+/// 
+/// When `include_read_only` is true, read-only fields will be set from bits.
+/// When `include_read_only` is false, read-only fields will be skipped.
 pub(crate) fn generate_setting_fields_from_bits_tokens(
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
     const_reference_tokens: Option<TokenStream>,
     respect_defaults: bool,
     ignored_fields_struct: bool,
+    include_read_only: bool,
 ) -> TokenStream {
     fields
         .iter()
+        .filter(|field| {
+            // Include all fields except read-only fields when include_read_only is false
+            if !include_read_only && field.access == FieldAccess::ReadOnly {
+                return false;
+            }
+            true
+        })
         .map(|field| {
             // Padding fields default values are respected.
             if field.padding {
@@ -271,7 +282,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 bitfield_type,
                 field.clone(),
                 const_reference_tokens.clone(),
-                quote! { 0 },
+                quote! { value },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
                 None,

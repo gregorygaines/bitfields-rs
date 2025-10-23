@@ -18,6 +18,7 @@ pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
         Some(quote! { Self }),
         false,
         !ignored_fields.is_empty(),
+        true, // From trait should set read-only fields (like from_bits)
     );
 
     let ignored_fields_defaults = ignored_fields.iter().map(|field| {
