@@ -1,4 +1,5 @@
-// TODO: There is a linting issue with clippy that causes false positives in this file.
+// TODO: There is a linting issue with clippy that causes false positives in
+// this file.
 #![allow(clippy::all)]
 
 use bitfields::bitfield;
