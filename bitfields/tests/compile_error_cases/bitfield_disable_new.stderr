@@ -1,7 +1,7 @@
 error[E0599]: no function or associated item named `new` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_disable_new.rs:12:30
    |
-3  | #[bitfield(u64, new = false)]
+ 3 | #[bitfield(u64, new = false)]
    | ----------------------------- function or associated item `new` not found for this struct
 ...
 12 |     let bitfield = Bitfield::new(0);
@@ -12,6 +12,6 @@ note: if you're trying to build a new `Bitfield` consider using one of the follo
       Bitfield::from_bits_with_defaults
   --> tests/compile_error_cases/bitfield_disable_new.rs:3:1
    |
-3  | #[bitfield(u64, new = false)]
+ 3 | #[bitfield(u64, new = false)]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)

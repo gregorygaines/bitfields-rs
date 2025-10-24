@@ -1,7 +1,7 @@
 error[E0599]: no method named `a` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_field_access_write_only.rs:11:14
    |
-3  | #[bitfield(u32)]
+ 3 | #[bitfield(u32)]
    | ---------------- method `a` not found for this struct
 ...
 11 |     bitfield.a(); // Error, field is write-only

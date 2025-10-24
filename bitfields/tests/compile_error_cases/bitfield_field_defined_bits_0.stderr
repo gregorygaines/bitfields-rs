@@ -2,4 +2,4 @@ error: The field bits must be greater than 0.
  --> tests/compile_error_cases/bitfield_field_defined_bits_0.rs:5:7
   |
 5 |     #[bits(0)]
-  |       ^^^^
+  |       ^^^^^^^

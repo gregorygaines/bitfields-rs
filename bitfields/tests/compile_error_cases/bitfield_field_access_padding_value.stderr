@@ -1,7 +1,7 @@
 error[E0599]: no method named `_padding` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_field_access_padding_value.rs:15:25
    |
-3  | #[bitfield(u64)]
+ 3 | #[bitfield(u64)]
    | ---------------- method `_padding` not found for this struct
 ...
 15 |     assert_eq!(bitfield._padding(), 0x1);

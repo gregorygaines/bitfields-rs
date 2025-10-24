@@ -174,9 +174,17 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
     const_reference_tokens: Option<TokenStream>,
     respect_defaults: bool,
     ignored_fields_struct: bool,
+    include_read_only_fields: bool,
 ) -> TokenStream {
     fields
         .iter()
+        .filter(|field| {
+            if field.access == FieldAccess::ReadOnly {
+                include_read_only_fields
+            } else {
+                true
+            }
+        })
         .map(|field| {
             // Padding fields default values are respected.
             if field.padding {
@@ -271,7 +279,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 bitfield_type,
                 field.clone(),
                 const_reference_tokens.clone(),
-                quote! { 0 },
+                quote! { value },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
                 None,

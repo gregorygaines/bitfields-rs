@@ -1,7 +1,7 @@
 error[E0599]: no method named `set_a` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_field_access_read_only_can_not_write.rs:11:14
    |
-3  | #[bitfield(u32)]
+ 3 | #[bitfield(u32)]
    | ---------------- method `set_a` not found for this struct
 ...
 11 |     bitfield.set_a(0x34);

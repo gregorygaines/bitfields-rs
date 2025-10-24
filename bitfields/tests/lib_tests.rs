@@ -1295,6 +1295,65 @@ mod tests {
     }
 
     #[test]
+    fn bitfield_from_bits_field_access_read_only() {
+        #[bitfield(u8)]
+        struct Bitfield {
+            #[bits(4)]
+            rw: u8,
+            #[bits(4, access = ro)]
+            ro: u8,
+        }
+
+        let bar1 = Bitfield::from_bits(0xFF);
+        assert_eq!(0xF, bar1.rw());
+        assert_eq!(0xF, bar1.ro());
+
+        let bar2 = BitfieldBuilder::new().with_ro(0xF).build();
+        assert_eq!(0xF, bar2.ro());
+    }
+
+    #[test]
+    fn bitfield_from_bits_sets_read_only_fields() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            rw_field: u8,
+            #[bits(default = 0x34, access = ro)]
+            ro_field: u8,
+            no_default_field: u8,
+            #[bits(default = 0x78)]
+            another_field: u8,
+        }
+
+        let bitfield = Bitfield::from_bits(0x11_22_33_44);
+        assert_eq!(bitfield.rw_field(), 0x44);
+        assert_eq!(bitfield.ro_field(), 0x33); // Read-only field should be set from bits
+        assert_eq!(bitfield.no_default_field(), 0x22);
+        assert_eq!(bitfield.another_field(), 0x11);
+        assert_eq!(bitfield.into_bits(), 0x11_22_33_44);
+    }
+
+    #[test]
+    fn bitfield_from_bits_sets_read_only_bool_fields() {
+        #[bitfield(u16)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: u8,
+            #[bits(access = ro)]
+            ro_bool: bool,
+            #[bits(3)]
+            b: u8,
+            #[bits(8)]
+            c: u8,
+        }
+
+        let bitfield_true = Bitfield::from_bits(0xFFFF);
+        assert_eq!(bitfield_true.ro_bool(), true);
+        let bitfield_false = Bitfield::from_bits(0xFFEF);
+        assert_eq!(bitfield_false.ro_bool(), false);
+    }
+
+    #[test]
     #[cfg_attr(miri, ignore)]
     fn bitfield_field_access_read_only_can_not_write() {
         let t = trybuild::TestCases::new();
@@ -1897,9 +1956,9 @@ mod tests {
         bitfield.set_bits(0x11223344);
 
         assert_eq!(bitfield.a(), 0x44);
-        assert_eq!(bitfield.b(), 0);
+        assert_eq!(bitfield.b(), 0x34);
         assert_eq!(bitfield.c(), 0x22);
-        assert_eq!(bitfield.into_bits(), 0x78220044);
+        assert_eq!(bitfield.into_bits(), 0x78223444);
     }
 
     #[test]

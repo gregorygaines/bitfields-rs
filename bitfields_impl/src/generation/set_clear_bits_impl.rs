@@ -20,6 +20,7 @@ pub(crate) fn generate_set_bits_function_tokens(
         Some(quote! { Self }),
         false,
         ignored_fields_struct,
+        false,
     );
 
     quote! {
@@ -44,6 +45,7 @@ pub(crate) fn generate_set_bits_with_defaults_function_tokens(
         Some(quote! { Self }),
         true,
         ignored_fields_struct,
+        false,
     );
 
     quote! {
@@ -87,6 +89,7 @@ pub(crate) fn generate_clear_bits_preserve_defaults_function_tokens(
         Some(quote! { Self }),
         true,
         ignored_fields_struct,
+        false,
     );
 
     quote! {

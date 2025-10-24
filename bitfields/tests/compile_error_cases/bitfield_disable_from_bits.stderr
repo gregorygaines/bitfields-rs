@@ -1,7 +1,7 @@
 error[E0599]: no function or associated item named `from_bits` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_disable_from_bits.rs:12:30
    |
-3  | #[bitfield(u64, from_bits = false)]
+ 3 | #[bitfield(u64, from_bits = false)]
    | ----------------------------------- function or associated item `from_bits` not found for this struct
 ...
 12 |     let bitfield = Bitfield::from_bits(0);
@@ -12,6 +12,6 @@ note: if you're trying to build a new `Bitfield` consider using one of the follo
       Bitfield::new_without_defaults
   --> tests/compile_error_cases/bitfield_disable_from_bits.rs:3:1
    |
-3  | #[bitfield(u64, from_bits = false)]
+ 3 | #[bitfield(u64, from_bits = false)]
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)

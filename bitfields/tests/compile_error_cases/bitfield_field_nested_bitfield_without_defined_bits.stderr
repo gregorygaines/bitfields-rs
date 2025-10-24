@@ -1,5 +1,6 @@
 error: Custom and nested field types require a defined bit size, otherwise we can't determine the size of the field.
  --> tests/compile_error_cases/bitfield_field_nested_bitfield_without_defined_bits.rs:7:5
   |
-7 |     #[bits(default = NestedBitfield::new())]
-  |     ^
+7 | /     #[bits(default = NestedBitfield::new())]
+8 | |     nested_field: NestedBitfield,
+  | |________________________________^

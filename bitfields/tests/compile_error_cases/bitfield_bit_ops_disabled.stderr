@@ -1,7 +1,7 @@
 error[E0599]: no method named `get_bit` found for struct `Bitfield` in the current scope
   --> tests/compile_error_cases/bitfield_bit_ops_disabled.rs:14:14
    |
-3  | #[bitfield(u32)]
+ 3 | #[bitfield(u32)]
    | ---------------- method `get_bit` not found for this struct
 ...
 14 |     bitfield.get_bit(0);
