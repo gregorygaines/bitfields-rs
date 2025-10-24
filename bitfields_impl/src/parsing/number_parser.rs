@@ -107,49 +107,54 @@ mod tests {
     fn test_parse_decimal_string() {
         let integer_type = parse_number_string("12").unwrap();
 
-        assert_eq!(
-            integer_type,
-            ParsedNumber { number: 12, negative: false, has_integer_suffix: false }
-        );
+        assert_eq!(integer_type, ParsedNumber {
+            number: 12,
+            negative: false,
+            has_integer_suffix: false
+        });
     }
 
     #[test]
     fn test_parse_negative_decimal_string() {
         let integer_type = parse_number_string("-12").unwrap();
 
-        assert_eq!(
-            integer_type,
-            ParsedNumber { number: 12, negative: true, has_integer_suffix: false }
-        );
+        assert_eq!(integer_type, ParsedNumber {
+            number: 12,
+            negative: true,
+            has_integer_suffix: false
+        });
     }
 
     #[test]
     fn test_parse_decimal_integer_suffix_string() {
         let integer_type = parse_number_string("-12i8").unwrap();
 
-        assert_eq!(
-            integer_type,
-            ParsedNumber { number: 12, negative: true, has_integer_suffix: true }
-        );
+        assert_eq!(integer_type, ParsedNumber {
+            number: 12,
+            negative: true,
+            has_integer_suffix: true
+        });
     }
 
     #[test]
     fn test_parse_hex_string() {
         let integer_type = parse_number_string("0x1234").unwrap();
 
-        assert_eq!(
-            integer_type,
-            ParsedNumber { number: 0x1234, negative: false, has_integer_suffix: false }
-        );
+        assert_eq!(integer_type, ParsedNumber {
+            number: 0x1234,
+            negative: false,
+            has_integer_suffix: false
+        });
     }
 
     #[test]
     fn test_parse_octal_string() {
         let integer_type = parse_number_string("0o12").unwrap();
 
-        assert_eq!(
-            integer_type,
-            ParsedNumber { number: 10, negative: false, has_integer_suffix: false }
-        );
+        assert_eq!(integer_type, ParsedNumber {
+            number: 10,
+            negative: false,
+            has_integer_suffix: false
+        });
     }
 }
