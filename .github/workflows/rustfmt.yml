@@ -20,4 +20,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
-      - run: cargo fmt --all -- --check --verbose
+      - run: rustup component add --toolchain nightly-2025-04-03-x86_64-unknown-linux-gnu rustfmt && cargo fmt --all -- --check --verbose
