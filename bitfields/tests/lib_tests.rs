@@ -1348,9 +1348,9 @@ mod tests {
         }
 
         let bitfield_true = Bitfield::from_bits(0xFFFF);
-        assert_eq!(bitfield_true.ro_bool(), true);
+        assert!(bitfield_true.ro_bool());
         let bitfield_false = Bitfield::from_bits(0xFFEF);
-        assert_eq!(bitfield_false.ro_bool(), false);
+        assert!(!bitfield_false.ro_bool());
     }
 
     #[test]
