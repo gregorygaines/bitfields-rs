@@ -2,7 +2,7 @@ error[E0277]: the trait bound `u64: From<BitfieldBuilder>` is not satisfied
   --> tests/compile_error_cases/bitfield_disable_from_trait.rs:14:29
    |
 14 |     let val: u64 = bitfield.into();
-   |                             ^^^^ the trait `From<BitfieldBuilder>` is not implemented for `u64`
+   |                             ^^^^ the trait `From<BitfieldBuilder>` is not implemented for `u64`, which is required by `BitfieldBuilder: Into<_>`
    |
    = help: the following other types implement trait `From<T>`:
              `u64` implements `From<Char>`
