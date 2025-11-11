@@ -63,7 +63,7 @@ pub(crate) fn generate_get_bit_tokens(
         }
 
         #[doc = #checked_get_bit_documentation]
-        #vis const fn checked_get_bit(&self, index: usize) -> Result<bool, &'static str> {
+        #vis const fn checked_get_bit(&self, index: usize) -> ::core::result::Result<bool, &'static str> {
             if index > #bitfield_type_bits {
                 return Err("Index out of bounds.");
             }
@@ -132,7 +132,7 @@ pub(crate) fn generate_set_bit_tokens(
         }
 
         #[doc = #checked_set_bit_documentation]
-        #vis const fn checked_set_bit(&mut self, index: usize, bit: bool) -> Result<(), &'static str> {
+        #vis const fn checked_set_bit(&mut self, index: usize, bit: bool) -> ::core::result::Result<(), &'static str> {
             if index > #bitfield_type_bits {
                 return Err("Index out of bounds.");
             }

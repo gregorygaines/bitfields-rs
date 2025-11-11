@@ -53,7 +53,7 @@ pub(crate) fn generate_builder_tokens(
                     }
 
                     #[doc = #checked_with_field_documentation]
-                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Result<Self, &'static str> {
+                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
                         self.this.#checked_field_offset_setter_ident(bits)?;
                         Ok(self)
                     }
@@ -85,7 +85,7 @@ pub(crate) fn generate_builder_tokens(
                     }
 
                     #[doc = #checked_with_field_documentation]
-                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Result<Self, &'static str> {
+                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
                         #checked_setter_impl_tokens
                         Ok(self)
                     }
