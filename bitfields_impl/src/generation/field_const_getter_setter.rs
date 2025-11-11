@@ -243,7 +243,7 @@ pub(crate) fn generate_field_setters_functions_tokens(
             }
 
             #[doc = #checked_setter_documentation]
-            #vis const fn #checked_field_offset_setter_ident(&mut self, bits: #field_type) -> Result<(), &'static str> {
+            #vis const fn #checked_field_offset_setter_ident(&mut self, bits: #field_type) -> ::core::result::Result<(), &'static str> {
                 let this = self;
                 #setter_with_size_check_impl_tokens
             }
