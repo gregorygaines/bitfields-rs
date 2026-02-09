@@ -1,5 +1,3 @@
-#![allow(clippy::unnecessary_cast)]
-
 #[cfg(test)]
 mod tests {
     use bitfields::bitfield;
