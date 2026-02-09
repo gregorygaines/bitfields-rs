@@ -330,13 +330,17 @@ pub(crate) fn generate_setter_impl_tokens(
         quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
             #bits_bigger_than_mask_check
-            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
+            #[allow(clippy::unnecessary_cast)]
+            let value = #value_ident as #bitfield_type;
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
             Ok(())
         }
     } else {
         quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
-            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((#value_ident as #bitfield_type & mask) << #field_offset) as #bitfield_type);
+            #[allow(clippy::unnecessary_cast)]
+            let value = #value_ident as #bitfield_type;
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
         }
     }
 }
