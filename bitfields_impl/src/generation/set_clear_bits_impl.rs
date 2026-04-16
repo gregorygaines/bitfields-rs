@@ -18,9 +18,9 @@ pub(crate) fn generate_set_bits_function_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        false,
+        /* respect_defaults= */ false,
         ignored_fields_struct,
-        false,
+        /* include_read_only_fields= */ false,
     );
 
     quote! {
@@ -43,9 +43,9 @@ pub(crate) fn generate_set_bits_with_defaults_function_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        true,
+        /* respect_defaults= */ true,
         ignored_fields_struct,
-        false,
+        /* include_read_only_fields= */ false,
     );
 
     quote! {
@@ -64,8 +64,12 @@ pub(crate) fn generate_clear_bits_function_tokens(
     ignored_fields_struct: bool,
 ) -> TokenStream {
     let documentation = "Clears the writable bits of the bitfield.";
-    let setting_fields_to_zero_tokens =
-        generate_setting_fields_to_zero_tokens(bitfield_type, fields, None, ignored_fields_struct);
+    let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
+        bitfield_type,
+        fields,
+        /* const_reference_tokens= */ None,
+        ignored_fields_struct,
+    );
 
     quote! {
         #[doc = #documentation]
@@ -87,9 +91,9 @@ pub(crate) fn generate_clear_bits_preserve_defaults_function_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        true,
+        /* respect_defaults= */ true,
         ignored_fields_struct,
-        false,
+        /* include_read_only_fields= */ false,
     );
 
     quote! {

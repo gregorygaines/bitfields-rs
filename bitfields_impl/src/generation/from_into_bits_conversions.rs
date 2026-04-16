@@ -18,9 +18,9 @@ pub(crate) fn generate_from_bits_function_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        false,
+        /* respect_defaults= */ false,
         !ignored_fields.is_empty(),
-        true,
+        /* include_read_only_fields= */ true,
     );
 
     let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {
@@ -75,9 +75,9 @@ pub(crate) fn generate_from_bits_with_defaults_function_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        true,
+        /* respect_defaults= */ true,
         ignored_fields_struct,
-        true,
+        /* include_read_only_fields= */ true,
     );
 
     let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {

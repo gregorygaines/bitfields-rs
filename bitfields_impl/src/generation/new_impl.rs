@@ -23,7 +23,7 @@ pub(crate) fn generate_new_function_tokens(
     let setting_fields_default_values_tokens = generate_setting_fields_default_values_tokens(
         bitfield_type,
         fields,
-        None,
+        /* const_reference_tokens= */ None,
         !ignored_fields.is_empty(),
     );
     let documentation = "Creates a new bitfield instance.";
@@ -78,7 +78,7 @@ pub(crate) fn generate_new_without_defaults_function_tokens(
     let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
         bitfield_type,
         fields,
-        None,
+        /* const_reference_tokens= */ None,
         !ignored_fields.is_empty(),
     );
     let documentation = "Creates a new bitfield instance without setting any default values.";

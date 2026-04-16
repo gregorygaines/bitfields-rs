@@ -69,7 +69,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         quote! { #default_value },
                         /* check_value_bit_size= */ false,
                         ignored_fields_struct,
-                        None,
+                        /* struct_value_ident= */ None,
                     )
                 }
                 None => {
@@ -102,7 +102,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                         quote! { 0 },
                         /* check_value_bit_size= */ false,
                         ignored_fields_struct,
-                        None,
+                        /* struct_value_ident= */ None,
                     )
                 }
             }
@@ -125,7 +125,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 return generate_setting_fields_default_values_tokens(
                     bitfield_type,
                     [field.clone()].as_ref(),
-                    None,
+                    /* const_reference_tokens= */ None,
                     ignored_fields_struct,
                 );
             }
@@ -164,7 +164,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                     quote! { #field_type_ident::from_bits(0) },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
-                    None,
+                    /* struct_value_ident= */ None,
                 );
             }
 
@@ -176,7 +176,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                     quote! { false },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
-                    None,
+                    /* struct_value_ident= */ None,
                 );
             }
 
@@ -217,7 +217,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 return generate_setting_fields_default_values_tokens(
                     bitfield_type,
                     [field.clone()].as_ref(),
-                    None,
+                    /* const_reference_tokens= */ None,
                     ignored_fields_struct,
                 );
             }
@@ -324,7 +324,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 quote! { value },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
-                None,
+                /* struct_value_ident= */ None,
             );
 
             quote! {

@@ -16,9 +16,9 @@ pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
         bitfield_type,
         fields,
         Some(quote! { Self }),
-        false,
+        /* respect_defaults= */ false,
         !ignored_fields.is_empty(),
-        true,
+        /* include_read_only_fields= */ true,
     );
 
     let ignored_fields_defaults = ignored_fields.iter().map(|field| {
