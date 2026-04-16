@@ -3,7 +3,6 @@ use quote::{format_ident, quote};
 use syn::Type;
 
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
-use crate::parsing::types::IntegerType::Bool;
 use crate::parsing::types::{IntegerType, get_integer_type_from_type};
 
 /// An error message to display when a panic occurs, which should never happen.
@@ -74,6 +73,17 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                     )
                 }
                 None => {
+                    if field.field_type == FieldType::CustomFieldType {
+                        return generate_setter_impl_tokens(
+                            bitfield_type,
+                            field.clone(),
+                            const_reference_tokens.clone(),
+                            quote! { #field_type_ident::from_bits(0) },
+                            /* check_value_bit_size= */ false,
+                            ignored_fields_struct,
+                            /* struct_value_ident= */ None,
+                        );
+                    }
                     if field_integer_type == IntegerType::Bool {
                         return generate_setter_impl_tokens(
                             bitfield_type,
@@ -82,7 +92,7 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
                             quote! { false },
                             /* check_value_bit_size= */ false,
                             ignored_fields_struct,
-                            None,
+                            /* struct_value_ident= */ None,
                         );
                     }
                     generate_setter_impl_tokens(
@@ -146,6 +156,18 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 };
             }
 
+            if field.field_type == FieldType::CustomFieldType {
+                return generate_setter_impl_tokens(
+                    bitfield_type,
+                    field.clone(),
+                    const_reference_tokens.clone(),
+                    quote! { #field_type_ident::from_bits(0) },
+                    /* check_value_bit_size= */ false,
+                    ignored_fields_struct,
+                    None,
+                );
+            }
+
             if field_integer_type == IntegerType::Bool {
                 return generate_setter_impl_tokens(
                     bitfield_type,
@@ -165,7 +187,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
                 ignored_fields_struct,
-                None,
+                /* struct_value_ident= */ None,
             )
         })
         .collect()
@@ -263,6 +285,22 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 let value = (bits >> #field_offset) & mask;
             };
 
+            if field.field_type == FieldType::CustomFieldType {
+                let setter_impl_tokens = generate_setter_impl_tokens(
+                    bitfield_type,
+                    field.clone(),
+                    const_reference_tokens.clone(),
+                    quote! { #field_type_ident::from_bits(value as _) },
+                    /* check_value_bit_size= */ false,
+                    ignored_fields_struct,
+                    /* struct_value_ident= */ None,
+                );
+                return quote! {
+                    #extract_value_bits
+                    #setter_impl_tokens
+                }
+            }
+
             if field_integer_type == IntegerType::Bool {
                 let setter_impl_tokens = generate_setter_impl_tokens(
                     bitfield_type,
@@ -271,7 +309,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                     quote! { (value != 0) },
                     /* check_value_bit_size= */ false,
                     ignored_fields_struct,
-                    None,
+                    /* struct_value_ident= */ None,
                 );
                 return quote! {
                     #extract_value_bits
@@ -310,7 +348,7 @@ pub(crate) fn generate_setter_impl_tokens(
     let field_type = field.ty.clone();
 
     let bits_bigger_than_mask_check =
-        (get_integer_type_from_type(&field_type) != Bool).then(|| {
+        (get_integer_type_from_type(&field_type) != IntegerType::Bool).then(|| {
             quote! {
                 if #value_ident > mask as #field_type {
                     return Err(#BITS_TOO_BIG_ERROR_MESSAGE);

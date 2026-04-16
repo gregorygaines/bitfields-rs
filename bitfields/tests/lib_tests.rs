@@ -2112,4 +2112,74 @@ mod tests {
         assert_eq!(builder.neg_d(), 0x387);
         assert!(!builder.neg_e());
     }
+
+    #[test]
+    fn bitfield_read_only_custom_field() {
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        enum Colour {
+            White,
+            Black,
+        }
+
+        impl Colour {
+            /// Convert bits to the custom type.
+            const fn from_bits(bits: u8) -> Self {
+                match bits {
+                    0 => Self::White,
+                    1 => Self::Black,
+                    _ => unreachable!(),
+                }
+            }
+
+            /// Convert the custom type into bits.
+            const fn into_bits(self) -> u8 {
+                self as u8
+            }
+        }
+
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        enum PieceType {
+            King,
+            Queen,
+            Rook,
+            Bishop,
+            Knight,
+            Pawn,
+        }
+
+        impl PieceType {
+            const fn from_bits(bits: u8) -> Self {
+                match bits {
+                    0 => Self::King,
+                    1 => Self::Queen,
+                    2 => Self::Rook,
+                    3 => Self::Bishop,
+                    4 => Self::Knight,
+                    5 => Self::Pawn,
+                    _ => unreachable!(),
+                }
+            }
+
+            const fn into_bits(self) -> u8 {
+                self as u8
+            }
+        }
+
+        #[bitfield(u8)]
+        #[derive(Copy, Clone, PartialEq)]
+        struct Piece {
+            #[bits(3, access = ro)]
+            piece: PieceType,
+            #[bits(1, access = ro)]
+            colour: Colour,
+            #[bits(4, default = 0)]
+            _padding: u8,
+        }
+
+        let val =
+            PieceBuilder::new().with_piece(PieceType::King).with_colour(Colour::White).build();
+
+        assert_eq!(val.into_bits(), 0b00000000);
+        assert_eq!(val.colour(), Colour::White);
+    }
 }
