@@ -1,13 +1,13 @@
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
-use syn::{Type, Visibility};
+use syn::Visibility;
 
 use crate::generation::common::{
     does_field_have_getter, does_field_have_setter, generate_setter_impl_tokens,
 };
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
-use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
+use crate::parsing::bitfield_field::{BitfieldField, FieldType};
 use crate::parsing::types::IntegerType::Bool;
 use crate::parsing::types::{get_bits_from_type, get_integer_type_from_type};
 
