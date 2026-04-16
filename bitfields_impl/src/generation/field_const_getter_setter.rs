@@ -3,14 +3,13 @@ use quote::format_ident;
 use quote::quote;
 use syn::{Type, Visibility};
 
-use crate::generation::common::{does_field_have_getter, does_field_have_setter};
+use crate::generation::common::{
+    does_field_have_getter, does_field_have_setter, generate_setter_impl_tokens,
+};
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
 use crate::parsing::types::IntegerType::Bool;
 use crate::parsing::types::{get_bits_from_type, get_integer_type_from_type};
-
-/// Error message for when the value is too big to fit within the field bits.
-const BITS_TOO_BIG_ERROR_MESSAGE: &str = "Value is too big to fit within the field bits.";
 
 /// Generates the field constants for the bitfield.
 pub(crate) fn generate_field_constants_tokens(
@@ -220,8 +219,8 @@ pub(crate) fn generate_field_setters_functions_tokens(
             None => default_vis.clone(),
         };
 
-        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, false, ignored_fields_struct, None);
-        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), None, quote! { bits }, true, ignored_fields_struct, None);
+        let setter_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), /* bitfield_struct_name= */ None, quote! { bits }, /* check_value_bit_size= */ false, ignored_fields_struct, /* struct_value_ident= */ None);
+        let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(bitfield_type, field.clone(), /* bitfield_struct_name= */ None, quote! { bits }, /* check_value_bit_size= */ true, ignored_fields_struct, /* struct_value_ident= */ None);
 
         let setter_documentation =  if field.bits == 1 {
             format!(r"Sets bit `{field_offset}`.")
@@ -246,101 +245,8 @@ pub(crate) fn generate_field_setters_functions_tokens(
             #vis const fn #checked_field_offset_setter_ident(&mut self, bits: #field_type) -> ::core::result::Result<(), &'static str> {
                 let this = self;
                 #setter_with_size_check_impl_tokens
+                Ok(())
             }
         }
     }).collect()
-}
-
-/// Helper function to generate the setter implementation tokens.
-pub(crate) fn generate_setter_impl_tokens(
-    bitfield_type: &Type,
-    field: BitfieldField,
-    bitfield_struct_name: Option<TokenStream>,
-    value_ident: TokenStream,
-    check_value_bit_size: bool,
-    ignored_fields_struct: bool,
-    struct_val_ident: Option<TokenStream>,
-) -> TokenStream {
-    let field_type = field.ty.clone();
-
-    let bits_bigger_than_mask_check =
-        (get_integer_type_from_type(&field_type) != Bool).then(|| {
-            quote! {
-                if #value_ident > mask as #field_type {
-                    return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
-                }
-            }
-        });
-
-    let field_name_uppercase = field.name.clone().to_string().to_ascii_uppercase();
-    let field_bits_const_ident = format_ident!("{}_BITS", field_name_uppercase);
-    let field_offset_const_ident = format_ident!("{}_OFFSET", field_name_uppercase);
-    let bitfield_struct_name_ident = bitfield_struct_name.unwrap_or_else(|| quote! { Self });
-
-    let field_bits_ident = match field.access {
-        FieldAccess::ReadOnly => {
-            Some(quote! { #bitfield_struct_name_ident::#field_bits_const_ident })
-        }
-        FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
-            let field_bits = field.bits as u32;
-            Some(quote! { #field_bits })
-        }
-    };
-
-    let field_offset = match field.access {
-        FieldAccess::ReadOnly => {
-            Some(quote! { #bitfield_struct_name_ident::#field_offset_const_ident })
-        }
-        FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
-            let field_offset = field.offset as u32;
-            Some(quote! { #field_offset })
-        }
-    };
-
-    let struct_val_ident = if ignored_fields_struct {
-        if struct_val_ident.is_some() {
-            quote! { #struct_val_ident.val }
-        } else {
-            quote! { this.val }
-        }
-    } else if struct_val_ident.is_some() {
-        quote! { #struct_val_ident.0 }
-    } else {
-        quote! { this.0 }
-    };
-
-    if field.field_type == FieldType::CustomFieldType {
-        if check_value_bit_size {
-            quote! {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
-                let bits = #value_ident.into_bits();
-                if bits as #bitfield_type > mask {
-                    return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
-                }
-                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((bits as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
-                Ok(())
-            }
-        } else {
-            quote! {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
-                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((#value_ident.into_bits() as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
-            }
-        }
-    } else if check_value_bit_size {
-        quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
-            #bits_bigger_than_mask_check
-            #[allow(clippy::unnecessary_cast)]
-            let value = #value_ident as #bitfield_type;
-            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
-            Ok(())
-        }
-    } else {
-        quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
-            #[allow(clippy::unnecessary_cast)]
-            let value = #value_ident as #bitfield_type;
-            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
-        }
-    }
 }

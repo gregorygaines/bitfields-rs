@@ -1,12 +1,16 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use syn::Type;
 
-use crate::generation::field_const_getter_setter::generate_setter_impl_tokens;
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess, FieldType};
+use crate::parsing::types::IntegerType::Bool;
 use crate::parsing::types::{IntegerType, get_integer_type_from_type};
 
 /// An error message to display when a panic occurs, which should never happen.
 pub(crate) const PANIC_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If possible, please file an issue with the code that caused this error at https://github.com/gregorygaines/bitfields-rs/issues.";
+
+/// Error message for when the value is too big to fit within the field bits.
+const BITS_TOO_BIG_ERROR_MESSAGE: &str = "Value is too big to fit within the field bits.";
 
 /// Generates tokens to set the default values for non-padding fields or zero if
 /// no default value is provided.
@@ -291,6 +295,98 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
             }
         })
         .collect()
+}
+
+/// Helper function to generate the setter implementation tokens.
+pub(crate) fn generate_setter_impl_tokens(
+    bitfield_type: &Type,
+    field: BitfieldField,
+    bitfield_struct_name: Option<TokenStream>,
+    value_ident: TokenStream,
+    check_value_bit_size: bool,
+    ignored_fields_struct: bool,
+    struct_val_ident: Option<TokenStream>,
+) -> TokenStream {
+    let field_type = field.ty.clone();
+
+    let bits_bigger_than_mask_check =
+        (get_integer_type_from_type(&field_type) != Bool).then(|| {
+            quote! {
+                if #value_ident > mask as #field_type {
+                    return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
+                }
+            }
+        });
+
+    let field_name_uppercase = field.name.clone().to_string().to_ascii_uppercase();
+    let field_bits_const_ident = format_ident!("{}_BITS", field_name_uppercase);
+    let field_offset_const_ident = format_ident!("{}_OFFSET", field_name_uppercase);
+    let bitfield_struct_name_ident = bitfield_struct_name.unwrap_or_else(|| quote! { Self });
+
+    let field_bits_ident = match field.access {
+        FieldAccess::ReadOnly => {
+            Some(quote! { #bitfield_struct_name_ident::#field_bits_const_ident })
+        }
+        FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
+            let field_bits = field.bits as u32;
+            Some(quote! { #field_bits })
+        }
+    };
+
+    let field_offset = match field.access {
+        FieldAccess::ReadOnly => {
+            Some(quote! { #bitfield_struct_name_ident::#field_offset_const_ident })
+        }
+        FieldAccess::WriteOnly | FieldAccess::ReadWrite | FieldAccess::None => {
+            let field_offset = field.offset as u32;
+            Some(quote! { #field_offset })
+        }
+    };
+
+    let struct_val_ident = if ignored_fields_struct {
+        if struct_val_ident.is_some() {
+            quote! { #struct_val_ident.val }
+        } else {
+            quote! { this.val }
+        }
+    } else if struct_val_ident.is_some() {
+        quote! { #struct_val_ident.0 }
+    } else {
+        quote! { this.0 }
+    };
+
+    if field.field_type == FieldType::CustomFieldType {
+        if check_value_bit_size {
+            quote! {
+                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
+                let bits = #value_ident.into_bits();
+                if bits as #bitfield_type > mask {
+                    return Err(#BITS_TOO_BIG_ERROR_MESSAGE);
+                }
+                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((bits as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
+            }
+        } else {
+            quote! {
+                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
+                #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | ((((#value_ident.into_bits() as #bitfield_type) & mask) << #field_offset) as #bitfield_type);
+            }
+        }
+    } else if check_value_bit_size {
+        quote! {
+            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
+            #bits_bigger_than_mask_check
+            #[allow(clippy::unnecessary_cast)]
+            let value = #value_ident as #bitfield_type;
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
+        }
+    } else {
+        quote! {
+            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits_ident);
+            #[allow(clippy::unnecessary_cast)]
+            let value = #value_ident as #bitfield_type;
+            #struct_val_ident = (#struct_val_ident & !(mask << #field_offset)) | (((value & mask) << #field_offset) as #bitfield_type);
+        }
+    }
 }
 
 /// Returns whether the field has a setter method.

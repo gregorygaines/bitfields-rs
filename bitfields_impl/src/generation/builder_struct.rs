@@ -3,10 +3,9 @@ use quote::{format_ident, quote};
 use syn::Visibility;
 
 use crate::generation::common::{
-    does_field_have_setter, generate_setting_fields_default_values_tokens,
-    generate_setting_fields_to_zero_tokens,
+    does_field_have_setter, generate_setter_impl_tokens,
+    generate_setting_fields_default_values_tokens, generate_setting_fields_to_zero_tokens,
 };
-use crate::generation::field_const_getter_setter::generate_setter_impl_tokens;
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess};
 
 /// Generates the builder implementation.
