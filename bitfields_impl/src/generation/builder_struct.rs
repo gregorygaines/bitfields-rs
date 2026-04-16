@@ -73,7 +73,7 @@ pub(crate) fn generate_builder_tokens(
                     field.clone(),
                     Some(quote! { #bitfield_struct_name }),
                     quote! { bits },
-                    /* check_value_bit_size= */ false,
+                    /* check_value_bit_size= */ true,
                     !ignored_fields.is_empty(),
                     Some( quote! { self.this } ),
                 );
