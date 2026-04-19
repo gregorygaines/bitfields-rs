@@ -14,8 +14,8 @@ use crate::parsing::bitfield_field::{BitfieldField, FieldAccess};
 
 /// Generates the builder implementation.
 pub(crate) fn generate_builder_tokens(
-    vis: Visibility,
-    bitfield_struct_name: Ident,
+    vis: &Visibility,
+    bitfield_struct_name: &Ident,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
@@ -29,8 +29,8 @@ pub(crate) fn generate_builder_tokens(
         .filter(|field| does_field_have_setter(field) || field.access == FieldAccess::ReadOnly)
         .map(|field| {
             generate_builder_field_setter(
-                vis.clone(),
-                bitfield_struct_name.clone(),
+                vis,
+                bitfield_struct_name,
                 field,
                 bitfield_attribute,
                 has_ignored_fields,
@@ -100,19 +100,19 @@ pub(crate) fn generate_builder_tokens(
 }
 
 fn generate_builder_field_setter(
-    vis: Visibility,
-    bitfield_struct_name: Ident,
+    vis: &Visibility,
+    bitfield_struct_name: &Ident,
     field: &BitfieldField,
     bitfield_attribute: &BitfieldAttribute,
     has_ignored_fields: bool,
 ) -> TokenStream {
-    let field_name = field.name.clone();
+    let field_name = &field.name;
     let field_name_with_builder_setter_ident = format_ident!("with_{}", field_name);
     let checked_field_name_with_builder_setter_ident = format_ident!("checked_with_{}", field_name);
     let field_offset_setter_ident = get_field_setter_method_identifier(&field.name.to_string());
     let checked_field_offset_setter_ident =
         get_field_checked_setter_method_identifier(&field.name.to_string());
-    let field_type = field.ty.clone();
+    let field_type = &field.ty;
 
     let with_field_setter_documentation = get_builder_setter_documentation(
         bitfield_attribute,
@@ -141,7 +141,7 @@ fn generate_builder_field_setter(
     } else {
         let setter_impl_tokens = generate_setter_impl_tokens(
             &bitfield_attribute.ty,
-            field.clone(),
+            field,
             &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
             quote! { bits },
             /* check_value_bit_size= */ false,
@@ -149,7 +149,7 @@ fn generate_builder_field_setter(
         );
         let checked_setter_impl_tokens = generate_setter_impl_tokens(
             &bitfield_attribute.ty,
-            field.clone(),
+            field,
             &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
             quote! { bits },
             /* check_value_bit_size= */ true,
@@ -203,8 +203,8 @@ fn get_builder_setter_documentation(
 
 /// Generates the to builder implementation.
 pub(crate) fn generate_to_builder_tokens(
-    vis: Visibility,
-    bitfield_struct_name: Ident,
+    vis: &Visibility,
+    bitfield_struct_name: &Ident,
 ) -> TokenStream {
     let builder_name = format_ident!("{}Builder", bitfield_struct_name);
 

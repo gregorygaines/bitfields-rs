@@ -13,7 +13,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 /// Generates the `from_bits` and `from_bits_with_defaults` functions for the
 /// bitfield.
 pub(crate) fn generate_from_bits_functions_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
@@ -72,7 +72,7 @@ pub(crate) fn generate_from_bits_functions_tokens(
 }
 
 pub(crate) fn generate_into_bits_function_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     bitfield_attribute: &BitfieldAttribute,
     has_ignored_fields: bool,
 ) -> TokenStream {

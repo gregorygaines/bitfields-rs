@@ -52,97 +52,110 @@ pub(crate) fn generate_setting_fields_default_values_tokens(
     fields
         .iter()
         .map(|field| {
-            let default_value = field.default_value_tokens.clone();
-            let field_type_ident = field.ty.clone();
-            let field_integer_type = get_integer_type_from_type(&field.ty);
-
-            let field_has_setter = does_field_have_setter(field);
-            if field_has_setter {
-                let field_offset_setter_ident =
-                    get_field_setter_method_identifier(&field.name.to_string());
-
-                return match default_value {
-                    Some(default_value) => {
-                        quote! {
-                            this.#field_offset_setter_ident(#default_value);
-                        }
-                    }
-                    None => {
-                        if field.field_type == FieldType::CustomFieldType {
-                            return quote! {
-                                this.#field_offset_setter_ident(#field_type_ident::from_bits(0));
-                            };
-                        }
-
-                        if field_integer_type == IntegerType::Bool {
-                            return quote! {
-                                this.#field_offset_setter_ident(false);
-                            };
-                        }
-
-                        quote! {
-                            this.#field_offset_setter_ident(0);
-                        }
-                    }
-                };
-            }
-
-            match default_value {
-                Some(default_value) => {
-                    generate_setter_impl_tokens(
-                        bitfield_type,
-                        field.clone(),
-                        bitfield_struct_reference_ident,
-                        quote! { #default_value },
-                        /* check_value_bit_size= */ false,
-                        get_bitfield_struct_internal_value_identifier_tokens(
-                            &BitfieldStructReferenceIdent::ThisVariable,
-                            has_ignored_fields,
-                        ),
-                    )
-                }
-                None => {
-                    if field.field_type == FieldType::CustomFieldType {
-                        return generate_setter_impl_tokens(
-                            bitfield_type,
-                            field.clone(),
-                            bitfield_struct_reference_ident,
-                            quote! { #field_type_ident::from_bits(0) },
-                            /* check_value_bit_size= */ false,
-                            get_bitfield_struct_internal_value_identifier_tokens(
-                                &BitfieldStructReferenceIdent::ThisVariable,
-                                has_ignored_fields,
-                            ),
-                        );
-                    }
-                    if field_integer_type == IntegerType::Bool {
-                        return generate_setter_impl_tokens(
-                            bitfield_type,
-                            field.clone(),
-                            bitfield_struct_reference_ident,
-                            quote! { false },
-                            /* check_value_bit_size= */ false,
-                            get_bitfield_struct_internal_value_identifier_tokens(
-                                &BitfieldStructReferenceIdent::ThisVariable,
-                                has_ignored_fields,
-                            ),
-                        );
-                    }
-                    generate_setter_impl_tokens(
-                        bitfield_type,
-                        field.clone(),
-                        bitfield_struct_reference_ident,
-                        quote! { 0 },
-                        /* check_value_bit_size= */ false,
-                        get_bitfield_struct_internal_value_identifier_tokens(
-                            &BitfieldStructReferenceIdent::ThisVariable,
-                            has_ignored_fields,
-                        ),
-                    )
-                }
-            }
+            generate_setting_fields_default_values_tokens_helper(
+                bitfield_type,
+                field,
+                bitfield_struct_reference_ident,
+                has_ignored_fields,
+            )
         })
         .collect()
+}
+
+fn generate_setting_fields_default_values_tokens_helper(
+    bitfield_type: &Type,
+    field: &BitfieldField,
+    bitfield_struct_reference_ident: &BitfieldStructReferenceIdent,
+    has_ignored_fields: bool,
+) -> TokenStream {
+    let default_value = &field.default_value_tokens;
+    let field_type_ident = &field.ty;
+    let field_integer_type = get_integer_type_from_type(&field.ty);
+
+    let field_has_setter = does_field_have_setter(field);
+    if field_has_setter {
+        let field_offset_setter_ident = get_field_setter_method_identifier(&field.name.to_string());
+
+        return match default_value {
+            Some(default_value) => {
+                quote! {
+                    this.#field_offset_setter_ident(#default_value);
+                }
+            }
+            None => {
+                if field.field_type == FieldType::CustomFieldType {
+                    return quote! {
+                        this.#field_offset_setter_ident(#field_type_ident::from_bits(0));
+                    };
+                }
+
+                if field_integer_type == IntegerType::Bool {
+                    return quote! {
+                        this.#field_offset_setter_ident(false);
+                    };
+                }
+
+                quote! {
+                    this.#field_offset_setter_ident(0);
+                }
+            }
+        };
+    }
+
+    match default_value {
+        Some(default_value) => {
+            generate_setter_impl_tokens(
+                bitfield_type,
+                field,
+                bitfield_struct_reference_ident,
+                quote! { #default_value },
+                /* check_value_bit_size= */ false,
+                get_bitfield_struct_internal_value_identifier_tokens(
+                    &BitfieldStructReferenceIdent::ThisVariable,
+                    has_ignored_fields,
+                ),
+            )
+        }
+        None => {
+            if field.field_type == FieldType::CustomFieldType {
+                return generate_setter_impl_tokens(
+                    bitfield_type,
+                    field,
+                    bitfield_struct_reference_ident,
+                    quote! { #field_type_ident::from_bits(0) },
+                    /* check_value_bit_size= */ false,
+                    get_bitfield_struct_internal_value_identifier_tokens(
+                        &BitfieldStructReferenceIdent::ThisVariable,
+                        has_ignored_fields,
+                    ),
+                );
+            }
+            if field_integer_type == IntegerType::Bool {
+                return generate_setter_impl_tokens(
+                    bitfield_type,
+                    field,
+                    bitfield_struct_reference_ident,
+                    quote! { false },
+                    /* check_value_bit_size= */ false,
+                    get_bitfield_struct_internal_value_identifier_tokens(
+                        &BitfieldStructReferenceIdent::ThisVariable,
+                        has_ignored_fields,
+                    ),
+                );
+            }
+            generate_setter_impl_tokens(
+                bitfield_type,
+                field,
+                bitfield_struct_reference_ident,
+                quote! { 0 },
+                /* check_value_bit_size= */ false,
+                get_bitfield_struct_internal_value_identifier_tokens(
+                    &BitfieldStructReferenceIdent::ThisVariable,
+                    has_ignored_fields,
+                ),
+            )
+        }
+    }
 }
 
 /// Generates tokens to set the fields to zero.
@@ -165,7 +178,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
                 );
             }
 
-            let field_type_ident = field.ty.clone();
+            let field_type_ident = &field.ty;
 
             let field_integer_type = get_integer_type_from_type(&field.ty);
 
@@ -194,7 +207,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
             if field.field_type == FieldType::CustomFieldType {
                 return generate_setter_impl_tokens(
                     bitfield_type,
-                    field.clone(),
+                    field,
                     bitfield_struct_reference_ident,
                     quote! { #field_type_ident::from_bits(0) },
                     /* check_value_bit_size= */ false,
@@ -208,7 +221,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
             if field_integer_type == IntegerType::Bool {
                 return generate_setter_impl_tokens(
                     bitfield_type,
-                    field.clone(),
+                    field,
                     bitfield_struct_reference_ident,
                     quote! { false },
                     /* check_value_bit_size= */ false,
@@ -221,7 +234,7 @@ pub(crate) fn generate_setting_fields_to_zero_tokens(
 
             generate_setter_impl_tokens(
                 bitfield_type,
-                field.clone(),
+                field,
                 bitfield_struct_reference_ident,
                 quote! { 0 },
                 /* check_value_bit_size= */ false,
@@ -264,14 +277,14 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 );
             }
 
-            let field_type_ident = field.ty.clone();
+            let field_type_ident = &field.ty;
             let field_integer_type = get_integer_type_from_type(&field.ty);
 
             let field_has_setter = does_field_have_setter(field);
             if field_has_setter {
                 let field_bits_const_ident = get_field_bits_constant_identifier(&field.name.to_string());
                 let field_offset_const_ident = get_field_offset_constant_identifier(&field.name.to_string());
-                let default_value = field.default_value_tokens.clone();
+                let default_value = &field.default_value_tokens;
                 let field_offset_setter_ident = get_field_setter_method_identifier(&field.name.to_string());
                 let bitfield_struct_reference_tokens = bitfield_struct_reference_ident.to_token_stream();
 
@@ -309,7 +322,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
                 };
             }
 
-            let default_value = field.default_value_tokens.clone();
+            let default_value = &field.default_value_tokens;
             if default_value.is_some() && respect_defaults {
                 return generate_setting_fields_default_values_tokens(
                     bitfield_type,
@@ -329,7 +342,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
             if field.field_type == FieldType::CustomFieldType {
                 let setter_impl_tokens = generate_setter_impl_tokens(
                     bitfield_type,
-                    field.clone(),
+                    field,
                     bitfield_struct_reference_ident,
                     quote! { #field_type_ident::from_bits(value as _) },
                     /* check_value_bit_size= */ false,
@@ -344,7 +357,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
             if field_integer_type == IntegerType::Bool {
                 let setter_impl_tokens = generate_setter_impl_tokens(
                     bitfield_type,
-                    field.clone(),
+                    field,
                     bitfield_struct_reference_ident,
                     quote! { (value != 0) },
                     /* check_value_bit_size= */ false,
@@ -358,7 +371,7 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
 
             let setter_impl_tokens = generate_setter_impl_tokens(
                 bitfield_type,
-                field.clone(),
+                field,
                 bitfield_struct_reference_ident,
                 quote! { value },
                 /* check_value_bit_size= */ false,
@@ -376,16 +389,16 @@ pub(crate) fn generate_setting_fields_from_bits_tokens(
 /// Helper function to generate the setter implementation tokens.
 pub(crate) fn generate_setter_impl_tokens(
     bitfield_type: &Type,
-    field: BitfieldField,
+    field: &BitfieldField,
     bitfield_struct_reference_ident: &BitfieldStructReferenceIdent,
     value_ident: TokenStream,
     check_value_bit_size: bool,
     bitfield_struct_internal_value_identifier_tokens: TokenStream,
 ) -> TokenStream {
-    let field_type = field.ty.clone();
+    let field_type = &field.ty;
 
-    let bits_bigger_than_mask_check =
-        (get_integer_type_from_type(&field_type) != IntegerType::Bool).then(|| {
+    let bits_bigger_than_mask_check = (get_integer_type_from_type(field_type) != IntegerType::Bool)
+        .then(|| {
             quote! {
                 if #value_ident > mask as #field_type {
                     return Err(#BITS_TOO_BIG_ERROR_MESSAGE);

@@ -19,7 +19,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 /// fn new_without_defaults() -> Self { ... }
 /// ```
 pub(crate) fn generate_new_function_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,

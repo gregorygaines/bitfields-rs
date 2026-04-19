@@ -15,14 +15,14 @@ use crate::parsing::types::{IntegerType, get_bits_from_type, get_integer_type_fr
 
 /// Generates the field constants for the bitfield.
 pub(crate) fn generate_field_constants_tokens(
-    vis: syn::Visibility,
+    vis: &syn::Visibility,
     fields: &[BitfieldField],
 ) -> TokenStream {
     let field_constants_tokens = fields
         .iter()
         .filter(|field| !field.padding)
         .filter(|field| does_field_have_getter(field) || does_field_have_setter(field))
-        .map(|field| generate_field_constants_tokens_helper(&vis, field));
+        .map(|field| generate_field_constants_tokens_helper(vis, field));
 
     quote! {
         #( #field_constants_tokens )*
@@ -51,7 +51,7 @@ fn generate_field_constants_tokens_helper(
 
 /// Generates the field getters for the bitfield.
 pub(crate) fn generate_field_getters_functions_tokens(
-    default_vis: syn::Visibility,
+    default_vis: &syn::Visibility,
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
     has_ignored_fields: bool,
@@ -62,7 +62,7 @@ pub(crate) fn generate_field_getters_functions_tokens(
         .filter(|field| does_field_have_getter(field))
         .map(|field| {
             generate_field_getters_functions_tokens_helper(
-                &default_vis,
+                default_vis,
                 bitfield_attribute,
                 field,
                 has_ignored_fields,
@@ -80,9 +80,9 @@ fn generate_field_getters_functions_tokens_helper(
     has_ignored_fields: bool,
 ) -> TokenStream {
     let bitfield_type = &bitfield_attribute.ty;
-    let field_name = field.name.clone().to_string();
+    let field_name = &field.name.to_string();
     let field_bits = field.bits;
-    let field_type = field.ty.clone();
+    let field_type = &field.ty;
 
     let field_name_ident = format_ident!("{}", field_name);
     let neg_field_name_ident = format_ident!("neg_{}", field_name);
@@ -123,9 +123,9 @@ fn generate_field_getters_functions_tokens_helper(
             #custom_field_neg_getter
         }
     } else {
-        let field_type_bits = get_bits_from_type(&field_type).unwrap();
+        let field_type_bits = get_bits_from_type(field_type).unwrap();
 
-        if get_integer_type_from_type(&field_type) == IntegerType::Bool {
+        if get_integer_type_from_type(field_type) == IntegerType::Bool {
             let neg_getter = bitfield_attribute.generate_neg_func.then(|| {
                 quote! {
                         #[doc = #neg_field_getter_documentation]
@@ -227,7 +227,7 @@ fn get_field_getter_documentation(
 
 /// Generates the field setters for the bitfield.
 pub(crate) fn generate_field_setters_functions_tokens(
-    default_vis: syn::Visibility,
+    default_vis: &syn::Visibility,
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
     has_ignored_fields: bool,
@@ -238,7 +238,7 @@ pub(crate) fn generate_field_setters_functions_tokens(
         .filter(|field| does_field_have_setter(field))
         .map(|field| {
             generate_field_setters_functions_tokens_helper(
-                &default_vis,
+                default_vis,
                 bitfield_attribute,
                 field,
                 has_ignored_fields,
@@ -253,7 +253,7 @@ fn generate_field_setters_functions_tokens_helper(
     field: &BitfieldField,
     has_ignored_fields: bool,
 ) -> TokenStream {
-    let field_type = field.ty.clone();
+    let field_type = &field.ty;
     let bitfield_type = &bitfield_attribute.ty;
 
     let field_offset_setter_ident = get_field_setter_method_identifier(&field.name.to_string());
@@ -263,7 +263,7 @@ fn generate_field_setters_functions_tokens_helper(
 
     let setter_impl_tokens = generate_setter_impl_tokens(
         bitfield_type,
-        field.clone(),
+        field,
         &BitfieldStructReferenceIdent::SelfReference,
         quote! { bits },
         /* check_value_bit_size= */ false,
@@ -275,7 +275,7 @@ fn generate_field_setters_functions_tokens_helper(
 
     let setter_with_size_check_impl_tokens = generate_setter_impl_tokens(
         bitfield_type,
-        field.clone(),
+        field,
         &BitfieldStructReferenceIdent::SelfReference,
         quote! { bits },
         /* check_value_bit_size= */ true,

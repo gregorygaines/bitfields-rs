@@ -10,7 +10,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 
 /// Generates the default implementation.
 pub(crate) fn generate_default_implementation_tokens(
-    bitfield_struct_name: Ident,
+    bitfield_struct_name: &Ident,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,

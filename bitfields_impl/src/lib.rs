@@ -1417,29 +1417,20 @@ fn generate_functions(
 
     let bitfield_struct = if !ignored_fields.is_empty() {
         generate_struct_with_fields_tokens(
-            struct_name.clone(),
-            struct_tokens.vis.clone(),
+            struct_name,
+            &struct_tokens.vis,
             ignored_fields,
             bitfield_attribute,
         )
     } else {
-        generate_tuple_struct_tokens(
-            struct_name.clone(),
-            struct_tokens.vis.clone(),
-            bitfield_attribute,
-        )
+        generate_tuple_struct_tokens(struct_name, &struct_tokens.vis, bitfield_attribute)
     };
     let new_functions = bitfield_attribute.generate_new_func.then(|| {
-        generate_new_function_tokens(
-            struct_tokens.vis.clone(),
-            fields,
-            ignored_fields,
-            bitfield_attribute,
-        )
+        generate_new_function_tokens(&struct_tokens.vis, fields, ignored_fields, bitfield_attribute)
     });
     let from_bits_functions = bitfield_attribute.generate_from_bits_func.then(|| {
         generate_from_bits_functions_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             fields,
             ignored_fields,
             bitfield_attribute,
@@ -1447,27 +1438,27 @@ fn generate_functions(
     });
     let generate_into_bits_function = bitfield_attribute.generate_into_bits_func.then(|| {
         generate_into_bits_function_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             bitfield_attribute,
             !ignored_fields.is_empty(),
         )
     });
-    let field_consts_tokens = generate_field_constants_tokens(struct_tokens.vis.clone(), fields);
+    let field_consts_tokens = generate_field_constants_tokens(&struct_tokens.vis, fields);
     let field_getters_tokens = generate_field_getters_functions_tokens(
-        struct_tokens.vis.clone(),
+        &struct_tokens.vis,
         bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
     )?;
     let field_setters_tokens = generate_field_setters_functions_tokens(
-        struct_tokens.vis.clone(),
+        &struct_tokens.vis,
         bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
     );
     let default_function = bitfield_attribute.generate_default_impl.then(|| {
         generate_default_implementation_tokens(
-            struct_name.clone(),
+            struct_name,
             fields,
             ignored_fields,
             bitfield_attribute,
@@ -1475,8 +1466,8 @@ fn generate_functions(
     });
     let builder_tokens = bitfield_attribute.generate_builder.then(|| {
         generate_builder_tokens(
-            struct_tokens.vis.clone(),
-            struct_name.clone(),
+            &struct_tokens.vis,
+            struct_name,
             fields,
             ignored_fields,
             bitfield_attribute,
@@ -1486,7 +1477,7 @@ fn generate_functions(
     let from_bitfield_type_for_bitfield_function_tokens =
         bitfield_attribute.generate_from_trait_funcs.then(|| {
             generate_from_bitfield_type_for_bitfield_implementation_tokens(
-                struct_name.clone(),
+                struct_name,
                 fields,
                 ignored_fields,
                 bitfield_attribute,
@@ -1495,14 +1486,14 @@ fn generate_functions(
     let from_bitfield_for_bitfield_type_function_tokens =
         bitfield_attribute.generate_from_trait_funcs.then(|| {
             generate_from_bitfield_for_bitfield_type_implementation_tokens(
-                struct_name.clone(),
+                struct_name,
                 bitfield_attribute,
                 !ignored_fields.is_empty(),
             )
         });
     let debug_impl = bitfield_attribute.generate_debug_impl.then(|| {
         generate_debug_implementation(
-            struct_name.clone(),
+            struct_name,
             bitfield_attribute,
             fields,
             !ignored_fields.is_empty(),
@@ -1510,7 +1501,7 @@ fn generate_functions(
     });
     let get_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
         generate_get_bit_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             &bitfield_attribute.ty,
             fields,
             !ignored_fields.is_empty(),
@@ -1518,7 +1509,7 @@ fn generate_functions(
     });
     let set_bit_operations = bitfield_attribute.generate_bit_ops.then(|| {
         generate_set_bit_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             &bitfield_attribute.ty,
             fields,
             !ignored_fields.is_empty(),
@@ -1526,10 +1517,10 @@ fn generate_functions(
     });
     let to_builder_tokens = (bitfield_attribute.generate_builder
         && bitfield_attribute.generate_to_builder)
-        .then(|| generate_to_builder_tokens(struct_tokens.vis.clone(), struct_name.clone()));
+        .then(|| generate_to_builder_tokens(&struct_tokens.vis, struct_name));
     let set_bits_operations = bitfield_attribute.generate_set_bits_impl.then(|| {
         generate_set_bits_functions_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             fields,
             bitfield_attribute,
             !ignored_fields.is_empty(),
@@ -1537,7 +1528,7 @@ fn generate_functions(
     });
     let clear_bits_operations = bitfield_attribute.generate_clear_bits_impl.then(|| {
         generate_clear_bits_functions_tokens(
-            struct_tokens.vis.clone(),
+            &struct_tokens.vis,
             fields,
             bitfield_attribute,
             !ignored_fields.is_empty(),

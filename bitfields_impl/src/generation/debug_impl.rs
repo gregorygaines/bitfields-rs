@@ -9,7 +9,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 
 /// Generates the debug implementation.
 pub(crate) fn generate_debug_implementation(
-    bitfield_struct_name: Ident,
+    bitfield_struct_name: &Ident,
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
     has_ignored_fields: bool,

@@ -10,7 +10,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 
 /// Generates the `From` trait implementation.
 pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
-    bitfield_struct_name: Ident,
+    bitfield_struct_name: &Ident,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
@@ -41,7 +41,7 @@ pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
 }
 
 pub(crate) fn generate_from_bitfield_for_bitfield_type_implementation_tokens(
-    bitfield_struct_name: Ident,
+    bitfield_struct_name: &Ident,
     bitfield_attribute: &BitfieldAttribute,
     has_ignored_fields: bool,
 ) -> TokenStream {

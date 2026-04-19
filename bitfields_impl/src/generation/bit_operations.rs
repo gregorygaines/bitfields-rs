@@ -17,7 +17,7 @@ enum ReturnType {
 }
 
 pub(crate) fn generate_get_bit_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
     has_ignored_fields: bool,
@@ -68,7 +68,7 @@ pub(crate) fn generate_get_bit_tokens(
 }
 
 pub(crate) fn generate_set_bit_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     bitfield_type: &syn::Type,
     fields: &[BitfieldField],
     has_ignored_fields: bool,

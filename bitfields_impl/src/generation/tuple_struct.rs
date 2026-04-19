@@ -10,8 +10,8 @@ const BITFIELD_DOCUMENTATION: &str = "Represents a bitfield.";
 
 /// Generates the tokens for the bitfield tuple struct.
 pub(crate) fn generate_tuple_struct_tokens(
-    name: Ident,
-    vis: Visibility,
+    name: &Ident,
+    vis: &Visibility,
     bitfield_attribute: &BitfieldAttribute,
 ) -> TokenStream {
     let documentation = get_struct_documentation();
@@ -24,8 +24,8 @@ pub(crate) fn generate_tuple_struct_tokens(
 
 /// Generates the tokens for the bitfield tuple struct with fields.
 pub(crate) fn generate_struct_with_fields_tokens(
-    name: Ident,
-    vis: Visibility,
+    name: &Ident,
+    vis: &Visibility,
     ignored_fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
 ) -> TokenStream {

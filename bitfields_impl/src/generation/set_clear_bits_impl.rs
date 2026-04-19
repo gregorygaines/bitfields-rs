@@ -11,7 +11,7 @@ use crate::parsing::bitfield_field::BitfieldField;
 
 /// Generates `set_bits` and `set_bits_with_defaults` functions.
 pub(crate) fn generate_set_bits_functions_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
     has_ignored_fields: bool,
@@ -52,7 +52,7 @@ pub(crate) fn generate_set_bits_functions_tokens(
 }
 
 pub(crate) fn generate_clear_bits_functions_tokens(
-    vis: Visibility,
+    vis: &Visibility,
     fields: &[BitfieldField],
     bitfield_attribute: &BitfieldAttribute,
     has_ignored_fields: bool,
