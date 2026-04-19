@@ -125,22 +125,24 @@ impl DisplayMode {
     }
 }
 
-// Creating the display mode custom type.
-let display_mode = DisplayMode {
-    bg0_on: true,
-    bg1_on: false,
-};
+fn main() {
+    // Creating the display mode custom type.
+    let display_mode = DisplayMode {
+        bg0_on: true,
+        bg1_on: false,
+    };
 
-// Building the display control.
-let display_control = DisplayControlBuilder::new()
-    .with_bg_mode(0b1)
-    .with_display_mode(display_mode)
-    .with_obj_char_vram_mapping(true)
-    .build();
+    // Building the display control.
+    let display_control = DisplayControlBuilder::new()
+        .with_bg_mode(0b1)
+        .with_display_mode(display_mode)
+        .with_obj_char_vram_mapping(true)
+        .build();
 
-// Converting into bits.
-let val = display_control.into_bits();
-assert_eq!(val, 0b01110101);
+    // Converting into bits.
+    let val = display_control.into_bits();
+    assert_eq!(val, 0b01110101);
+}
 ```
 
 ## 🤔 What Other Features Does Bitfields Offer?
@@ -231,54 +233,56 @@ impl CustomType {
     }
 }
 
-// Usage:
-// Creates a new bitfield using a builder pattern, unset fields default to 0 
-// or their provided default value.
-let mut bitfield = BitfieldBuilder::new()
-    .with_u8int(5)
-    .with_small_u8int(0xF)
-    .with_custom_type(CustomType::from_bits(0x3))
-    // .with_custom_type(CustomType::default()) // Can pass a [`CustomType`] instance.
-    .with_read_only(0x3) // Read-only field can only be set during construction.
-    // .with__padding(0x3) // Compile error, padding fields are inaccessible.
-    .with_signed_int(-5)
-    .with_small_signed_int(0xF)
-    .build();
+fn main() {
+    // Usage:
+    // Creates a new bitfield using a builder pattern, unset fields default to 0 
+    // or their provided default value.
+    let mut bitfield = BitfieldBuilder::new()
+        .with_u8int(5)
+        .with_small_u8int(0xF)
+        .with_custom_type(CustomType::from_bits(0x3))
+        // .with_custom_type(CustomType::default()) // Can pass a [`CustomType`] instance.
+        .with_read_only(0x3) // Read-only field can only be set during construction.
+        // .with__padding(0x3) // Compile error, padding fields are inaccessible.
+        .with_signed_int(-5)
+        .with_small_signed_int(0xF)
+        .build();
 
-// let bitfield = Bitfield::new(); // Bitfield with default values.
-// let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
-// let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults. 
+    // let bitfield = Bitfield::new(); // Bitfield with default values.
+    // let bitfield = Bitfield::new_without_defaults(); // Bitfield without default values.
+    // let bitfield = BitfieldBuilder::new_without_defaults(); // Builder without defaults. 
 
-// let builder = bitfield.to_builder(); // Convert a bitfield back to builder, requires
-// `#[bitfield(to_builder = true)]` and `#[derive(Clone)]` on the bitfield.
+    // let builder = bitfield.to_builder(); // Convert a bitfield back to builder, requires
+    // `#[bitfield(to_builder = true)]` and `#[derive(Clone)]` on the bitfield.
 
-// Accessing fields:
-let u8int = bitfield.u8int(); // Getters
-let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
-bitfield.ignore_me; // Ignored fields can be accessed directly.
-// bitfield.set_read_only(0x3); // Compile error, read-only fields can't be set.
+    // Accessing fields:
+    let u8int = bitfield.u8int(); // Getters
+    let small_u8int = bitfield.small_u8int(); // Signed-types are sign-extended.
+    bitfield.ignore_me; // Ignored fields can be accessed directly.
+    // bitfield.set_read_only(0x3); // Compile error, read-only fields can't be set.
 
-// Setting fields:
-bitfield.set_u8int(0x3); // Setters
-bitfield.checked_set_small_u8int(0xF); // Checked setter, error if value overflow bits.
+    // Setting fields:
+    bitfield.set_u8int(0x3); // Setters
+    bitfield.checked_set_small_u8int(0xF); // Checked setter, error if value overflow bits.
 
-// Converting to bits:
-let bits = bitfield.into_bits();
+    // Converting to bits:
+    let bits = bitfield.into_bits();
 
-// Converting from bits:
-let mut bitfield = Bitfield::from_bits(0x3); // Converts from bits
-// let bitfield = Bitfield::from_bits_with_defaults(0x3); // Converts, respects defaults.
+    // Converting from bits:
+    let mut bitfield = Bitfield::from_bits(0x3); // Converts from bits
+    // let bitfield = Bitfield::from_bits_with_defaults(0x3); // Converts, respects defaults.
 
-// Set and clear bitfield:
-bitfield.set_bits(0x12345678); // Sets the bitfield.
-bitfield.set_bits_with_defaults(0x12345678); // Sets the bitfield, respects defaults.
+    // Set and clear bitfield:
+    bitfield.set_bits(0x12345678); // Sets the bitfield.
+    bitfield.set_bits_with_defaults(0x12345678); // Sets the bitfield, respects defaults.
 
-bitfield.clear_bits(); // Clears the bitfield.
-bitfield.clear_bits_with_defaults(); // Clears the bitfield, respects defaults.
+    bitfield.clear_bits(); // Clears the bitfield.
+    bitfield.clear_bits_with_defaults(); // Clears the bitfield, respects defaults.
 
-// Constants:
-assert_eq!(Bitfield::U8INT_BITS, 8); // Number of bits of the field.
-assert_eq!(Bitfield::U8INT_OFFSET, 0); // The offset of the field in the bitfield.
+    // Constants:
+    assert_eq!(Bitfield::U8INT_BITS, 8); // Number of bits of the field.
+    assert_eq!(Bitfield::U8INT_OFFSET, 0); // The offset of the field in the bitfield.
+}
 ```
 
 ### Bitfield Types
@@ -369,13 +373,15 @@ impl CustomType {
     }
 }
 
-let bitfield = Bitfield::new();
-assert_eq!(bitfield.a(), 0xFF);
-assert_eq!(bitfield.b(), -127);
-assert_eq!(bitfield.c_sign_extended(), -7);
-assert_eq!(bitfield.const_var_default(), 0x2);
-assert_eq!(bitfield.const_fn_default(), 0x1);
-assert_eq!(bitfield.custom_type(), CustomType::C);
+fn main() {
+    let bitfield = Bitfield::new();
+    assert_eq!(bitfield.a(), 0xFF);
+    assert_eq!(bitfield.b(), -127);
+    assert_eq!(bitfield.c_sign_extended(), -7);
+    assert_eq!(bitfield.const_var_default(), 0x2);
+    assert_eq!(bitfield.const_fn_default(), 0x1);
+    assert_eq!(bitfield.custom_type(), CustomType::C);
+}
 ```
 
 ### Constructing a Bitfield
@@ -402,27 +408,29 @@ struct Bitfield {
     _d: u8,
 }
 
-let bitfield = Bitfield::new();
-assert_eq!(bitfield.a(), 0x12);
-assert_eq!(bitfield.b(), 0x34);
-assert_eq!(bitfield.c(), 0x56);
-assert_eq!(bitfield.into_bits(), 0x78563412);
+fn main() {
+    let bitfield = Bitfield::new();
+    assert_eq!(bitfield.a(), 0x12);
+    assert_eq!(bitfield.b(), 0x34);
+    assert_eq!(bitfield.c(), 0x56);
+    assert_eq!(bitfield.into_bits(), 0x78563412);
 
-let bitfield_without_defaults = Bitfield::new_without_defaults();
-assert_eq!(bitfield_without_defaults.a(), 0);
-assert_eq!(bitfield_without_defaults.b(), 0);
-assert_eq!(bitfield_without_defaults.c(), 0);
-assert_eq!(bitfield_without_defaults.into_bits(), 0x78000000);
+    let bitfield_without_defaults = Bitfield::new_without_defaults();
+    assert_eq!(bitfield_without_defaults.a(), 0);
+    assert_eq!(bitfield_without_defaults.b(), 0);
+    assert_eq!(bitfield_without_defaults.c(), 0);
+    assert_eq!(bitfield_without_defaults.into_bits(), 0x78000000);
 
-let bitfield = BitfieldBuilder::new()
-    .with_a(0x12)
-    .with_b(0x34)
-    .with_c(0x56)
-    .build();
-assert_eq!(bitfield.a(), 0x12);
-assert_eq!(bitfield.b(), 0x34);
-assert_eq!(bitfield.c(), 0x56);
-assert_eq!(bitfield.into_bits(), 0x78563412);
+    let bitfield = BitfieldBuilder::new()
+        .with_a(0x12)
+        .with_b(0x34)
+        .with_c(0x56)
+        .build();
+    assert_eq!(bitfield.a(), 0x12);
+    assert_eq!(bitfield.b(), 0x34);
+    assert_eq!(bitfield.c(), 0x56);
+    assert_eq!(bitfield.into_bits(), 0x78563412);
+}
 ```
 
 ### To Builder
@@ -446,9 +454,11 @@ struct Bitfield {
     _d: u8,
 }
 
-let bitfield = Bitfield::new();
+fn main() { 
+    let bitfield = Bitfield::new();
 
-let bitfield_builder = bitfield.to_builder();
+    let bitfield_builder = bitfield.to_builder();
+}
 ```
 
 ### Setting and Clearing a Bitfield
@@ -469,21 +479,23 @@ struct Bitfield {
     _d: u8, // Padding fields are respected.
 }
 
-let mut bitfield = Bitfield::new();
-bitfield.set_bits(0x11223344);
-assert_eq!(bitfield.into_bits(), 0x78223344);
+fn main() {
+    let mut bitfield = Bitfield::new();
+    bitfield.set_bits(0x11223344);
+    assert_eq!(bitfield.into_bits(), 0x78223344);
 
-let mut bitfield = Bitfield::new();
-bitfield.set_bits_with_defaults(0x11223344);
-assert_eq!(bitfield.into_bits(), 0x78223412);
+    let mut bitfield = Bitfield::new();
+    bitfield.set_bits_with_defaults(0x11223344);
+    assert_eq!(bitfield.into_bits(), 0x78223412);
 
-let mut bitfield = Bitfield::new();
-bitfield.clear_bits();
-assert_eq!(bitfield.into_bits(), 0x78000000);
+    let mut bitfield = Bitfield::new();
+    bitfield.clear_bits();
+    assert_eq!(bitfield.into_bits(), 0x78000000);
 
-let mut bitfield = Bitfield::new();
-bitfield.clear_bits_with_defaults();
-assert_eq!(bitfield.into_bits(), 0x78003412);
+    let mut bitfield = Bitfield::new();
+    bitfield.clear_bits_with_defaults();
+    assert_eq!(bitfield.into_bits(), 0x78003412);
+}
 ```
 
 ### Bitfield Conversions
@@ -530,25 +542,27 @@ impl CustomType {
     }
 }
 
-let bitfield = Bitfield::from_bits(0x11223344);
-assert_eq!(bitfield.a(), 0x44);
-assert_eq!(bitfield.b(), CustomType::A);
-assert_eq!(bitfield.c(), 0x22);
-let val = bitfield.into_bits();
-assert_eq!(val, 0x78220044);
+fn main() {
+    let bitfield = Bitfield::from_bits(0x11223344);
+    assert_eq!(bitfield.a(), 0x44);
+    assert_eq!(bitfield.b(), CustomType::A);
+    assert_eq!(bitfield.c(), 0x22);
+    let val = bitfield.into_bits();
+    assert_eq!(val, 0x78220044);
 
-let bitfield_respect_defaults = Bitfield::from_bits_with_defaults(0x11223344);
-assert_eq!(bitfield_respect_defaults.a(), 0x12); // Default value respected
-assert_eq!(bitfield_respect_defaults.b(), CustomType::A);
-assert_eq!(bitfield_respect_defaults.c(), 0x22);
-let val = bitfield_respect_defaults.into_bits();
-assert_eq!(val, 0x78220012);
+    let bitfield_respect_defaults = Bitfield::from_bits_with_defaults(0x11223344);
+    assert_eq!(bitfield_respect_defaults.a(), 0x12); // Default value respected
+    assert_eq!(bitfield_respect_defaults.b(), CustomType::A);
+    assert_eq!(bitfield_respect_defaults.c(), 0x22);
+    let val = bitfield_respect_defaults.into_bits();
+    assert_eq!(val, 0x78220012);
 
-// From trait
-let val: u32 = bitfield.into();
-assert_eq!(val, 0x78220044);
-let bitfield: Bitfield = val.into();
-assert_eq!(bitfield.into_bits(), 0x78220044);
+    // From trait
+    let val: u32 = bitfield.into();
+    assert_eq!(val, 0x78220044);
+    let bitfield: Bitfield = val.into();
+    assert_eq!(bitfield.into_bits(), 0x78220044);
+}
 ```
 
 ### Conversion Endian
@@ -573,15 +587,17 @@ pub struct Bitfield {
     d: u8,
 }
 
-// The host device stored the data 0x12345678 in little-endian memory 
-// as [0x78, 0x56, 0x34, 0x12].
-let bitfield = Bitfield::from_bits(0x78563412);
+fn main() {
+    // The host device stored the data 0x12345678 in little-endian memory 
+    // as [0x78, 0x56, 0x34, 0x12].
+    let bitfield = Bitfield::from_bits(0x78563412);
 
-assert_eq!(bitfield.a(), 0x78);
-assert_eq!(bitfield.b(), 0x56);
-assert_eq!(bitfield.c(), 0x34);
-assert_eq!(bitfield.d(), 0x12);
-assert_eq!(bitfield.into_bits(), 0x12345678);
+    assert_eq!(bitfield.a(), 0x78);
+    assert_eq!(bitfield.b(), 0x56);
+    assert_eq!(bitfield.c(), 0x34);
+    assert_eq!(bitfield.d(), 0x12);
+    assert_eq!(bitfield.into_bits(), 0x12345678);
+}
 ````
 
 ### Field Order
@@ -605,19 +621,21 @@ struct Bitfield {
     d: u8,
 }
 
-let bitfield = Bitfield::new();
-assert_eq!(bitfield.a(), 0x12);
-assert_eq!(bitfield.b(), 0x34);
-assert_eq!(bitfield.c(), 0x56);
-assert_eq!(bitfield.d(), 0x78);
-let val = bitfield.into_bits();
+fn main() {
+    let bitfield = Bitfield::new();
+    assert_eq!(bitfield.a(), 0x12);
+    assert_eq!(bitfield.b(), 0x34);
+    assert_eq!(bitfield.c(), 0x56);
+    assert_eq!(bitfield.d(), 0x78);
+    let val = bitfield.into_bits();
 
-//                .- a
-//                |    .- b
-//                |    | .- c
-//                |    | |  .- d
-assert_eq!(val, 0x12_34_56_78);
-assert_eq!(Bitfield::A_OFFSET, 24); // Offset of the a field in the bitfield.
+    //                .- a
+    //                |  .- b
+    //                |  |  .- c
+    //                |  |  |  .- d
+    assert_eq!(val, 0x12_34_56_78);
+    assert_eq!(Bitfield::A_OFFSET, 24); // Offset of the a field in the bitfield.
+}
 ```
 
 ### Field Access
@@ -642,22 +660,24 @@ struct Bitfield {
     none: u8,
 }
 
-let mut bitfield = BitfieldBuilder::new()
-    .with_read_write(0x12)
-    .with_read_only(0x34) // Read-only fields only set during construction or from bits.
-    .with_write_only(0x56)
-    // .with_none(0x78) // Compile error, none field can't be set.
-    .build();
-bitfield.set_read_write(0x12);
-// bitfield.set_read_only(1); // Compile error, read-only field can't be set, after construction.
-bitfield.set_write_only(0x56);
-// bitfield.set_none(0x78); // Compile error, none field can't be set.
+fn main() {
+    let mut bitfield = BitfieldBuilder::new()
+        .with_read_write(0x12)
+        .with_read_only(0x34) // Read-only fields only set during construction or from bits.
+        .with_write_only(0x56)
+        // .with_none(0x78) // Compile error, none field can't be set.
+        .build();
+    bitfield.set_read_write(0x12);
+    // bitfield.set_read_only(1); // Compile error, read-only field can't be set, after construction.
+    bitfield.set_write_only(0x56);
+    // bitfield.set_none(0x78); // Compile error, none field can't be set.
 
-assert_eq!(bitfield.read_write(), 0x12);
-assert_eq!(bitfield.read_only(), 0x34);
-// assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only can't be read.
-// assert_eq!(bitfield.none(), 0xFF); // Compile error, none field can't be accessed.
-assert_eq!(bitfield.into_bits(), 0xFF563412); // All fields exposed when converted to bits.
+    assert_eq!(bitfield.read_write(), 0x12);
+    assert_eq!(bitfield.read_only(), 0x34);
+    // assert_eq!(bitfield.write_only(), 0x56); // Compile error, write-only can't be read.
+    // assert_eq!(bitfield.none(), 0xFF); // Compile error, none field can't be accessed.
+    assert_eq!(bitfield.into_bits(), 0xFF563412); // All fields exposed when converted to bits.
+}
 ```
 
 ### Checked Setters
@@ -677,14 +697,16 @@ struct Bitfield {
     _padding: u8,
 }
 
-let mut bitfield = Bitfield::new();
-bitfield.set_a(0xFF);
-bitfield.set_b(0x12); // Truncated to 4 bits.
-assert_eq!(bitfield.a(), 0xFF);
-assert_eq!(bitfield.b(), 0x2);
+fn main() {
+    let mut bitfield = Bitfield::new();
+    bitfield.set_a(0xFF);
+    bitfield.set_b(0x12); // Truncated to 4 bits.
+    assert_eq!(bitfield.a(), 0xFF);
+    assert_eq!(bitfield.b(), 0x2);
 
-let res = bitfield.checked_set_b(0x12); // Error, value overflows bits.
-assert!(res.is_err());
+    let res = bitfield.checked_set_b(0x12); // Error, value overflows bits.
+    assert!(res.is_err());
+}
 ```
 
 ### Bit Operations
@@ -711,20 +733,22 @@ pub struct Bitfield {
     _d: u8,
 }
 
-let bitfield = Bitfield::new();
+fn main() {
+    let bitfield = Bitfield::new();
 
-assert!(bitfield.get_bit(0));
-assert!(bitfield.get_bit(1));
-assert!(!bitfield.get_bit(2));
-assert!(!bitfield.get_bit(3));
-assert!(!bitfield.get_bit(4)); // No write access, false is returned.
-assert!(!bitfield.get_bit(5)); // No write access, false is returned.
-assert!(bitfield.checked_get_bit(4).is_err()); // No write access, err.
-assert!(bitfield.checked_get_bit(5).is_err()); // No write access, err.
-assert!(bitfield.get_bit(6));
-assert!(!bitfield.get_bit(7));
-assert!(!bitfield.get_bit(50)); // Out-of-bounds, false is returned.
-assert!(bitfield.checked_get_bit(50).is_err()); // Out-of-bounds, err.
+    assert!(bitfield.get_bit(0));
+    assert!(bitfield.get_bit(1));
+    assert!(!bitfield.get_bit(2));
+    assert!(!bitfield.get_bit(3));
+    assert!(!bitfield.get_bit(4)); // No write access, false is returned.
+    assert!(!bitfield.get_bit(5)); // No write access, false is returned.
+    assert!(bitfield.checked_get_bit(4).is_err()); // No write access, err.
+    assert!(bitfield.checked_get_bit(5).is_err()); // No write access, err.
+    assert!(bitfield.get_bit(6));
+    assert!(!bitfield.get_bit(7));
+    assert!(!bitfield.get_bit(50)); // Out-of-bounds, false is returned.
+    assert!(bitfield.checked_get_bit(50).is_err()); // Out-of-bounds, err.
+}
 ```
 
 ```rust
@@ -743,21 +767,23 @@ pub struct Bitfield {
     _d: u8,
 }
 
-let mut bitfield = Bitfield::new();
+fn main() {
+    let mut bitfield = Bitfield::new();
 
-bitfield.set_bit(0, true);
-bitfield.set_bit(1, true);
-bitfield.set_bit(2, false);
-bitfield.set_bit(3, false);
-bitfield.set_bit(4, false); // No-op, no write access.
-bitfield.set_bit(5, false); // No-op, no write access.
-assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, no write access.
-assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, no write access.
-bitfield.set_bit(6, true); // No-op, padding.
-bitfield.set_bit(7, true); // No-op, padding.
-assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, padding.
-assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding..
-assert_eq!(bitfield.into_bits(), 0b110011);
+    bitfield.set_bit(0, true);
+    bitfield.set_bit(1, true);
+    bitfield.set_bit(2, false);
+    bitfield.set_bit(3, false);
+    bitfield.set_bit(4, false); // No-op, no write access.
+    bitfield.set_bit(5, false); // No-op, no write access.
+    assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, no write access.
+    assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, no write access.
+    bitfield.set_bit(6, true); // No-op, padding.
+    bitfield.set_bit(7, true); // No-op, padding.
+    assert!(bitfield.checked_set_bit(4, false).is_err()); // Error, padding.
+    assert!(bitfield.checked_set_bit(5, false).is_err()); // Error, padding..
+    assert_eq!(bitfield.into_bits(), 0b110011);
+}
 ```
 
 ### Padding Fields
@@ -775,11 +801,13 @@ struct Bitfield {
     _padding: u8, // Fills the remaining bits of the u16.
 }
 
-let bitfield = Bitfield::new();
-assert_eq!(bitfield.a(), 0);
-// assert_eq!(bitfield._padding(), 0xFF00); // Compile error, padding inaccessible.
-// bitfield.set__padding(0xFF); // Compile error, padding fields are inaccessible.
-assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
+fn main() {
+    let bitfield = Bitfield::new();
+    assert_eq!(bitfield.a(), 0);
+    // assert_eq!(bitfield._padding(), 0xFF00); // Compile error, padding inaccessible.
+    // bitfield.set__padding(0xFF); // Compile error, padding fields are inaccessible.
+    assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted to bits.
+}
 ```
 
 ### Inverting Bits
@@ -798,14 +826,16 @@ struct Bitfield {
   _padding: u8,
 }
 
-let builder = Bitfield::new();
+fn main() {
+    let builder = Bitfield::new();
 
-assert_eq!(builder.a(), 0xC);
-assert!(builder.b());
+    assert_eq!(builder.a(), 0xC);
+    assert!(builder.b());
 
-// Inverted bits
-assert_eq!(builder.neg_a(), 0x13);
-assert!(!builder.neg_b());
+    // Inverted bits
+    assert_eq!(builder.neg_a(), 0x13);
+    assert!(!builder.neg_b());
+}
 ```
 
 ### Ignored Fields
@@ -835,10 +865,12 @@ enum CustomType {
     B,
 }
 
-let bitfield = Bitfield::new();
+fn main() {
+    let bitfield = Bitfield::new();
 
-assert_eq!(bitfield.field_id, 0); // Ignored fields can be accessed directly.
-assert_eq!(bitfield.field_custom, CustomType::A); // Ignored fields can be accessed directly.
+    assert_eq!(bitfield.field_id, 0); // Ignored fields can be accessed directly.
+    assert_eq!(bitfield.field_custom, CustomType::A); // Ignored fields can be accessed directly.
+}
 ```
 
 ### Field Constants 
@@ -860,14 +892,16 @@ struct Bitfield {
     d: u8,
 }
 
-assert_eq!(Bitfield::A_BITS, 8); // Number of bits of the  afield.
-assert_eq!(Bitfield::A_OFFSET, 0); // The offset of the a field in the bitfield.
-assert_eq!(Bitfield::B_BITS, 8); // Number of bits of the b field.
-assert_eq!(Bitfield::B_OFFSET, 8); // The offset of the b field in the bitfield.
-assert_eq!(Bitfield::C_BITS, 8); // Number of bits of c the field.
-assert_eq!(Bitfield::C_OFFSET, 16); // The offset of the c field in the bitfield.
-assert_eq!(Bitfield::D_BITS, 8); // Number of bits of the d field.
-assert_eq!(Bitfield::D_OFFSET, 24); // The offset of the d field in the bitfield.
+fn main() {
+    assert_eq!(Bitfield::A_BITS, 8); // Number of bits of the  afield.
+    assert_eq!(Bitfield::A_OFFSET, 0); // The offset of the a field in the bitfield.
+    assert_eq!(Bitfield::B_BITS, 8); // Number of bits of the b field.
+    assert_eq!(Bitfield::B_OFFSET, 8); // The offset of the b field in the bitfield.
+    assert_eq!(Bitfield::C_BITS, 8); // Number of bits of c the field.
+    assert_eq!(Bitfield::C_OFFSET, 16); // The offset of the c field in the bitfield.
+    assert_eq!(Bitfield::D_BITS, 8); // Number of bits of the d field.
+    assert_eq!(Bitfield::D_OFFSET, 24); // The offset of the d field in the bitfield.
+}
 ```
 
 ### Debug Implementation
@@ -889,9 +923,11 @@ struct Bitfield {
     d: u8,
 }
 
-let bitfield = Bitfield::new();
+fn main() {
+    let bitfield = Bitfield::new();
 
-assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a: 18 }");
+    assert_eq!(format!("{:?}", bitfield), "Bitfield { d: 120, c: 86, b: 52, a: 18 }");
+}
 ```
 
 ### Passing Attributes
