@@ -973,7 +973,7 @@ fn parse_fields(
 
     let mut fields = Vec::new();
     let mut ignored_fields = Vec::new();
-    for field_token in fields_tokens.named.clone() {
+    for field_token in &fields_tokens.named {
         let field = do_parse_field(bitfield_attribute, field_token, &fields)?;
         if field.ignore {
             ignored_fields.push(field);
@@ -988,7 +988,7 @@ fn parse_fields(
 /// Internal implementation of [`parse_fields`] to parse a single field.
 fn do_parse_field(
     bitfield_attribute: &BitfieldAttribute,
-    field_tokens: syn::Field,
+    field_tokens: &syn::Field,
     prev_fields: &[BitfieldField],
 ) -> syn::Result<BitfieldField> {
     // Parse field attribute, a field could have multiple attributes, but we only
@@ -1011,7 +1011,7 @@ fn do_parse_field(
     };
 
     let padding =
-        field_tokens.ident.clone().unwrap().to_string().starts_with(PADDING_FIELD_NAME_PREFIX);
+        field_tokens.ident.as_ref().unwrap().to_string().starts_with(PADDING_FIELD_NAME_PREFIX);
 
     let bitfield = if field_bit_attribute.is_none() {
         if !is_supported_field_type(&field_tokens.ty) {
@@ -1047,7 +1047,7 @@ fn do_parse_field(
         // Create a bitfield field with default values since we don't have one to
         // parse.
         BitfieldField {
-            name: field_tokens.ident.unwrap(),
+            name: field_tokens.ident.clone().unwrap(),
             ty: field_tokens.ty.clone(),
             vis: visibility,
             bits,
@@ -1075,14 +1075,14 @@ fn do_parse_field(
         if bits_attribute.ignore {
             return Ok(BitfieldField {
                 ty: field_tokens.ty.clone(),
-                vis: Some(field_tokens.vis),
+                vis: Some(field_tokens.clone().vis),
                 bits: 0,
                 offset: 0,
                 default_value_tokens: None,
                 unsigned: false,
                 padding,
                 access: FieldAccess::ReadOnly,
-                name: field_tokens.ident.unwrap(),
+                name: field_tokens.ident.clone().unwrap(),
                 ignore: true,
                 field_type,
             });
@@ -1142,12 +1142,12 @@ fn do_parse_field(
         // to be parsed, let's take a chance and see if the user is trying to
         // use a const variable or a const function.
         let parsed_number = if field_type == FieldType::IntegerFieldType
-            && bits_attribute.clone().default_value_expr.is_some()
+            && bits_attribute.default_value_expr.is_some()
         {
             check_default_value_fit_in_field(
-                &bits_attribute.clone().default_value_expr.unwrap(),
+                &bits_attribute.default_value_expr.clone().unwrap(),
                 bits,
-                field_tokens.ty.clone(),
+                &field_tokens.ty,
             )?
         } else {
             None
@@ -1187,8 +1187,7 @@ fn do_parse_field(
                         #expr
                     })
                 } else {
-                    let tokens =
-                        add_integer_literals_to_expr(&expr.clone(), field_tokens.ty.clone())?;
+                    let tokens = add_integer_literals_to_expr(expr, &field_tokens.ty)?;
 
                     Some(quote! {
                         #tokens
@@ -1198,7 +1197,7 @@ fn do_parse_field(
         };
 
         BitfieldField {
-            name: field_tokens.ident.unwrap(),
+            name: field_tokens.ident.clone().unwrap(),
             ty: field_tokens.ty.clone(),
             vis: visibility,
             bits,
@@ -1219,7 +1218,7 @@ fn do_parse_field(
 fn check_default_value_fit_in_field(
     default_value_expr: &Expr,
     bits: u32,
-    field_type: Type,
+    field_type: &Type,
 ) -> syn::Result<Option<ParsedNumber>> {
     let default_value_str = &quote!(#default_value_expr).to_string();
 
@@ -1258,7 +1257,7 @@ fn check_default_value_fit_in_field(
         ));
     }
 
-    let default_value_too_big_for_type = match get_integer_type_from_type(&field_type) {
+    let default_value_too_big_for_type = match get_integer_type_from_type(field_type) {
         IntegerType::Bool => parsed_number.number > 1,
         IntegerType::U8 => parsed_number.number > u8::MAX as u128,
         IntegerType::U16 => parsed_number.number > u16::MAX as u128,
@@ -1322,7 +1321,7 @@ fn check_default_value_fit_in_field(
                 "The default value '{}{}' is too large to fit into the field type '{}'.",
                 negative_str,
                 parsed_number.number,
-                get_type_ident(&field_type).unwrap()
+                get_type_ident(field_type).unwrap()
             ),
         ));
     }
@@ -1360,7 +1359,7 @@ fn calculate_field_offset(
 ///
 /// For example, if the expression is '-1' and the field type is 'i8', the
 /// expression will be updated to '1i8'.
-fn add_integer_literals_to_expr(expr: &Expr, field_type: Type) -> syn::Result<TokenStream> {
+fn add_integer_literals_to_expr(expr: &Expr, field_type: &Type) -> syn::Result<TokenStream> {
     let updated_expr = if let Expr::Unary(unary) = expr {
         let attrs = unary.attrs.clone();
         let op = unary.op;
@@ -1388,11 +1387,11 @@ fn add_integer_literals_to_expr(expr: &Expr, field_type: Type) -> syn::Result<To
 }
 
 /// Helper for creating an integer literal with the integer suffix.
-fn create_expr_lit_with_integer_suffix(lit: &ExprLit, field_type: Type) -> syn::Result<ExprLit> {
-    let integer_type = get_integer_type_from_type(&field_type);
+fn create_expr_lit_with_integer_suffix(lit: &ExprLit, field_type: &Type) -> syn::Result<ExprLit> {
+    let integer_type = get_integer_type_from_type(field_type);
     let integer_suffix = get_integer_suffix_from_integer_type(integer_type)?;
 
-    let new_lit = match lit.lit.clone() {
+    let new_lit = match &lit.lit {
         Lit::Int(lit_int) => {
             let new_lit_int =
                 LitInt::new(&format!("{}{}", lit_int.token(), integer_suffix), lit_int.span());
