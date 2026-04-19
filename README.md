@@ -818,6 +818,8 @@ Bitfields with the `#[bitfield(neg = true)` attribute, generates a `neg_<field>`
 that inverts the field's bits.
 
 ```rust
+use bitfields::bitfield;
+
 #[bitfield(u8, neg = true)]
 struct Bitfield {
   #[bits(5, default = 0xC)]
