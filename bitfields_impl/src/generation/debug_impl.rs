@@ -1,6 +1,9 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
+use crate::generation::common::{
+    BitfieldStructReferenceIdent, get_bitfield_struct_internal_value_identifier_tokens,
+};
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::BitfieldField;
 
@@ -9,7 +12,7 @@ pub(crate) fn generate_debug_implementation(
     bitfield_struct_name: Ident,
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
-    ignored_fields_struct: bool,
+    has_ignored_fields: bool,
 ) -> TokenStream {
     let mut fields_msb_to_lsb = fields.to_owned();
     if bitfield_attribute.bit_order == BitOrder::Lsb {
@@ -20,22 +23,22 @@ pub(crate) fn generate_debug_implementation(
     debug_impl.push(quote! {
        let mut debug = f.debug_struct(#bitfield_struct_name_str);
     });
-    let struct_val_ident = if ignored_fields_struct {
-        quote! { self.val }
-    } else {
-        quote! { self.0 }
-    };
+
+    let bitfield_struct_internal_value_ident = get_bitfield_struct_internal_value_identifier_tokens(
+        &BitfieldStructReferenceIdent::SelfVariable,
+        has_ignored_fields,
+    );
 
     fields_msb_to_lsb.iter().for_each(|field| {
         let field_name = &field.name;
-        let field_bits = field.bits as u32;
-        let field_offset = field.offset as u32;
+        let field_bits = field.bits;
+        let field_offset = field.offset;
         let bitfield_type = &bitfield_attribute.ty;
 
         debug_impl.push(quote! {
             let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits);
-            let this = ((#struct_val_ident >> #field_offset) & mask) as #bitfield_type;
-            debug.field(stringify!(#field_name), &((#struct_val_ident >> #field_offset) & mask));
+            let this = ((#bitfield_struct_internal_value_ident >> #field_offset) & mask) as #bitfield_type;
+            debug.field(stringify!(#field_name), &((#bitfield_struct_internal_value_ident >> #field_offset) & mask));
         });
     });
 

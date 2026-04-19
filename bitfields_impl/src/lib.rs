@@ -19,20 +19,15 @@ use crate::generation::field_const_getter_setter::{
     generate_field_setters_functions_tokens,
 };
 use crate::generation::from_into_bits_conversions::{
-    generate_from_bits_function_tokens, generate_from_bits_with_defaults_function_tokens,
-    generate_into_bits_function_tokens,
+    generate_from_bits_functions_tokens, generate_into_bits_function_tokens,
 };
 use crate::generation::from_types_impl::{
     generate_from_bitfield_for_bitfield_type_implementation_tokens,
     generate_from_bitfield_type_for_bitfield_implementation_tokens,
 };
-use crate::generation::new_impl::{
-    generate_new_function_tokens, generate_new_without_defaults_function_tokens,
-};
-use crate::generation::set_clear_bits_impl::generate_set_bits_function_tokens;
+use crate::generation::new_impl::generate_new_function_tokens;
 use crate::generation::set_clear_bits_impl::{
-    generate_clear_bits_function_tokens, generate_clear_bits_preserve_defaults_function_tokens,
-    generate_set_bits_with_defaults_function_tokens,
+    generate_clear_bits_functions_tokens, generate_set_bits_functions_tokens,
 };
 use crate::generation::tuple_struct::{
     generate_struct_with_fields_tokens, generate_tuple_struct_tokens,
@@ -472,7 +467,7 @@ pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
 /// assert_eq!(bitfield.into_bits(), 0x78220044);
 /// ```
 ///
-/// ### Conversion Endianess
+/// ### Conversion Endian
 ///
 /// Sometimes the outside world is outside our control, like how systems store
 /// or expect data endian. Luckily, the endian of the bitfield conversions can
@@ -908,7 +903,7 @@ fn check_bitfield_type_contain_field_bits(
     bitfield_attribute: &BitfieldAttribute,
     fields: &[BitfieldField],
 ) -> syn::Result<()> {
-    let total_field_bits = fields.iter().map(|field| field.bits).sum::<u8>();
+    let total_field_bits = fields.iter().map(|field| field.bits).sum::<u32>();
 
     match total_field_bits.cmp(&bitfield_attribute.bits) {
         Ordering::Greater => Err(create_syn_error(
@@ -1115,7 +1110,7 @@ fn do_parse_field(
                         format!(
                             "The field type {:?} ({} bits) is too small to hold the specified '{} bits'.",
                             get_type_ident(&field_tokens.ty).unwrap(),
-                            get_bits_from_type(&field_tokens.ty)?,
+                            get_bits_from_type(&field_tokens.ty,)?,
                             bits
                         ),
                     ));
@@ -1223,7 +1218,7 @@ fn do_parse_field(
 /// Checks if the default value can fit in the field bits.
 fn check_default_value_fit_in_field(
     default_value_expr: &Expr,
-    bits: u8,
+    bits: u32,
     field_type: Type,
 ) -> syn::Result<Option<ParsedNumber>> {
     let default_value_str = &quote!(#default_value_expr).to_string();
@@ -1337,11 +1332,11 @@ fn check_default_value_fit_in_field(
 
 /// Calculate the offset of a field based on previous fields.
 fn calculate_field_offset(
-    bits: u8,
+    bits: u32,
     bitfield_attribute: &BitfieldAttribute,
     prev_fields: &[BitfieldField],
-) -> syn::Result<u8> {
-    let offset = prev_fields.iter().map(|field| field.bits).sum::<u8>();
+) -> syn::Result<u32> {
+    let offset = prev_fields.iter().map(|field| field.bits).sum::<u32>();
 
     match bitfield_attribute.bit_order {
         BitOrder::Lsb => Ok(offset),
@@ -1424,48 +1419,30 @@ fn generate_functions(
         generate_struct_with_fields_tokens(
             struct_name.clone(),
             struct_tokens.vis.clone(),
-            bitfield_attribute.ty.clone(),
             ignored_fields,
+            bitfield_attribute,
         )
     } else {
         generate_tuple_struct_tokens(
             struct_name.clone(),
             struct_tokens.vis.clone(),
-            bitfield_attribute.ty.clone(),
+            bitfield_attribute,
         )
     };
-    let new_function = bitfield_attribute.generate_new_func.then(|| {
+    let new_functions = bitfield_attribute.generate_new_func.then(|| {
         generate_new_function_tokens(
             struct_tokens.vis.clone(),
             fields,
             ignored_fields,
-            &bitfield_attribute.ty,
-        )
-    });
-    let new_without_defaults_function = bitfield_attribute.generate_new_func.then(|| {
-        generate_new_without_defaults_function_tokens(
-            struct_tokens.vis.clone(),
-            fields,
-            ignored_fields,
-            &bitfield_attribute.ty,
-        )
-    });
-    let from_bits_function = bitfield_attribute.generate_from_bits_func.then(|| {
-        generate_from_bits_function_tokens(
-            struct_tokens.vis.clone(),
-            fields,
-            ignored_fields,
-            &bitfield_attribute.ty,
             bitfield_attribute,
         )
     });
-    let from_bits_with_defaults_function = bitfield_attribute.generate_from_bits_func.then(|| {
-        generate_from_bits_with_defaults_function_tokens(
+    let from_bits_functions = bitfield_attribute.generate_from_bits_func.then(|| {
+        generate_from_bits_functions_tokens(
             struct_tokens.vis.clone(),
             fields,
-            &bitfield_attribute.ty,
+            ignored_fields,
             bitfield_attribute,
-            !ignored_fields.is_empty(),
         )
     });
     let generate_into_bits_function = bitfield_attribute.generate_into_bits_func.then(|| {
@@ -1481,7 +1458,6 @@ fn generate_functions(
         bitfield_attribute,
         fields,
         !ignored_fields.is_empty(),
-        bitfield_attribute.generate_neg_func,
     )?;
     let field_setters_tokens = generate_field_setters_functions_tokens(
         struct_tokens.vis.clone(),
@@ -1492,18 +1468,18 @@ fn generate_functions(
     let default_function = bitfield_attribute.generate_default_impl.then(|| {
         generate_default_implementation_tokens(
             struct_name.clone(),
-            &bitfield_attribute.ty,
             fields,
             ignored_fields,
+            bitfield_attribute,
         )
     });
     let builder_tokens = bitfield_attribute.generate_builder.then(|| {
         generate_builder_tokens(
             struct_tokens.vis.clone(),
-            &bitfield_attribute.ty,
             struct_name.clone(),
             fields,
             ignored_fields,
+            bitfield_attribute,
         )
     });
 
@@ -1513,7 +1489,7 @@ fn generate_functions(
                 struct_name.clone(),
                 fields,
                 ignored_fields,
-                &bitfield_attribute.ty,
+                bitfield_attribute,
             )
         });
     let from_bitfield_for_bitfield_type_function_tokens =
@@ -1552,38 +1528,21 @@ fn generate_functions(
         && bitfield_attribute.generate_to_builder)
         .then(|| generate_to_builder_tokens(struct_tokens.vis.clone(), struct_name.clone()));
     let set_bits_operations = bitfield_attribute.generate_set_bits_impl.then(|| {
-        generate_set_bits_function_tokens(
+        generate_set_bits_functions_tokens(
             struct_tokens.vis.clone(),
             fields,
-            &bitfield_attribute.ty,
-            !ignored_fields.is_empty(),
-        )
-    });
-    let set_bits_with_defaults_operations = bitfield_attribute.generate_set_bits_impl.then(|| {
-        generate_set_bits_with_defaults_function_tokens(
-            struct_tokens.vis.clone(),
-            fields,
-            &bitfield_attribute.ty,
+            bitfield_attribute,
             !ignored_fields.is_empty(),
         )
     });
     let clear_bits_operations = bitfield_attribute.generate_clear_bits_impl.then(|| {
-        generate_clear_bits_function_tokens(
+        generate_clear_bits_functions_tokens(
             struct_tokens.vis.clone(),
             fields,
-            &bitfield_attribute.ty,
+            bitfield_attribute,
             !ignored_fields.is_empty(),
         )
     });
-    let clear_bits_preserve_defaults_operations =
-        bitfield_attribute.generate_clear_bits_impl.then(|| {
-            generate_clear_bits_preserve_defaults_function_tokens(
-                struct_tokens.vis.clone(),
-                fields,
-                &bitfield_attribute.ty,
-                !ignored_fields.is_empty(),
-            )
-        });
     let default_attrs = if ignored_fields.is_empty() {
         quote! {
             #[repr(transparent)]
@@ -1600,11 +1559,9 @@ fn generate_functions(
         #bitfield_struct
 
         impl #struct_name {
-            #new_function
-            #new_without_defaults_function
+            #new_functions
 
-            #from_bits_function
-            #from_bits_with_defaults_function
+            #from_bits_functions
 
             #generate_into_bits_function
 
@@ -1613,9 +1570,7 @@ fn generate_functions(
             #field_setters_tokens
 
             #set_bits_operations
-            #set_bits_with_defaults_operations
             #clear_bits_operations
-            #clear_bits_preserve_defaults_operations
 
             #get_bit_operations
             #set_bit_operations

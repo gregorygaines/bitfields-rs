@@ -3,101 +3,83 @@ use quote::quote;
 use syn::Visibility;
 
 use crate::generation::common::{
-    generate_setting_fields_from_bits_tokens, generate_setting_fields_to_zero_tokens,
+    BitfieldStructReferenceIdent, generate_setting_fields_from_bits_tokens,
+    generate_setting_fields_to_zero_tokens,
 };
+use crate::parsing::bitfield_attribute::BitfieldAttribute;
 use crate::parsing::bitfield_field::BitfieldField;
 
-pub(crate) fn generate_set_bits_function_tokens(
+/// Generates `set_bits` and `set_bits_with_defaults` functions.
+pub(crate) fn generate_set_bits_functions_tokens(
     vis: Visibility,
     fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
-    ignored_fields_struct: bool,
+    bitfield_attribute: &BitfieldAttribute,
+    has_ignored_fields: bool,
 ) -> TokenStream {
-    let documentation = "Sets the writable bits of the bitfield.";
-    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
-        fields,
-        Some(quote! { Self }),
-        /* respect_defaults= */ false,
-        ignored_fields_struct,
-        /* include_read_only_fields= */ false,
-    );
+    let setting_fields_from_bits_without_respecting_defaults_tokens =
+        generate_setting_fields_from_bits_tokens(
+            bitfield_attribute,
+            fields,
+            &BitfieldStructReferenceIdent::SelfReference,
+            /* respect_defaults= */ false,
+            has_ignored_fields,
+            /* include_read_only_fields= */ false,
+        );
+    let setting_fields_from_bits_respecting_defaults_tokens =
+        generate_setting_fields_from_bits_tokens(
+            bitfield_attribute,
+            fields,
+            &BitfieldStructReferenceIdent::SelfReference,
+            /* respect_defaults= */ true,
+            has_ignored_fields,
+            /* include_read_only_fields= */ false,
+        );
 
+    let bitfield_type = &bitfield_attribute.ty;
     quote! {
-        #[doc = #documentation]
+        #[doc = "Sets the writable bits of the bitfield."]
         #vis fn set_bits(&mut self, bits: #bitfield_type) {
             let mut this = self;
-            #setting_fields_from_bits_tokens
+            #setting_fields_from_bits_without_respecting_defaults_tokens
+        }
+
+        #[doc = "Sets the writable bits of the bitfield while respecting defaults."]
+        #vis fn set_bits_with_defaults(&mut self, bits: #bitfield_type) {
+            let mut this = self;
+            #setting_fields_from_bits_respecting_defaults_tokens
         }
     }
 }
 
-pub(crate) fn generate_set_bits_with_defaults_function_tokens(
+pub(crate) fn generate_clear_bits_functions_tokens(
     vis: Visibility,
     fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
-    ignored_fields_struct: bool,
+    bitfield_attribute: &BitfieldAttribute,
+    has_ignored_fields: bool,
 ) -> TokenStream {
-    let documentation = "Sets the writable bits of the bitfield while respecting defaults.";
-    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
+    let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
+        &bitfield_attribute.ty,
         fields,
-        Some(quote! { Self }),
+        &BitfieldStructReferenceIdent::SelfReference,
+        has_ignored_fields,
+    );
+    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
+        bitfield_attribute,
+        fields,
+        &BitfieldStructReferenceIdent::SelfReference,
         /* respect_defaults= */ true,
-        ignored_fields_struct,
+        has_ignored_fields,
         /* include_read_only_fields= */ false,
     );
 
     quote! {
-        #[doc = #documentation]
-        #vis fn set_bits_with_defaults(&mut self, bits: #bitfield_type) {
-            let mut this = self;
-            #setting_fields_from_bits_tokens
-        }
-    }
-}
-
-pub(crate) fn generate_clear_bits_function_tokens(
-    vis: Visibility,
-    fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
-    ignored_fields_struct: bool,
-) -> TokenStream {
-    let documentation = "Clears the writable bits of the bitfield.";
-    let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
-        bitfield_type,
-        fields,
-        /* const_reference_tokens= */ None,
-        ignored_fields_struct,
-    );
-
-    quote! {
-        #[doc = #documentation]
+        #[doc = "Clears the writable bits of the bitfield."]
         #vis fn clear_bits(&mut self) {
             let this = self;
             #setting_fields_to_zero_tokens
         }
-    }
-}
 
-pub(crate) fn generate_clear_bits_preserve_defaults_function_tokens(
-    vis: Visibility,
-    fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
-    ignored_fields_struct: bool,
-) -> TokenStream {
-    let documentation = "Clears the writable bits of the bitfield.";
-    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
-        fields,
-        Some(quote! { Self }),
-        /* respect_defaults= */ true,
-        ignored_fields_struct,
-        /* include_read_only_fields= */ false,
-    );
-
-    quote! {
-        #[doc = #documentation]
+        #[doc = "Clears the writable bits of the bitfield."]
         #vis fn clear_bits_with_defaults(&mut self) {
             let this = self;
             let bits = 0;

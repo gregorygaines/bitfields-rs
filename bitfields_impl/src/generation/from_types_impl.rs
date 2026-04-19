@@ -1,7 +1,10 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::generation::common::generate_setting_fields_from_bits_tokens;
+use crate::generation::common::{
+    BitfieldStructReferenceIdent, generate_bitfield_struct_initialization_tokens,
+    generate_setting_fields_from_bits_tokens, get_bitfield_struct_internal_value_identifier_tokens,
+};
 use crate::parsing::bitfield_attribute::{BitfieldAttribute, Endian};
 use crate::parsing::bitfield_field::BitfieldField;
 
@@ -10,38 +13,22 @@ pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
     bitfield_struct_name: Ident,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
+    bitfield_attribute: &BitfieldAttribute,
 ) -> TokenStream {
     let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
+        bitfield_attribute,
         fields,
-        Some(quote! { Self }),
+        &BitfieldStructReferenceIdent::SelfReference,
         /* respect_defaults= */ false,
         !ignored_fields.is_empty(),
         /* include_read_only_fields= */ true,
     );
 
-    let ignored_fields_defaults = ignored_fields.iter().map(|field| {
-        let field_name = &field.name;
-        let field_ty = &field.ty;
-        quote! {
-            #field_name: <#field_ty>::default(),
-        }
-    });
-
-    let initialize_struct_tokens = if !ignored_fields.is_empty() {
-        quote! {
-            Self {
-                val: 0,
-                #( #ignored_fields_defaults )*
-            }
-        }
-    } else {
-        quote! {
-            Self(0)
-        }
-    };
-
+    let initialize_struct_tokens = generate_bitfield_struct_initialization_tokens(
+        ignored_fields,
+        &BitfieldStructReferenceIdent::SelfReference,
+    );
+    let bitfield_type = &bitfield_attribute.ty;
     quote! {
         impl From<#bitfield_type> for #bitfield_struct_name {
             fn from(bits: #bitfield_type) -> Self {
@@ -56,31 +43,19 @@ pub(crate) fn generate_from_bitfield_type_for_bitfield_implementation_tokens(
 pub(crate) fn generate_from_bitfield_for_bitfield_type_implementation_tokens(
     bitfield_struct_name: Ident,
     bitfield_attribute: &BitfieldAttribute,
-    ignored_fields_struct: bool,
+    has_ignored_fields: bool,
 ) -> TokenStream {
     let bitfield_type = &bitfield_attribute.ty;
+    let internal_value_identifier = get_bitfield_struct_internal_value_identifier_tokens(
+        &BitfieldStructReferenceIdent::NameReference("b".to_string()),
+        has_ignored_fields,
+    );
 
     let from_bitfield_impl = match bitfield_attribute.into_endian {
-        Endian::Big => {
-            if ignored_fields_struct {
-                quote! {
-                    b.val
-                }
-            } else {
-                quote! {
-                    b.0
-                }
-            }
-        }
+        Endian::Big => internal_value_identifier,
         Endian::Little => {
-            if ignored_fields_struct {
-                quote! {
-                    b.val.swap_bytes()
-                }
-            } else {
-                quote! {
-                    b.0.swap_bytes()
-                }
+            quote! {
+                #internal_value_identifier.swap_bytes()
             }
         }
     };

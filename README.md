@@ -551,11 +551,11 @@ let bitfield: Bitfield = val.into();
 assert_eq!(bitfield.into_bits(), 0x78220044);
 ```
 
-### Conversion Endianess
+### Conversion Endian
 
 Sometimes the outside world is outside our control, like how systems store or expect data endian. Luckily, the endian
 of the bitfield conversions can be controlled by specifying the `#[bitfield(from_endian = x, into_endian = x)]` args. 
-The possible endians are `little` or `big`. By default, the endian of both is `big`.
+The possible endianness are `little` or `big`. By default, the endian of both is `big`.
 
 ````rust
 use bitfields::bitfield;

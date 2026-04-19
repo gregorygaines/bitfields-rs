@@ -16,9 +16,9 @@ pub(crate) struct BitfieldField {
     /// The visibility of the field.
     pub(crate) vis: Option<syn::Visibility>,
     /// The number of bits the field occupies.
-    pub(crate) bits: u8,
+    pub(crate) bits: u32,
     /// The offset of the field.
-    pub(crate) offset: u8,
+    pub(crate) offset: u32,
     /// The default value of the field as a token stream. This allows us to
     /// insert the default value in any token stream without complicated
     /// conversions or parsing.
@@ -45,7 +45,7 @@ pub(crate) enum FieldType {
 /// Represents the `#[bits]` attribute.
 #[derive(Clone)]
 pub(crate) struct BitsAttribute {
-    pub(crate) bits: Option<u8>,
+    pub(crate) bits: Option<u32>,
     pub(crate) default_value_expr: Option<syn::Expr>,
     pub(crate) access: Option<FieldAccess>,
     pub(crate) ignore: bool,
@@ -87,7 +87,7 @@ impl Parse for BitsAttribute {
         // First check for the number of bits.
         if input.peek(syn::LitInt) {
             let num_bits = match input.parse::<syn::LitInt>() {
-                Ok(lit_int) => lit_int.base10_parse::<u8>()?,
+                Ok(lit_int) => lit_int.base10_parse::<u32>()?,
                 Err(_) => {
                     return Err(syn::Error::new(input.span(), "Unable to parse field bits"));
                 }
