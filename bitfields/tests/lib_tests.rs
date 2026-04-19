@@ -2182,4 +2182,19 @@ mod tests {
         assert_eq!(val.into_bits(), 0b00000000);
         assert_eq!(val.colour(), Colour::White);
     }
+
+    #[test]
+    fn bitfield_builder_checked_with() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(2, access = ro)]
+            a: u8,
+            #[bits(30)]
+            b: u32,
+        }
+
+        let result = BitfieldBuilder::new().checked_with_a(0x11);
+        assert!(result.is_err());
+        assert_eq!(result.err().unwrap(), "Value is too big to fit within the field bits.");
+    }
 }

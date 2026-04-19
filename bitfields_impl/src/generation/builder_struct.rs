@@ -3,128 +3,56 @@ use quote::{format_ident, quote};
 use syn::Visibility;
 
 use crate::generation::common::{
-    does_field_have_setter, generate_setter_impl_tokens,
+    BitfieldStructReferenceIdent, does_field_have_setter,
+    generate_bitfield_struct_initialization_tokens, generate_setter_impl_tokens,
     generate_setting_fields_default_values_tokens, generate_setting_fields_to_zero_tokens,
+    get_documentation_field_bits_order, get_field_checked_setter_method_identifier,
+    get_field_setter_method_identifier,
 };
+use crate::parsing::bitfield_attribute::BitfieldAttribute;
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess};
 
 /// Generates the builder implementation.
 pub(crate) fn generate_builder_tokens(
     vis: Visibility,
-    bitfield_type: &syn::Type,
     bitfield_struct_name: Ident,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
+    bitfield_attribute: &BitfieldAttribute,
 ) -> TokenStream {
     let builder_name = format_ident!("{}Builder", bitfield_struct_name);
+    let has_ignored_fields = !ignored_fields.is_empty();
 
     let builder_setter_tokens = fields
         .iter()
         .filter(|field| !field.padding)
         .filter(|field| does_field_have_setter(field) || field.access == FieldAccess::ReadOnly)
         .map(|field| {
-            let field_name = field.name.clone();
-            let field_name_with_builder_setter_ident = format_ident!("with_{}", field_name);
-            let checked_field_name_with_builder_setter_ident = format_ident!("checked_with_{}", field_name);
-            let field_offset_setter_ident = format_ident!("set_{}", field_name);
-            let checked_field_offset_setter_ident = format_ident!("checked_set_{}", field_name);
-            let field_type = field.ty.clone();
-            let field_bits = field.bits;
-            let field_offset = field.offset;
-            let field_bits_end = field_offset + field_bits - 1;
-            let with_field_documentation = if field_bits == 1 {
-                format!("Sets builder bit `{field_offset}`.")
-            } else {
-                format!("Sets builder bits `{field_offset}..={field_bits_end}`.")
-            };
-            let checked_with_field_documentation = if field_bits == 1 {
-                format!("{with_field_documentation}. Returns an error if the value is too big to fit within the field bit.")
-            } else {
-                format!("{with_field_documentation}. Returns an error if the value is too big to fit within the field bits.")
-            };
-
-            if does_field_have_setter(field) {
-                quote! {
-                    #[doc = #with_field_documentation]
-                    #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
-                        self.this.#field_offset_setter_ident(bits);
-                        self
-                    }
-
-                    #[doc = #checked_with_field_documentation]
-                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
-                        self.this.#checked_field_offset_setter_ident(bits)?;
-                        Ok(self)
-                    }
-                }
-            } else {
-                let setter_impl_tokens = generate_setter_impl_tokens(
-                    bitfield_type,
-                    field.clone(),
-                    Some(quote! { #bitfield_struct_name }),
-                    quote! { bits },
-                    /* check_value_bit_size= */ false,
-                    !ignored_fields.is_empty(),
-                    Some( quote! { self.this } ),
-                );
-                let checked_setter_impl_tokens = generate_setter_impl_tokens(
-                    bitfield_type,
-                    field.clone(),
-                    Some(quote! { #bitfield_struct_name }),
-                    quote! { bits },
-                    /* check_value_bit_size= */ true,
-                    !ignored_fields.is_empty(),
-                    Some( quote! { self.this } ),
-                );
-                quote! {
-                    #[doc = #with_field_documentation]
-                    #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
-                        #setter_impl_tokens
-                        self
-                    }
-
-                    #[doc = #checked_with_field_documentation]
-                    #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
-                        #checked_setter_impl_tokens
-                        Ok(self)
-                    }
-                }
-            }
+            generate_builder_field_setter(
+                vis.clone(),
+                bitfield_struct_name.clone(),
+                field,
+                bitfield_attribute,
+                has_ignored_fields,
+            )
         });
 
     let setting_fields_default_values_tokens = generate_setting_fields_default_values_tokens(
-        bitfield_type,
+        &bitfield_attribute.ty,
         fields,
-        Some(quote! { #bitfield_struct_name }),
-        !ignored_fields.is_empty(),
+        &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
+        has_ignored_fields,
     );
     let setting_fields_to_zero_tokens = generate_setting_fields_to_zero_tokens(
-        bitfield_type,
+        &bitfield_attribute.ty,
         fields,
-        Some(quote! { #bitfield_struct_name }),
-        !ignored_fields.is_empty(),
+        &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
+        has_ignored_fields,
     );
-
-    let ignored_fields_defaults = ignored_fields.iter().map(|field| {
-        let field_name = &field.name;
-        let field_ty = &field.ty;
-        quote! {
-            #field_name: <#field_ty>::default(),
-        }
-    });
-
-    let initialize_struct_tokens = if !ignored_fields.is_empty() {
-        quote! {
-            #bitfield_struct_name {
-                val: 0,
-                #( #ignored_fields_defaults )*
-            }
-        }
-    } else {
-        quote! {
-            #bitfield_struct_name(0)
-        }
-    };
+    let initialize_struct_tokens = generate_bitfield_struct_initialization_tokens(
+        ignored_fields,
+        &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
+    );
 
     quote! {
         #[doc = "A builder for the bitfield."]
@@ -171,6 +99,108 @@ pub(crate) fn generate_builder_tokens(
     }
 }
 
+fn generate_builder_field_setter(
+    vis: Visibility,
+    bitfield_struct_name: Ident,
+    field: &BitfieldField,
+    bitfield_attribute: &BitfieldAttribute,
+    has_ignored_fields: bool,
+) -> TokenStream {
+    let field_name = field.name.clone();
+    let field_name_with_builder_setter_ident = format_ident!("with_{}", field_name);
+    let checked_field_name_with_builder_setter_ident = format_ident!("checked_with_{}", field_name);
+    let field_offset_setter_ident = get_field_setter_method_identifier(&field.name.to_string());
+    let checked_field_offset_setter_ident =
+        get_field_checked_setter_method_identifier(&field.name.to_string());
+    let field_type = field.ty.clone();
+
+    let with_field_setter_documentation = get_builder_setter_documentation(
+        bitfield_attribute,
+        field,
+        /* checked_setter= */ false,
+    );
+    let checked_with_field_setter_documentation = get_builder_setter_documentation(
+        bitfield_attribute,
+        field,
+        /* checked_setter= */ true,
+    );
+    if does_field_have_setter(field) {
+        quote! {
+            #[doc = #with_field_setter_documentation]
+            #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
+                self.this.#field_offset_setter_ident(bits);
+                self
+            }
+
+            #[doc = #checked_with_field_setter_documentation]
+            #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
+                self.this.#checked_field_offset_setter_ident(bits)?;
+                Ok(self)
+            }
+        }
+    } else {
+        let setter_impl_tokens = generate_setter_impl_tokens(
+            &bitfield_attribute.ty,
+            field.clone(),
+            &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
+            quote! { bits },
+            /* check_value_bit_size= */ false,
+            get_bitfield_struct_internal_value_for_builder_identifier_tokens(has_ignored_fields),
+        );
+        let checked_setter_impl_tokens = generate_setter_impl_tokens(
+            &bitfield_attribute.ty,
+            field.clone(),
+            &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
+            quote! { bits },
+            /* check_value_bit_size= */ true,
+            get_bitfield_struct_internal_value_for_builder_identifier_tokens(has_ignored_fields),
+        );
+        quote! {
+            #[doc = #with_field_setter_documentation]
+            #vis fn #field_name_with_builder_setter_ident(mut self, bits: #field_type) -> Self {
+                #setter_impl_tokens
+                self
+            }
+
+            #[doc = #checked_with_field_setter_documentation]
+            #vis fn #checked_field_name_with_builder_setter_ident(mut self, bits: #field_type) -> ::core::result::Result<Self, &'static str> {
+                #checked_setter_impl_tokens
+                Ok(self)
+            }
+        }
+    }
+}
+
+fn get_builder_setter_documentation(
+    bitfield_attribute: &BitfieldAttribute,
+    field: &BitfieldField,
+    checked_setter: bool,
+) -> String {
+    let field_offset = field.offset;
+
+    let with_field_documentation = if field.bits == 1 {
+        format!("Sets builder bit `{field_offset}`.")
+    } else {
+        let (documentation_bits_start, documentation_bits_end) =
+            get_documentation_field_bits_order(field, bitfield_attribute.bit_order);
+        format!("Sets builder bits `{documentation_bits_start}..={documentation_bits_end}`.")
+    };
+
+    if checked_setter {
+        return if field.bits == 1 {
+            format!(
+                "{with_field_documentation}. Returns an error if the value is too big to fit within the field bit."
+            )
+        } else {
+            format!(
+                "{with_field_documentation}. Returns an error if the value is too big to fit within the field bits."
+            )
+        };
+    }
+
+    with_field_documentation
+}
+
 /// Generates the to builder implementation.
 pub(crate) fn generate_to_builder_tokens(
     vis: Visibility,
@@ -184,5 +214,16 @@ pub(crate) fn generate_to_builder_tokens(
                 this: self.clone(),
             }
         }
+    }
+}
+
+/// Returns the internal value identifier tokens for the builder struct.
+pub(crate) fn get_bitfield_struct_internal_value_for_builder_identifier_tokens(
+    has_ignored_fields: bool,
+) -> TokenStream {
+    if has_ignored_fields {
+        quote! { self.this.val }
+    } else {
+        quote! { self.this.0 }
     }
 }

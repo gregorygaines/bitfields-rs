@@ -84,32 +84,34 @@ pub(crate) fn is_supported_field_type(ty: &syn::Type) -> bool {
         || SUPPORTED_BITFIELD_FIELD_TYPES.contains(&get_integer_type_from_type(ty))
 }
 
-/// Returns if the type is an unsigned integer type.
+/// Returns if the type is an unsigned integer.
 pub(crate) fn is_unsigned_integer_type(ty: &syn::Type) -> bool {
     UNSIGNED_INTEGER_TYPES.contains(&get_integer_type_from_type(ty)) || is_bool_type(ty)
 }
 
-/// Returns if the type is an unsigned integer type.
+/// Returns if the type is an unsigned integer.
 pub(crate) fn is_signed_integer_type(ty: &syn::Type) -> bool {
     SIGNED_INTEGER_TYPES.contains(&get_integer_type_from_type(ty))
 }
 
-/// Returns if the type is an unsigned integer type.
+/// Returns if the type is an unsigned integer.
 pub(crate) fn is_bool_type(ty: &syn::Type) -> bool {
     get_integer_type_from_type(ty) == Bool
 }
 
 /// Returns the number of bits of the integer type.
-pub(crate) fn get_bits_from_type(ty: &syn::Type) -> syn::Result<u8> {
-    match get_type_ident(ty).unwrap().as_str() {
-        "bool" => Ok(1),
-        "u8" | "i8" => Ok(8),
-        "u16" | "i16" => Ok(16),
-        "u32" | "i32" => Ok(32),
-        "u64" | "i64" => Ok(64),
-        "u128" | "i128" => Ok(128),
-        _ => Err(create_syn_error(Span::call_site(), PANIC_ERROR_MESSAGE))?,
-    }
+pub(crate) fn get_bits_from_type(ty: &syn::Type) -> syn::Result<u32> {
+    let type_bits = match get_type_ident(ty).unwrap().as_str() {
+        "bool" => 1,
+        "u8" | "i8" => 8,
+        "u16" | "i16" => 16,
+        "u32" | "i32" => 32,
+        "u64" | "i64" => 64,
+        "u128" | "i128" => 128,
+        _ => return Err(create_syn_error(Span::call_site(), PANIC_ERROR_MESSAGE)),
+    };
+
+    Ok(type_bits)
 }
 
 /// Returns if the type is a size type.

@@ -2,26 +2,42 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Visibility;
 
-use crate::generation::common::generate_setting_fields_from_bits_tokens;
+use crate::generation::common::{
+    BitfieldStructReferenceIdent, generate_bitfield_struct_initialization_tokens,
+    generate_setting_fields_from_bits_tokens, get_bitfield_struct_internal_value_identifier_tokens,
+    get_const_modifier_tokens,
+};
 use crate::parsing::bitfield_attribute::{BitfieldAttribute, Endian};
 use crate::parsing::bitfield_field::BitfieldField;
 
-/// Generates the `from_bits` function for the bitfield.
-pub(crate) fn generate_from_bits_function_tokens(
+/// Generates the `from_bits` and `from_bits_with_defaults` functions for the
+/// bitfield.
+pub(crate) fn generate_from_bits_functions_tokens(
     vis: Visibility,
     fields: &[BitfieldField],
     ignored_fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
     bitfield_attribute: &BitfieldAttribute,
 ) -> TokenStream {
-    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
-        fields,
-        Some(quote! { Self }),
-        /* respect_defaults= */ false,
-        !ignored_fields.is_empty(),
-        /* include_read_only_fields= */ true,
-    );
+    let has_ignored_fields = !ignored_fields.is_empty();
+
+    let setting_fields_from_bits_without_respecting_defaults_tokens =
+        generate_setting_fields_from_bits_tokens(
+            bitfield_attribute,
+            fields,
+            &BitfieldStructReferenceIdent::SelfReference,
+            /* respect_defaults= */ false,
+            has_ignored_fields,
+            /* include_read_only_fields= */ true,
+        );
+    let setting_fields_from_bits_respecting_defaults_tokens =
+        generate_setting_fields_from_bits_tokens(
+            bitfield_attribute,
+            fields,
+            &BitfieldStructReferenceIdent::SelfReference,
+            /* respect_defaults= */ true,
+            has_ignored_fields,
+            /* include_read_only_fields= */ true,
+        );
 
     let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {
         quote! {
@@ -29,71 +45,27 @@ pub(crate) fn generate_from_bits_function_tokens(
         }
     });
 
-    let ignored_fields_defaults = ignored_fields.iter().map(|field| {
-        let field_name = &field.name;
-        let field_ty = &field.ty;
-        quote! {
-            #field_name: <#field_ty>::default(),
-        }
-    });
+    let initialize_struct_tokens = generate_bitfield_struct_initialization_tokens(
+        ignored_fields,
+        &BitfieldStructReferenceIdent::SelfReference,
+    );
 
-    let initialize_struct_tokens = if !ignored_fields.is_empty() {
-        quote! {
-            Self {
-                val: 0,
-                #( #ignored_fields_defaults )*
-            }
-        }
-    } else {
-        quote! {
-            Self(0)
-        }
-    };
-
-    let const_ident_tokens = ignored_fields.is_empty().then(|| quote! { const });
-
+    let const_modifier_tokens = (!has_ignored_fields).then(get_const_modifier_tokens);
+    let bitfield_type = &bitfield_attribute.ty;
     quote! {
         #[doc = "Creates a new bitfield instance from the given bits."]
-        #vis #const_ident_tokens fn from_bits(bits: #bitfield_type) -> Self {
+        #vis #const_modifier_tokens fn from_bits(bits: #bitfield_type) -> Self {
             #swap_bits_endian_tokens
             let mut this = #initialize_struct_tokens;
-            #setting_fields_from_bits_tokens
+            #setting_fields_from_bits_without_respecting_defaults_tokens
             this
         }
-    }
-}
 
-/// Generates the `from_bits_with_defaults` function for the bitfield.
-pub(crate) fn generate_from_bits_with_defaults_function_tokens(
-    vis: Visibility,
-    fields: &[BitfieldField],
-    bitfield_type: &syn::Type,
-    bitfield_attribute: &BitfieldAttribute,
-    ignored_fields_struct: bool,
-) -> TokenStream {
-    let setting_fields_from_bits_tokens = generate_setting_fields_from_bits_tokens(
-        bitfield_type,
-        fields,
-        Some(quote! { Self }),
-        /* respect_defaults= */ true,
-        ignored_fields_struct,
-        /* include_read_only_fields= */ true,
-    );
-
-    let swap_bits_endian_tokens = (bitfield_attribute.from_endian == Endian::Little).then(|| {
-        quote! {
-            let bits = bits.swap_bytes();
-        }
-    });
-
-    let const_ident_tokens = (!ignored_fields_struct).then(|| quote! { const });
-
-    quote! {
         #[doc = "Creates a new bitfield instance from the given bits while respecting field default values."]
-        #vis #const_ident_tokens fn from_bits_with_defaults(bits: #bitfield_type) -> Self {
+        #vis #const_modifier_tokens fn from_bits_with_defaults(bits: #bitfield_type) -> Self {
             #swap_bits_endian_tokens
             let mut this = Self::from_bits(bits);
-            #setting_fields_from_bits_tokens
+            #setting_fields_from_bits_respecting_defaults_tokens
             this
         }
     }
@@ -102,29 +74,27 @@ pub(crate) fn generate_from_bits_with_defaults_function_tokens(
 pub(crate) fn generate_into_bits_function_tokens(
     vis: Visibility,
     bitfield_attribute: &BitfieldAttribute,
-    ignored_fields_struct: bool,
+    has_ignored_fields: bool,
 ) -> TokenStream {
-    let struct_val_ident = if ignored_fields_struct {
-        quote! { self.val }
-    } else {
-        quote! { self.0 }
-    };
+    let bitfield_struct_internal_value_ident = get_bitfield_struct_internal_value_identifier_tokens(
+        &BitfieldStructReferenceIdent::SelfVariable,
+        has_ignored_fields,
+    );
 
     let into_bits_impl = match bitfield_attribute.into_endian {
         Endian::Big => {
             quote! {
-                 #struct_val_ident
+                 #bitfield_struct_internal_value_ident
             }
         }
         Endian::Little => {
             quote! {
-                 #struct_val_ident.swap_bytes()
+                 #bitfield_struct_internal_value_ident.swap_bytes()
             }
         }
     };
 
     let bitfield_type = &bitfield_attribute.ty;
-
     quote! {
         #[doc = "Returns the bits of the bitfield."]
         #vis const fn into_bits(self) -> #bitfield_type {
