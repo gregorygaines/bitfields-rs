@@ -149,11 +149,13 @@ fn main() {
 
 Bitfields offers a wide range of features to help you define and work with bitfields.
 
+<!-- rust-docs-start -->
+
 ```rust
 use bitfields::bitfield;
 
 /// All fields in the bitfield must sum up to the number of bits of the bitfield type.
-#[bitfield(u64, to_builder = true)]
+#[bitfield(u64)]
 #[derive(Clone)] // Attributes are passed to the struct.
 pub struct Bitfield {
     /// Fields without bits specified default to the size of the field type.
@@ -964,6 +966,8 @@ The `#[bitfield]` args that control generation are:
 - `#[bitfield(bit_ops = true)]` - Generates the bit operations implementation.
 - `#[bitfield(to_builder = true)]` - Generates the `to_builder` function.
 - `#[bitfield(neg = true)]` - Generates `neg_<field>` getter functions for each field.
+
+<!-- rust-docs-end -->
 
 ## ⚖️ License
 
