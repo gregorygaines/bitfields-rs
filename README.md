@@ -2,6 +2,7 @@
 
 <p>
   <a href="https://github.com/gregorygaines/bitfields-rs/actions/workflows/ci.yml"><img src="https://github.com/gregorygaines/bitfields-rs/actions/workflows/ci.yml/badge.svg" alt="Continuous integration"></a>
+  <a href="https://codecov.io/gh/gregorygaines/bitfields-rs" ><img src="https://codecov.io/gh/gregorygaines/bitfields-rs/graph/badge.svg?token=QBGYJGKNQ5" alt="Code Coverage" /></a>
   <a href="https://crates.io/crates/bitfields"><img src="https://img.shields.io/crates/v/bitfields" alt="Version"></a>
   <a href="https://docs.rs/bitfields"><img src="https://docs.rs/bitfields/badge.svg" alt="Docs"></a>
   <a href="https://github.com/gregorygaines/bitfields-rs"><img src="https://img.shields.io/badge/github-gregorygaines/bitfields--rs-8da0cb?labelColor=555555&logo=github" alt="GitHub repo" /></a>
