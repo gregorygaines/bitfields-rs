@@ -230,6 +230,7 @@ fn do_parse_field(
         let bits = get_bits_from_type(&field_tokens.ty)?;
         let offset = calculate_field_offset(bits, bitfield_attribute, prev_fields)?;
         let access = if padding { FieldAccess::None } else { FieldAccess::ReadWrite };
+        let unsigned = is_field_unsigned(field_type, &field_tokens.ty);
 
         // Create a bitfield field with default values since we don't have one to
         // parse.
@@ -240,7 +241,7 @@ fn do_parse_field(
             bits,
             offset,
             default_value_tokens: None,
-            unsigned: true,
+            unsigned,
             padding,
             access,
             field_type: FieldType::IntegerFieldType,
@@ -335,8 +336,7 @@ fn do_parse_field(
             None
         };
 
-        let unsigned =
-            field_type != FieldType::IntegerFieldType || is_unsigned_integer_type(&field_tokens.ty);
+        let unsigned = is_field_unsigned(field_type, &field_tokens.ty);
         let access = if padding {
             if bits_attribute.access.is_some() {
                 return Err(create_syn_error(
@@ -394,6 +394,11 @@ fn do_parse_field(
     };
 
     Ok(bitfield)
+}
+
+/// Returns if the field type is unsignd.
+fn is_field_unsigned(field_type: FieldType, ty: &Type) -> bool {
+    field_type != FieldType::IntegerFieldType || is_unsigned_integer_type(ty)
 }
 
 /// Checks if the default value can fit in the field bits.

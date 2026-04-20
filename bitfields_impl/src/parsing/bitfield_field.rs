@@ -39,7 +39,7 @@ pub(crate) struct BitfieldField {
 }
 
 /// Represents the type of field.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub(crate) enum FieldType {
     IntegerFieldType,
     CustomFieldType,
