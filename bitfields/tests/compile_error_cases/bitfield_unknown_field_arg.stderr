@@ -1,0 +1,5 @@
+error: Unknown field arg 'deez', please refer to the documentation for valid args.
+ --> tests/compile_error_cases/bitfield_unknown_field_arg.rs:5:35
+  |
+5 |     #[bits(default = 0x12, deez = what)]
+  |                                   ^^^^

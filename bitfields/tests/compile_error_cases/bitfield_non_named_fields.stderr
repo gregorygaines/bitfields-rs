@@ -1,0 +1,5 @@
+error: Non-named fields are not supported.
+ --> tests/compile_error_cases/bitfield_non_named_fields.rs:4:1
+  |
+4 | pub struct TupleStruct(u8);
+  | ^^^

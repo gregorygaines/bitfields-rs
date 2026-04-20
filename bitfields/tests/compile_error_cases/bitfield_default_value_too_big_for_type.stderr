@@ -1,0 +1,47 @@
+error: The default value '-9223372036854775809' is too large to fit into the field type 'isize'.
+ --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:5:26
+  |
+5 |     #[bits(64, default = -9223372036854775809)] // less than isize::MIN
+  |                          ^
+
+error: The default value '-129' is too large to fit into the field type 'i8'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:11:25
+   |
+11 |     #[bits(8, default = -129)] // less than i8::MIN (-128)
+   |                         ^
+
+error: The default value '-32769' is too large to fit into the field type 'i16'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:17:26
+   |
+17 |     #[bits(16, default = -32769)] // less than i16::MIN (-32768)
+   |                          ^
+
+error: The default value '-2147483649' is too large to fit into the field type 'i32'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:23:26
+   |
+23 |     #[bits(32, default = -2147483649)] // less than i32::MIN
+   |                          ^
+
+error: The default value '-9223372036854775809' is too large to fit into the field type 'i64'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:29:26
+   |
+29 |     #[bits(64, default = -9223372036854775809)] // less than i64::MIN
+   |                          ^
+
+error: The default value '-170141183460469231731687303715884105729' is too large to fit into the field type 'i128'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:35:27
+   |
+35 |     #[bits(128, default = -170141183460469231731687303715884105729)] // less than i128::MIN
+   |                           ^
+
+error: The default value '-9223372036854775809' is too large to fit into the field type 'isize'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:41:26
+   |
+41 |     #[bits(64, default = -9223372036854775809)] // abs > isize::MIN (9223372036854775808)
+   |                          ^
+
+error: The default value '9223372036854775808' is too large to fit into the field type 'isize'.
+  --> tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs:47:26
+   |
+47 |     #[bits(64, default = 9223372036854775808)] // > isize::MAX (9223372036854775807)
+   |                          ^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: The '#[bits]' attribute must be a list.
+ --> tests/compile_error_cases/bitfield_field_bits_attribute_without_array.rs:5:5
+  |
+5 |     #[bits]
+  |     ^

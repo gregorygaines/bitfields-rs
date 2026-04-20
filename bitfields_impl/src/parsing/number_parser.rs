@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::generation::common::PANIC_ERROR_MESSAGE;
+
 const FLOAT_IDENTIFIERS: [&str; 2] = ["f32", "f64"];
 const INTEGER_IDENTIFIERS: [&str; 10] =
     ["u8", "u16", "u32", "u64", "u128", "i8", "i16", "i32", "i64", "i128"];
@@ -48,7 +50,8 @@ pub(crate) fn parse_number_string(s: &str) -> Result<ParsedNumber, NumberParseEr
         return match trimmed_str.as_str() {
             "true" => Ok(ParsedNumber { number: 1, negative: false, has_integer_suffix: false }),
             "false" => Ok(ParsedNumber { number: 0, negative: false, has_integer_suffix: false }),
-            _ => Err(NumberParseError::InvalidNumberString),
+            // unreachable
+            _ => unreachable!("{}", PANIC_ERROR_MESSAGE),
         };
     }
 

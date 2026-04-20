@@ -36,9 +36,9 @@ use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, BitsAttribute, FieldAccess, FieldType};
 use crate::parsing::number_parser::{NumberParseError, ParsedNumber, parse_number_string};
 use crate::parsing::types::{
-    IntegerType, get_bits_from_type, get_integer_suffix_from_integer_type,
-    get_integer_type_from_type, get_type_ident, is_custom_field_type, is_size_type,
-    is_supported_field_type, is_unsigned_integer_type,
+    IntegerType, get_bits_from_type, get_integer_type_from_type,
+    get_signed_integer_suffix_from_integer_type, get_type_ident, is_custom_field_type,
+    is_size_type, is_unsigned_integer_type,
 };
 
 /// The `#[bit]` attribute name.
@@ -46,6 +46,27 @@ pub(crate) const BIT_ATTRIBUTE_NAME: &str = "bits";
 
 /// The ident prefix for padding fields.
 pub(crate) const PADDING_FIELD_NAME_PREFIX: &str = "_";
+
+/// Error message for non-named fields.
+const ERR_NON_NAMED_FIELDS: &str = "Non-named fields are not supported.";
+
+/// Error message for size types without a defined bit size.
+const ERR_SIZE_TYPE_REQUIRES_BIT_SIZE: &str = "The types isize and usize require a bit size, otherwise we can't determine the size of the field.";
+
+/// Error message for custom/nested field types without a defined bit size.
+const ERR_CUSTOM_TYPE_REQUIRES_BIT_SIZE: &str = "Custom and nested field types require a defined bit size, otherwise we can't determine the size of the field.";
+
+/// Error message for a `#[bits]` attribute that is not a list.
+const ERR_BITS_ATTRIBUTE_MUST_BE_LIST: &str = "The '#[bits]' attribute must be a list.";
+
+/// Error message for field bits being 0.
+const ERR_FIELD_BITS_MUST_BE_GREATER_THAN_ZERO: &str = "The field bits must be greater than 0.";
+
+/// Error message for padding fields with a specified access.
+const ERR_PADDING_FIELD_CANT_HAVE_ACCESS: &str = "Padding fields can't have a specified access.";
+
+/// Error message for float default values.
+const ERR_FLOATS_NOT_SUPPORTED_AS_DEFAULT: &str = "Floats are not supported as default values.";
 
 #[proc_macro_attribute]
 pub fn bitfield(
@@ -149,10 +170,7 @@ fn parse_fields(
     let fields_tokens = match &struct_tokens.fields {
         Fields::Named(named_files) => named_files,
         _ => {
-            return Err(create_syn_error(
-                struct_tokens.span(),
-                "Non-named fields are not supported.",
-            ));
+            return Err(create_syn_error(struct_tokens.span(), ERR_NON_NAMED_FIELDS));
         }
     };
 
@@ -199,30 +217,14 @@ fn do_parse_field(
         field_tokens.ident.as_ref().unwrap().to_string().starts_with(PADDING_FIELD_NAME_PREFIX);
 
     let bitfield = if field_bit_attribute.is_none() {
-        if !is_supported_field_type(&field_tokens.ty) {
-            return Err(create_syn_error(
-                field_tokens.span(),
-                format!(
-                    "The field type {:?} is not supported.",
-                    get_type_ident(&field_tokens.ty).unwrap()
-                ),
-            ));
-        }
-
         // We have to determine the number of bits from the field type since there's no
         // '#[bits]' attribute.
         if is_size_type(&field_tokens.ty) {
-            return Err(create_syn_error(
-                field_tokens.span(),
-                "The types isize and usize require a bit size, otherwise we can't determine the size of the field.",
-            ));
+            return Err(create_syn_error(field_tokens.span(), ERR_SIZE_TYPE_REQUIRES_BIT_SIZE));
         }
 
         if field_type != FieldType::IntegerFieldType {
-            return Err(create_syn_error(
-                field_tokens.span(),
-                "Custom and nested field types require a defined bit size, otherwise we can't determine the size of the field.",
-            ));
+            return Err(create_syn_error(field_tokens.span(), ERR_CUSTOM_TYPE_REQUIRES_BIT_SIZE));
         }
 
         let bits = get_bits_from_type(&field_tokens.ty)?;
@@ -248,10 +250,7 @@ fn do_parse_field(
         let bit_attribute_tokens = match &field_bit_attribute.unwrap().meta {
             Meta::List(list) => list,
             _ => {
-                return Err(create_syn_error(
-                    field_tokens.span(),
-                    "The '#[bits]' attribute must be a list.",
-                ));
+                return Err(create_syn_error(field_tokens.span(), ERR_BITS_ATTRIBUTE_MUST_BE_LIST));
             }
         };
 
@@ -273,27 +272,18 @@ fn do_parse_field(
             });
         }
 
-        if !is_supported_field_type(&field_tokens.ty) {
-            return Err(create_syn_error(
-                field_tokens.span(),
-                format!(
-                    "The field type {:?} is not supported.",
-                    get_type_ident(&field_tokens.ty).unwrap()
-                ),
-            ));
-        }
-
         let bits = match bits_attribute.bits {
             Some(bits) => {
                 // Make sure the type of the field can contain the specified number of bits if
                 // not a custom type.
                 if field_type == FieldType::IntegerFieldType
+                    && !is_size_type(&field_tokens.ty)
                     && bits > get_bits_from_type(&field_tokens.ty)?
                 {
                     return Err(create_syn_error(
                         bit_attribute_tokens.span(),
                         format!(
-                            "The field type {:?} ({} bits) is too small to hold the specified '{} bits'.",
+                            "The field type '{}' ({} bits) is too small to hold the specified '{} bits'.",
                             get_type_ident(&field_tokens.ty).unwrap(),
                             get_bits_from_type(&field_tokens.ty,)?,
                             bits
@@ -307,7 +297,14 @@ fn do_parse_field(
                 if field_type != FieldType::IntegerFieldType {
                     return Err(create_syn_error(
                         field_tokens.span(),
-                        "Custom and nested field types require a defined bit size, otherwise we can't determine the size of the field.",
+                        ERR_CUSTOM_TYPE_REQUIRES_BIT_SIZE,
+                    ));
+                }
+
+                if is_size_type(&field_tokens.ty) {
+                    return Err(create_syn_error(
+                        field_tokens.span(),
+                        ERR_SIZE_TYPE_REQUIRES_BIT_SIZE,
                     ));
                 }
 
@@ -319,7 +316,7 @@ fn do_parse_field(
         if bits == 0 {
             return Err(create_syn_error(
                 bit_attribute_tokens.span(),
-                "The field bits must be greater than 0.",
+                ERR_FIELD_BITS_MUST_BE_GREATER_THAN_ZERO,
             ));
         }
 
@@ -344,7 +341,7 @@ fn do_parse_field(
             if bits_attribute.access.is_some() {
                 return Err(create_syn_error(
                     bit_attribute_tokens.span(),
-                    "Padding fields can't have a specified access.",
+                    ERR_PADDING_FIELD_CANT_HAVE_ACCESS,
                 ));
             }
 
@@ -372,7 +369,7 @@ fn do_parse_field(
                         #expr
                     })
                 } else {
-                    let tokens = add_integer_literals_to_expr(expr, &field_tokens.ty)?;
+                    let tokens = add_signed_integer_suffix_to_expr(expr, &field_tokens.ty)?;
 
                     Some(quote! {
                         #tokens
@@ -413,7 +410,7 @@ fn check_default_value_fit_in_field(
             return match err {
                 NumberParseError::FloatNotSupported => Err(create_syn_error(
                     default_value_expr.span(),
-                    "Floats are not supported as default values.".to_string(),
+                    ERR_FLOATS_NOT_SUPPORTED_AS_DEFAULT,
                 )),
                 // Maybe the user is trying to use a const variable or a const
                 // function call as a default.
@@ -422,24 +419,27 @@ fn check_default_value_fit_in_field(
         }
     };
 
-    let bits_max_value = 1 << bits as u128;
-    if parsed_number.number >= bits_max_value {
-        if parsed_number.negative {
+    // If checked_shl returns None, bits == 128 and no value can exceed the bit
+    // range.
+    if let Some(bits_max_value) = 1u128.checked_shl(bits) {
+        if parsed_number.number >= bits_max_value {
+            if parsed_number.negative {
+                return Err(create_syn_error(
+                    default_value_expr.span(),
+                    format!(
+                        "The default value '-{}' is too large to fit into the specified '{} bits'.",
+                        parsed_number.number, bits,
+                    ),
+                ));
+            }
             return Err(create_syn_error(
                 default_value_expr.span(),
                 format!(
-                    "The default value -'{}' is too large to fit into the specified '{} bits'.",
+                    "The default value '{}' is too large to fit into the specified '{} bits'.",
                     parsed_number.number, bits,
                 ),
             ));
         }
-        return Err(create_syn_error(
-            default_value_expr.span(),
-            format!(
-                "The default value '{}' is too large to fit into the specified '{} bits'.",
-                parsed_number.number, bits,
-            ),
-        ));
     }
 
     let default_value_too_big_for_type = match get_integer_type_from_type(field_type) {
@@ -540,17 +540,17 @@ fn calculate_field_offset(
     }
 }
 
-/// Adds the field type integer literal suffix to the expression.
+/// Adds the field type signed integer literal suffix to the expression.
 ///
 /// For example, if the expression is '-1' and the field type is 'i8', the
 /// expression will be updated to '1i8'.
-fn add_integer_literals_to_expr(expr: &Expr, field_type: &Type) -> syn::Result<TokenStream> {
+fn add_signed_integer_suffix_to_expr(expr: &Expr, field_type: &Type) -> syn::Result<TokenStream> {
     let updated_expr = if let Expr::Unary(unary) = expr {
         let attrs = unary.attrs.clone();
         let op = unary.op;
 
         let updated_expr = if let Expr::Lit(expr_lit) = *unary.expr.clone() {
-            let new_lit = create_expr_lit_with_integer_suffix(&expr_lit, field_type)?;
+            let new_lit = create_expr_lit_with_signed_integer_suffix(&expr_lit, field_type)?;
 
             Expr::Lit(ExprLit { attrs: expr_lit.attrs, lit: new_lit.lit })
         } else {
@@ -559,7 +559,7 @@ fn add_integer_literals_to_expr(expr: &Expr, field_type: &Type) -> syn::Result<T
 
         Expr::Unary(ExprUnary { attrs, op, expr: Box::new(updated_expr) })
     } else if let Expr::Lit(expr_lit) = expr {
-        let new_lit = create_expr_lit_with_integer_suffix(expr_lit, field_type)?;
+        let new_lit = create_expr_lit_with_signed_integer_suffix(expr_lit, field_type)?;
 
         Expr::Lit(ExprLit { attrs: expr_lit.clone().attrs, lit: new_lit.lit })
     } else {
@@ -571,10 +571,13 @@ fn add_integer_literals_to_expr(expr: &Expr, field_type: &Type) -> syn::Result<T
     })
 }
 
-/// Helper for creating an integer literal with the integer suffix.
-fn create_expr_lit_with_integer_suffix(lit: &ExprLit, field_type: &Type) -> syn::Result<ExprLit> {
+/// Helper for creating an integer literal with the signed integer suffix.
+fn create_expr_lit_with_signed_integer_suffix(
+    lit: &ExprLit,
+    field_type: &Type,
+) -> syn::Result<ExprLit> {
     let integer_type = get_integer_type_from_type(field_type);
-    let integer_suffix = get_integer_suffix_from_integer_type(integer_type)?;
+    let integer_suffix = get_signed_integer_suffix_from_integer_type(integer_type)?;
 
     let new_lit = match &lit.lit {
         Lit::Int(lit_int) => {

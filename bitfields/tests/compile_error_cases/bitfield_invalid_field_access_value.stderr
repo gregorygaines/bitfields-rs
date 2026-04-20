@@ -1,0 +1,13 @@
+error: Unable to parse field access, expected 'ro', 'wo', 'rw', or 'none'
+ --> tests/compile_error_cases/bitfield_invalid_field_access_value.rs:5:37
+  |
+5 |     #[bits(default = 0x12, access = 123)]
+  |                                     ^^^
+
+error: Unable to parse field access, expected 'ro', 'wo', 'rw', or 'none'
+ --> tests/compile_error_cases/bitfield_invalid_field_access_value.rs:9:1
+  |
+9 | #[bitfield(u32)]
+  | ^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)
