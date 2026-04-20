@@ -1,3 +1,4 @@
+pub(crate) mod bit_manipulation_common;
 pub(crate) mod bit_operations;
 pub(crate) mod builder_struct;
 pub(crate) mod common;

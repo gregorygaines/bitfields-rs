@@ -120,6 +120,7 @@ fn check_bitfield_type_contain_field_bits(
     }
 }
 
+/// Returns an error if all bitfield field names aren't unique.
 fn check_bitfield_names_unique(fields: &[BitfieldField]) -> syn::Result<()> {
     let mut field_names = Vec::new();
     for field in fields {

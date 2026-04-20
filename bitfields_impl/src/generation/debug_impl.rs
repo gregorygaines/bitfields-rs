@@ -1,6 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
+use crate::generation::bit_manipulation_common::generate_extract_value_from_value_tokens;
 use crate::generation::common::{
     BitfieldStructReferenceIdent, get_bitfield_struct_internal_value_identifier_tokens,
 };
@@ -35,10 +36,19 @@ pub(crate) fn generate_debug_implementation(
         let field_offset = field.offset;
         let bitfield_type = &bitfield_attribute.ty;
 
+        let value_extract = generate_extract_value_from_value_tokens(
+            bitfield_type,
+            quote! { #bitfield_struct_internal_value_ident },
+            quote! { #field_bits },
+            quote! { #field_offset },
+            quote! { this },
+            Some(quote! { #bitfield_type }),
+            /* negate_source_value= */ false,
+        );
+
         debug_impl.push(quote! {
-            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #field_bits);
-            let this = ((#bitfield_struct_internal_value_ident >> #field_offset) & mask) as #bitfield_type;
-            debug.field(stringify!(#field_name), &((#bitfield_struct_internal_value_ident >> #field_offset) & mask));
+            #value_extract
+            debug.field(stringify!(#field_name), &this);
         });
     });
 
