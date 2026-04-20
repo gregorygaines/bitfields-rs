@@ -1,0 +1,5 @@
+error: Custom and nested field types require a defined bit size, otherwise we can't determine the size of the field.
+ --> tests/compile_error_cases/bitfield_custom_type_no_bit_size.rs:6:5
+  |
+6 |     b: CustomType,
+  |     ^

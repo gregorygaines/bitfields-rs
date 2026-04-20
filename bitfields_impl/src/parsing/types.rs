@@ -27,8 +27,6 @@ pub(crate) enum IntegerType {
 const UNSIGNED_INTEGER_TYPES: [IntegerType; 6] = [U8, U16, U32, U64, U128, Usize];
 const SIGNED_INTEGER_TYPES: [IntegerType; 6] = [I8, I16, I32, I64, I128, Isize];
 const SUPPORTED_BITFIELD_TYPES: [IntegerType; 5] = [U8, U16, U32, U64, U128];
-const SUPPORTED_BITFIELD_FIELD_TYPES: [IntegerType; 13] =
-    [U8, U16, U32, U64, U128, Usize, I8, I16, I32, I64, I128, Isize, Bool];
 const SIZE_TYPES: [IntegerType; 2] = [Usize, Isize];
 
 /// Returns the integer type from the type.
@@ -52,23 +50,17 @@ pub(crate) fn get_integer_type_from_type(ty: &syn::Type) -> IntegerType {
 }
 
 /// Returns the integer suffix from the integer type.
-pub(crate) fn get_integer_suffix_from_integer_type(
+pub(crate) fn get_signed_integer_suffix_from_integer_type(
     integer_type: IntegerType,
 ) -> syn::Result<String> {
     match integer_type {
-        U8 => Ok("u8".to_string()),
-        U16 => Ok("u16".to_string()),
-        U32 => Ok("u32".to_string()),
-        U64 => Ok("u64".to_string()),
-        U128 => Ok("u128".to_string()),
-        Usize => Ok("usize".to_string()),
         I8 => Ok("i8".to_string()),
         I16 => Ok("i16".to_string()),
         I32 => Ok("i32".to_string()),
         I64 => Ok("i64".to_string()),
         I128 => Ok("i128".to_string()),
         Isize => Ok("isize".to_string()),
-        Bool => Ok("bool".to_string()),
+        // unreachable
         _ => Err(create_syn_error(Span::call_site(), PANIC_ERROR_MESSAGE))?,
     }
 }
@@ -76,12 +68,6 @@ pub(crate) fn get_integer_suffix_from_integer_type(
 /// Returns if the type is a supported bitfield type.
 pub(crate) fn is_supported_bitfield_type(ty: &syn::Type) -> bool {
     SUPPORTED_BITFIELD_TYPES.contains(&get_integer_type_from_type(ty))
-}
-
-/// Returns if the type is a supported bitfield field type.
-pub(crate) fn is_supported_field_type(ty: &syn::Type) -> bool {
-    is_custom_field_type(ty)
-        || SUPPORTED_BITFIELD_FIELD_TYPES.contains(&get_integer_type_from_type(ty))
 }
 
 /// Returns if the type is an unsigned integer.
@@ -108,6 +94,7 @@ pub(crate) fn get_bits_from_type(ty: &syn::Type) -> syn::Result<u32> {
         "u32" | "i32" => 32,
         "u64" | "i64" => 64,
         "u128" | "i128" => 128,
+        // unreachable
         _ => return Err(create_syn_error(Span::call_site(), PANIC_ERROR_MESSAGE)),
     };
 
@@ -132,5 +119,6 @@ pub(crate) fn get_type_ident(ty: &syn::Type) -> Option<String> {
         }
     }
 
-    None
+    // unreachable
+    panic!("{:?}", create_syn_error(Span::call_site(), PANIC_ERROR_MESSAGE))
 }

@@ -1,0 +1,11 @@
+error: Failed to parse the 'from_endian' arg '123', must be either 'little' or 'big'.
+ --> tests/compile_error_cases/bitfield_invalid_bitfield_from_endian_value.rs:4:1
+  |
+4 | pub struct Bitfield {
+  | ^^^
+
+error: Invalid endian 'invalid', must be either 'little' or 'big'.
+  --> tests/compile_error_cases/bitfield_invalid_bitfield_from_endian_value.rs:10:1
+   |
+10 | pub struct Bitfield {
+   | ^^^

@@ -65,6 +65,7 @@ impl FromStr for BitOrder {
         match s.to_ascii_lowercase().as_str() {
             "lsb" => Ok(BitOrder::Lsb),
             "msb" => Ok(BitOrder::Msb),
+            // unreachable
             _ => Err(()),
         }
     }
@@ -84,6 +85,7 @@ impl FromStr for Endian {
         match s.to_ascii_lowercase().as_str() {
             "little" => Ok(Endian::Little),
             "big" => Ok(Endian::Big),
+            // unreachable
             _ => Err(()),
         }
     }
@@ -146,12 +148,11 @@ impl Parse for BitfieldAttribute {
                     bit_order = match BitOrder::from_str(&order_str) {
                         Ok(order) => order,
                         Err(_) => {
-                            let current_token = Self::parse_current_stream_token_ident(input)?;
                             return Err(create_syn_error(
                                 input.span(),
                                 format!(
                                     "Invalid order: '{}', must be either 'lsb' or 'msb'.",
-                                    current_token
+                                    order_str
                                 ),
                             ));
                         }
@@ -274,21 +275,26 @@ impl BitfieldAttribute {
     }
 
     fn check_supported_bitfield_type(input: ParseStream, ty: &syn::Type) -> syn::Result<()> {
+        let ident = match ty {
+            syn::Type::Path(type_path) => {
+                type_path.path.segments.last().map(|s| s.ident.to_string()).unwrap()
+            }
+            _ => {
+                return Err(create_syn_error(
+                    input.span(),
+                    "The bitfield attribute must have an unsigned integer as its first argument, non-path types are unsupported.",
+                ));
+            }
+        };
+
         if !is_supported_bitfield_type(ty) {
-            let ident = match ty {
-                syn::Type::Path(type_path) => type_path
-                    .path
-                    .segments
-                    .last()
-                    .map(|segment| segment.ident.to_string())
-                    .unwrap_or_else(|| format!("{:?}", ty)),
-                _ => format!("{:?}", ty),
-            };
-            let err_msg = format!(
-                "The bitfield attribute must have an unsigned integer as its first argument, '{}' is unsupported.",
-                ident
-            );
-            return Err(create_syn_error(input.span(), err_msg));
+            return Err(create_syn_error(
+                input.span(),
+                format!(
+                    "The bitfield attribute must have an unsigned integer as its first argument, '{}' is unsupported.",
+                    ident
+                ),
+            ));
         }
         Ok(())
     }

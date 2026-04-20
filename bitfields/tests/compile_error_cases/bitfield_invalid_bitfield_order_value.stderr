@@ -1,0 +1,11 @@
+error: Failed to parse the 'order' arg '123'.
+ --> tests/compile_error_cases/bitfield_invalid_bitfield_order_value.rs:4:1
+  |
+4 | pub struct Bitfield {
+  | ^^^
+
+error: Invalid order: 'invalid', must be either 'lsb' or 'msb'.
+  --> tests/compile_error_cases/bitfield_invalid_bitfield_order_value.rs:10:1
+   |
+10 | pub struct Bitfield {
+   | ^^^

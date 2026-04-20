@@ -1,0 +1,11 @@
+error: unexpected end of input, expected token tree
+ --> tests/compile_error_cases/bitfield_invalid_bitfield_boolean_arg.rs:4:1
+  |
+4 | pub struct Bitfield {
+  | ^^^
+
+error: Failed to parse the 'new' arg 'invalid', must be either 'true' or 'false'.
+  --> tests/compile_error_cases/bitfield_invalid_bitfield_boolean_arg.rs:10:1
+   |
+10 | pub struct Bitfield {
+   | ^^^

@@ -6,6 +6,9 @@ use syn::parse::{Parse, ParseStream};
 
 use crate::create_syn_error;
 
+const ERR_UNABLE_TO_PARSE_FIELD_ACCESS: &str =
+    "Unable to parse field access, expected 'ro', 'wo', 'rw', or 'none'";
+
 /// Represents a field in a bitfield struct.
 #[derive(Clone)]
 pub(crate) struct BitfieldField {
@@ -86,12 +89,7 @@ impl Parse for BitsAttribute {
 
         // First check for the number of bits.
         if input.peek(syn::LitInt) {
-            let num_bits = match input.parse::<syn::LitInt>() {
-                Ok(lit_int) => lit_int.base10_parse::<u32>()?,
-                Err(_) => {
-                    return Err(syn::Error::new(input.span(), "Unable to parse field bits"));
-                }
-            };
+            let num_bits = input.parse::<syn::LitInt>()?.base10_parse::<u32>()?;
 
             // Move to the next argument.
             if !input.is_empty() {
@@ -111,15 +109,7 @@ impl Parse for BitsAttribute {
 
             match arg_ident.to_string().as_str() {
                 "default" => {
-                    let default_value_tokens = match input.parse::<syn::Expr>() {
-                        Ok(expr) => expr,
-                        Err(_) => {
-                            return Err(syn::Error::new(
-                                input.span(),
-                                "Unable to parse default value",
-                            ));
-                        }
-                    };
+                    let default_value_tokens = input.parse::<syn::Expr>()?;
                     bitfield_attribute_args.default_value_expr = Some(default_value_tokens);
                 }
                 "access" => {
@@ -128,7 +118,7 @@ impl Parse for BitsAttribute {
                         Err(_) => {
                             return Err(syn::Error::new(
                                 input.span(),
-                                "Unable to parse access value, expected 'ro', 'wo', 'rw', or 'none'",
+                                ERR_UNABLE_TO_PARSE_FIELD_ACCESS,
                             ));
                         }
                     };
@@ -137,7 +127,7 @@ impl Parse for BitsAttribute {
                         Err(_) => {
                             return Err(syn::Error::new(
                                 input.span(),
-                                "Unable to parse access value, expected 'ro', 'wo', 'rw', or 'none'",
+                                ERR_UNABLE_TO_PARSE_FIELD_ACCESS,
                             ));
                         }
                     };
@@ -157,7 +147,15 @@ impl Parse for BitsAttribute {
                         }
                     };
                 }
-                _ => {}
+                _ => {
+                    return Err(create_syn_error(
+                        input.span(),
+                        format!(
+                            "Unknown field arg '{}', please refer to the documentation for valid args.",
+                            arg_ident
+                        ),
+                    ));
+                }
             }
 
             // Move to the next argument.

@@ -2334,4 +2334,268 @@ mod tests {
         assert!(result.is_err());
         assert_eq!(result.err().unwrap(), "Value is too big to fit within the field bits.");
     }
+
+    #[test]
+    fn bitfield_sign_extended_bit() {
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(1)]
+            a: i8,
+            #[bits(7)]
+            _padding: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+        bitfield.set_a(1);
+
+        assert_eq!(bitfield.a(), -1);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_non_named_fields_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_non_named_fields.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_usize_field_without_bits_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_usize_field_without_bits.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_isize_field_without_bits_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_isize_field_without_bits.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_field_bits_attribute_without_array_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_field_bits_attribute_without_array.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_usize_field_bits_attribute_empty_array_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail(
+            "tests/compile_error_cases/bitfield_usize_field_bits_attribute_empty_array.rs",
+        );
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_custom_type_no_bit_size_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_custom_type_no_bit_size.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_field_type_too_small_for_bits_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_field_type_too_small_for_bits.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_positive_default_value_too_large_for_bits_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail(
+            "tests/compile_error_cases/bitfield_positive_default_value_too_large_for_bits.rs",
+        );
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_negative_default_value_too_large_for_bits_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail(
+            "tests/compile_error_cases/bitfield_negative_default_value_too_large_for_bits.rs",
+        );
+    }
+
+    #[test]
+    fn bitfield_isize() {
+        #[bitfield(u64)]
+        pub struct Bitfield {
+            #[bits(64, default = -1)]
+            a: isize,
+        }
+
+        assert_eq!(Bitfield::new().a(), -1isize);
+    }
+
+    #[test]
+    fn bitfield_usize() {
+        #[bitfield(u64)]
+        pub struct Bitfield {
+            #[bits(64, default = 1)]
+            a: usize,
+        }
+
+        assert_eq!(Bitfield::new().a(), 1usize);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_default_value_too_big_for_type_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_default_value_too_big_for_type.rs");
+    }
+
+    #[test]
+    fn bitfield_suffix() {
+        #[bitfield(u8)]
+        pub struct BitfieldI8 {
+            #[bits(8, default = -1)]
+            a: i8,
+        }
+
+        #[bitfield(u16)]
+        pub struct BitfieldI16 {
+            #[bits(16, default = -1)]
+            a: i16,
+        }
+
+        #[bitfield(u32)]
+        pub struct BitfieldI32 {
+            #[bits(32, default = -1)]
+            a: i32,
+        }
+
+        #[bitfield(u64)]
+        pub struct BitfieldI64 {
+            #[bits(64, default = -1)]
+            a: i64,
+        }
+
+        #[bitfield(u128)]
+        pub struct BitfieldI128 {
+            #[bits(128, default = -1)]
+            a: i128,
+        }
+
+        assert_eq!(BitfieldI8::new().a(), -1i8);
+        assert_eq!(BitfieldI16::new().a(), -1i16);
+        assert_eq!(BitfieldI32::new().a(), -1i32);
+        assert_eq!(BitfieldI64::new().a(), -1i64);
+        assert_eq!(BitfieldI128::new().a(), -1i128);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_field_access_value_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_field_access_value.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_unknown_field_arg_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_unknown_field_arg.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_field_ignore_value_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_field_ignore_value.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_bitfield_order_value_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_bitfield_order_value.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_bitfield_from_endian_value_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_bitfield_from_endian_value.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_bitfield_into_endian_value_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_bitfield_into_endian_value.rs");
+    }
+
+    #[test]
+    fn bitfield_set_bits_arg_with_defaults() {
+        #[bitfield(u32, set_bits = true)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            b: u8,
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bits_with_defaults(0x11223344);
+
+        assert_eq!(bitfield.a(), 0x12);
+        assert_eq!(bitfield.b(), 0x33);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.d(), 0x78);
+        assert_eq!(bitfield.into_bits(), 0x78223312);
+    }
+
+    #[test]
+    fn bitfield_clear_bits_arg() {
+        #[bitfield(u32, clear_bits = true)]
+        pub struct Bitfield {
+            #[bits(default = 0x12)]
+            a: u8,
+            #[bits(default = 0x34)]
+            b: u8,
+            #[bits(default = 0x56)]
+            c: u8,
+            #[bits(default = 0x78)]
+            d: u8,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.clear_bits();
+
+        assert_eq!(bitfield.a(), 0);
+        assert_eq!(bitfield.b(), 0);
+        assert_eq!(bitfield.c(), 0);
+        assert_eq!(bitfield.d(), 0);
+        assert_eq!(bitfield.into_bits(), 0);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_bitfield_unknown_arg_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_bitfield_unknown_arg.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_invalid_bitfield_boolean_arg_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_invalid_bitfield_boolean_arg.rs");
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
+    fn bitfield_type_reference_type_compile_fail() {
+        let t = trybuild::TestCases::new();
+        t.compile_fail("tests/compile_error_cases/bitfield_type_reference_type.rs");
+    }
 }

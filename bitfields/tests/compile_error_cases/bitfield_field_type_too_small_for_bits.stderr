@@ -1,0 +1,5 @@
+error: The field type 'u8' (8 bits) is too small to hold the specified '10 bits'.
+ --> tests/compile_error_cases/bitfield_field_type_too_small_for_bits.rs:7:7
+  |
+7 |     #[bits(10)]
+  |       ^^^^

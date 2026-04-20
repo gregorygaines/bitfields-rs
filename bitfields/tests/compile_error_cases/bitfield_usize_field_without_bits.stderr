@@ -1,0 +1,5 @@
+error: The types isize and usize require a bit size, otherwise we can't determine the size of the field.
+ --> tests/compile_error_cases/bitfield_usize_field_without_bits.rs:5:5
+  |
+5 |     a: usize,
+  |     ^

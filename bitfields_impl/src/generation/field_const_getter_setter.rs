@@ -12,7 +12,9 @@ use crate::generation::common::{
 };
 use crate::parsing::bitfield_attribute::{BitOrder, BitfieldAttribute};
 use crate::parsing::bitfield_field::{BitfieldField, FieldType};
-use crate::parsing::types::{IntegerType, get_bits_from_type, get_integer_type_from_type};
+use crate::parsing::types::{
+    IntegerType, get_bits_from_type, get_integer_type_from_type, is_size_type,
+};
 
 /// Generates the field constants for the bitfield.
 pub(crate) fn generate_field_constants_tokens(
@@ -141,7 +143,12 @@ fn generate_field_getters_functions_tokens_helper(
             #custom_field_neg_getter
         }
     } else {
-        let field_type_bits = get_bits_from_type(field_type).unwrap();
+        let field_type_bits_tokens = if is_size_type(field_type) {
+            quote! { (#field_type::BITS as u32) }
+        } else {
+            let bits = get_bits_from_type(field_type).unwrap();
+            quote! { #bits }
+        };
 
         if get_integer_type_from_type(field_type) == IntegerType::Bool {
             let neg_getter = bitfield_attribute.generate_neg_func.then(|| {
@@ -186,7 +193,7 @@ fn generate_field_getters_functions_tokens_helper(
 
         let sign_extend_tokens = (!field.unsigned).then(|| {
             quote! {
-                let shift = #field_type_bits - #field_bits;
+                let shift = #field_type_bits_tokens - #field_bits;
                 let this = ((this as #field_type) << shift) >> shift;
             }
         });

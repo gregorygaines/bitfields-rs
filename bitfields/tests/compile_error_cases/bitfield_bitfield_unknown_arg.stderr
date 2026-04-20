@@ -1,0 +1,5 @@
+error: Unknown bitfield argument: deez
+ --> tests/compile_error_cases/bitfield_bitfield_unknown_arg.rs:4:1
+  |
+4 | pub struct Bitfield {
+  | ^^^
