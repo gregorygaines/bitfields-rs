@@ -2093,10 +2093,12 @@ mod tests {
             b: u8,
             #[bits(default = 0x56)]
             c: u8,
-            #[bits(10, default = 0x78)]
+            #[bits(9, default = 0x78)]
             d: u16,
             #[bits(default = true)]
             e: bool,
+            #[bits(default = false)]
+            f: bool,
         }
 
         let builder = Bitfield::new();
@@ -2109,8 +2111,143 @@ mod tests {
         assert_eq!(builder.neg_a(), 0x13);
         assert_eq!(builder.neg_b(), 0xCB);
         assert_eq!(builder.neg_c(), 0xA9);
-        assert_eq!(builder.neg_d(), 0x387);
+        assert_eq!(builder.neg_d(), 0x187);
         assert!(!builder.neg_e());
+        assert!(builder.neg_f());
+    }
+
+    #[test]
+    fn bitfield_neg_inverts_bits_custom_type() {
+        #[bitfield(u8, neg = true)]
+        pub struct Bitfield {
+            #[bits(4, default = CustomType::A)]
+            a: CustomType,
+            #[bits(4, default = CustomType::B)]
+            b: CustomType,
+        }
+
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[repr(u8)]
+        pub enum CustomType {
+            A = 0x3,
+            B = 0x4,
+            C(u8),
+        }
+
+        impl CustomType {
+            const fn from_bits(bits: u8) -> Self {
+                match bits {
+                    0x3 => Self::A,
+                    0x4 => Self::B,
+                    _ => Self::C(bits),
+                }
+            }
+
+            const fn into_bits(self) -> u8 {
+                match self {
+                    Self::A => 0x3,
+                    Self::B => 0x4,
+                    CustomType::C(bits) => bits,
+                }
+            }
+        }
+
+        let builder = Bitfield::new();
+
+        assert_eq!(builder.a(), CustomType::A);
+        assert_eq!(builder.b(), CustomType::B);
+        assert_eq!(builder.neg_a(), CustomType::C(0xC));
+        assert_eq!(builder.neg_b(), CustomType::C(0xB));
+    }
+
+    #[test]
+    fn bitfield_custom_type_setter() {
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: CustomType,
+            #[bits(4)]
+            b: CustomType,
+        }
+
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[repr(u8)]
+        pub enum CustomType {
+            A = 0x3,
+            B = 0x4,
+            C(u8),
+        }
+
+        impl CustomType {
+            const fn from_bits(bits: u8) -> Self {
+                match bits {
+                    0x3 => Self::A,
+                    0x4 => Self::B,
+                    _ => Self::C(bits),
+                }
+            }
+
+            const fn into_bits(self) -> u8 {
+                match self {
+                    Self::A => 0x3,
+                    Self::B => 0x4,
+                    CustomType::C(bits) => bits,
+                }
+            }
+        }
+
+        let mut bitfield = Bitfield::new();
+        bitfield.set_a(CustomType::C(0x9));
+        bitfield.set_b(CustomType::C(0x5));
+
+        assert_eq!(bitfield.a(), CustomType::C(0x9));
+        assert_eq!(bitfield.b(), CustomType::C(0x5));
+    }
+
+    #[test]
+    fn bitfield_custom_type_checked_setter() {
+        #[bitfield(u8)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: CustomType,
+            #[bits(4)]
+            b: CustomType,
+        }
+
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[repr(u8)]
+        pub enum CustomType {
+            A = 0x3,
+            B = 0x4,
+            C(u8),
+        }
+
+        impl CustomType {
+            const fn from_bits(bits: u8) -> Self {
+                match bits {
+                    0x3 => Self::A,
+                    0x4 => Self::B,
+                    _ => Self::C(bits),
+                }
+            }
+
+            const fn into_bits(self) -> u8 {
+                match self {
+                    Self::A => 0x3,
+                    Self::B => 0x4,
+                    CustomType::C(bits) => bits,
+                }
+            }
+        }
+
+        let mut bitfield = Bitfield::new();
+        let set_a_results = bitfield.checked_set_a(CustomType::C(0x9));
+        let set_b_results = bitfield.checked_set_b(CustomType::C(0x5));
+
+        assert!(set_a_results.is_ok());
+        assert!(set_b_results.is_ok());
+        assert_eq!(bitfield.a(), CustomType::C(0x9));
+        assert_eq!(bitfield.b(), CustomType::C(0x5));
     }
 
     #[test]

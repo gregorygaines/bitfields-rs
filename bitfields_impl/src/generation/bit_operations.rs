@@ -2,6 +2,9 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Visibility;
 
+use crate::generation::bit_manipulation_common::{
+    generate_clear_bit_implementation_tokens, generate_set_bit_implementation_tokens,
+};
 use crate::generation::common::{
     BitfieldStructReferenceIdent, does_field_have_getter, does_field_have_setter,
     get_bitfield_struct_internal_value_identifier_tokens,
@@ -16,6 +19,7 @@ enum ReturnType {
     Error,
 }
 
+/// Generates get bit implementation tokens.
 pub(crate) fn generate_get_bit_tokens(
     vis: &Visibility,
     bitfield_type: &syn::Type,
@@ -45,6 +49,8 @@ pub(crate) fn generate_get_bit_tokens(
     let guard_clause_tokens = generate_guard_clause_tokens(bitfield_type, ReturnType::False);
     let checked_guard_clause_tokens =
         generate_guard_clause_tokens(bitfield_type, ReturnType::Error);
+    let check_bit_not_equal_zero_tokens =
+        generate_check_bit_not_equal_zero_tokens(quote! { #bitfield_struct_internal_value_ident });
 
     quote! {
         #[doc = "Returns a bit from the given index. Returns false for out-of-bounds and fields without read access."]
@@ -53,7 +59,7 @@ pub(crate) fn generate_get_bit_tokens(
 
             #( #false_return_for_non_readable_fields )*
 
-            (#bitfield_struct_internal_value_ident >> index) & 1 != 0
+            #check_bit_not_equal_zero_tokens
         }
 
         #[doc = "Returns a bit from the given index. Returns an error for out-of-bounds and fields without read access."]
@@ -62,7 +68,7 @@ pub(crate) fn generate_get_bit_tokens(
 
             #( #error_return_for_write_only_fields )*
 
-            Ok((#bitfield_struct_internal_value_ident >> index) & 1 != 0)
+            Ok((#check_bit_not_equal_zero_tokens))
         }
     }
 }
@@ -96,7 +102,10 @@ pub(crate) fn generate_set_bit_tokens(
     let guard_clause_tokens = generate_guard_clause_tokens(bitfield_type, ReturnType::NoOp);
     let checked_guard_clause_tokens =
         generate_guard_clause_tokens(bitfield_type, ReturnType::Error);
-
+    let set_implementation_tokens =
+        generate_set_bit_implementation_tokens(quote! { #bitfield_struct_internal_value_ident });
+    let clear_bit_implementation_tokens =
+        generate_clear_bit_implementation_tokens(quote! { #bitfield_struct_internal_value_ident });
     quote! {
         #[doc = "Sets a bit at given index with the given value. Is no-op for out-of-bounds and fields without write access."]
         #vis const fn set_bit(&mut self, index: usize, bit: bool) {
@@ -105,9 +114,9 @@ pub(crate) fn generate_set_bit_tokens(
             #( #no_op_for_non_writable_fields )*
 
             if bit {
-                #bitfield_struct_internal_value_ident |= 1 << index;
+                #set_implementation_tokens
             } else {
-                #bitfield_struct_internal_value_ident &= !(1 << index);
+                #clear_bit_implementation_tokens
             }
         }
 
@@ -118,9 +127,9 @@ pub(crate) fn generate_set_bit_tokens(
             #( #error_return_for_non_writable_fields )*
 
             if bit {
-                #bitfield_struct_internal_value_ident |= 1 << index;
+                #set_implementation_tokens
             } else {
-                #bitfield_struct_internal_value_ident &= !(1 << index);
+               #clear_bit_implementation_tokens
             }
 
             Ok(())
@@ -195,5 +204,11 @@ fn generate_no_op_return_tokens(
         if index >= #field_offset && index < #field_end_bits {
             #return_tokens
         }
+    }
+}
+
+fn generate_check_bit_not_equal_zero_tokens(source_value_ident: TokenStream) -> TokenStream {
+    quote! {
+        (#source_value_ident >> index) & 1 != 0
     }
 }

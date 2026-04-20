@@ -2,6 +2,7 @@ use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
 
+use crate::generation::bit_manipulation_common::generate_extract_value_from_value_tokens;
 use crate::generation::common::{
     BitfieldStructReferenceIdent, does_field_have_getter, does_field_have_setter,
     generate_setter_impl_tokens, get_bitfield_struct_internal_value_identifier_tokens,
@@ -102,21 +103,38 @@ fn generate_field_getters_functions_tokens_helper(
 
     if field.field_type == FieldType::CustomFieldType {
         let custom_field_neg_getter = bitfield_attribute.generate_neg_func.then(|| {
+            let neg_getter_extract_value_tokens = generate_extract_value_from_value_tokens(
+                bitfield_type,
+                quote! { #bitfield_struct_internal_value_ident },
+                quote! { Self::#field_bits_const_ident },
+                quote! { Self::#field_offset_const_ident },
+                quote! { this },
+                /* type_to_cast_output_value_ident= */ None,
+                /* negate_source_value= */ true,
+            );
+
             quote! {
-                    #[doc = #neg_field_getter_documentation]
-                    #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                        let this = (!(#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask);
-                        #field_type::from_bits(this as _)
-                    }
+                #[doc = #neg_field_getter_documentation]
+                #vis const fn #neg_field_name_ident(&self) -> #field_type {
+                    #neg_getter_extract_value_tokens
+                    #field_type::from_bits(this as _)
                 }
+            }
         });
 
+        let getter_extract_value = generate_extract_value_from_value_tokens(
+            bitfield_type,
+            quote! { #bitfield_struct_internal_value_ident },
+            quote! { Self::#field_bits_const_ident },
+            quote! { Self::#field_offset_const_ident },
+            quote! { this },
+            /* type_to_cast_output_value_ident= */ None,
+            /* negate_source_value= */ false,
+        );
         quote! {
             #[doc = #field_getter_documentation]
                #vis const fn #field_name_ident(&self) -> #field_type {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                let this = ((#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask);
+                #getter_extract_value
                 #field_type::from_bits(this as _)
             }
 
@@ -127,21 +145,38 @@ fn generate_field_getters_functions_tokens_helper(
 
         if get_integer_type_from_type(field_type) == IntegerType::Bool {
             let neg_getter = bitfield_attribute.generate_neg_func.then(|| {
+                let neg_getter_extract_value_tokens = generate_extract_value_from_value_tokens(
+                    bitfield_type,
+                    quote! { #bitfield_struct_internal_value_ident },
+                    quote! { Self::#field_bits_const_ident },
+                    quote! { Self::#field_offset_const_ident },
+                    quote! { this },
+                    /* type_to_cast_output_value_ident= */ None,
+                    /* negate_source_value= */ true,
+                );
+
                 quote! {
-                        #[doc = #neg_field_getter_documentation]
-                        #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                            let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                            let this = (!(#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask);
-                            this != 0
-                        }
+                    #[doc = #neg_field_getter_documentation]
+                    #vis const fn #neg_field_name_ident(&self) -> #field_type {
+                        #neg_getter_extract_value_tokens
+                        this != 0
                     }
+                }
             });
 
+            let getter_extract_value = generate_extract_value_from_value_tokens(
+                bitfield_type,
+                quote! { #bitfield_struct_internal_value_ident },
+                quote! { Self::#field_bits_const_ident },
+                quote! { Self::#field_offset_const_ident },
+                quote! { this },
+                /* type_to_cast_output_value_ident= */ None,
+                /* negate_source_value= */ false,
+            );
             return quote! {
                 #[doc = #field_getter_documentation]
                 #vis const fn #field_name_ident(&self) -> #field_type {
-                    let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                    let this = ((#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask);
+                    #getter_extract_value
                     this != 0
                 }
 
@@ -157,23 +192,43 @@ fn generate_field_getters_functions_tokens_helper(
         });
 
         let neg_getter = bitfield_attribute.generate_neg_func.then(|| {
-            let neg_field_getter_documentation = get_field_getter_documentation(bitfield_attribute, field, /* neg_getter= */ true);
+            let neg_field_getter_documentation = get_field_getter_documentation(
+                bitfield_attribute,
+                field,
+                /* neg_getter= */ true,
+            );
+            let neg_getter_extract_value_tokens = generate_extract_value_from_value_tokens(
+                bitfield_type,
+                quote! { #bitfield_struct_internal_value_ident },
+                quote! { Self::#field_bits_const_ident },
+                quote! { Self::#field_offset_const_ident },
+                quote! { this },
+                Some(quote! { #field_type }),
+                /* negate_source_value= */ true,
+            );
             quote! {
-                    #[doc = #neg_field_getter_documentation]
-                    #vis const fn #neg_field_name_ident(&self) -> #field_type {
-                        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                        let this = (!(#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask) as #field_type;
-                        #sign_extend_tokens
-                        this
-                    }
+                #[doc = #neg_field_getter_documentation]
+                #vis const fn #neg_field_name_ident(&self) -> #field_type {
+                    #neg_getter_extract_value_tokens
+                    #sign_extend_tokens
+                    this
                 }
+            }
         });
 
+        let getter_extract_value_tokens = generate_extract_value_from_value_tokens(
+            bitfield_type,
+            quote! { #bitfield_struct_internal_value_ident },
+            quote! { Self::#field_bits_const_ident },
+            quote! { Self::#field_offset_const_ident },
+            quote! { this },
+            Some(quote! { #field_type }),
+            /* negate_source_value= */ false,
+        );
         quote! {
             #[doc = #field_getter_documentation]
             #vis const fn #field_name_ident(&self) -> #field_type {
-                let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - Self::#field_bits_const_ident);
-                let this = ((#bitfield_struct_internal_value_ident >> Self::#field_offset_const_ident) & mask) as #field_type;
+                #getter_extract_value_tokens
                 #sign_extend_tokens
                 this
             }
