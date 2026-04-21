@@ -486,6 +486,7 @@ pub(crate) fn generate_setter_impl_tokens(
         if check_value_bit_size {
             let set_bits_impl = generate_set_bits_implementation_tokens(
                 quote! { #bitfield_struct_internal_value_identifier_tokens },
+                &field.ty,
                 bitfield_type,
                 quote! { bits as #bitfield_type },
                 quote! { #field_offset },
@@ -501,6 +502,7 @@ pub(crate) fn generate_setter_impl_tokens(
         } else {
             let set_bits_impl = generate_set_bits_implementation_tokens(
                 quote! { #bitfield_struct_internal_value_identifier_tokens },
+                &field.ty,
                 bitfield_type,
                 // When casting the custom type into the bitfield type, if the custom type is the
                 // same as the bitfield, then this is an unnecessary cast, but we
@@ -516,6 +518,7 @@ pub(crate) fn generate_setter_impl_tokens(
     } else {
         let set_bits_impl = generate_set_bits_implementation_tokens(
             quote! { #bitfield_struct_internal_value_identifier_tokens },
+            &field.ty,
             bitfield_type,
             quote! { value },
             quote! { #field_offset },
@@ -547,11 +550,12 @@ pub(crate) fn generate_setter_impl_tokens(
 /// offset.
 fn generate_set_bits_implementation_tokens(
     target_value_ident: TokenStream,
+    field_type: &Type,
     bitfield_type: &Type,
     source_bits_expr: TokenStream,
     field_offset: TokenStream,
 ) -> TokenStream {
-    let source_bits_masked = if should_cast_value_to_bitfield_type(bitfield_type, bitfield_type) {
+    let source_bits_masked = if should_cast_value_to_bitfield_type(field_type, bitfield_type) {
         quote! {
             (((#source_bits_expr & mask) << #field_offset) as #bitfield_type)
         }
