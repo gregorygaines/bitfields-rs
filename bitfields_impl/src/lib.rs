@@ -12,7 +12,8 @@ use syn::{Expr, ExprLit, ExprUnary, Fields, Lit, LitInt, Meta, Type, Visibility}
 use crate::generation::bit_operations::{generate_get_bit_tokens, generate_set_bit_tokens};
 use crate::generation::builder_struct::{generate_builder_tokens, generate_to_builder_tokens};
 use crate::generation::common::{
-    PANIC_ERROR_MESSAGE, contains_a_custom_field, get_allow_clippy_unnecessary_cast_tokens,
+    PANIC_ERROR_MESSAGE, contains_field_requiring_cast_allow,
+    get_allow_clippy_unnecessary_cast_tokens,
 };
 use crate::generation::debug_impl::generate_debug_implementation;
 use crate::generation::default_impl::generate_default_implementation_tokens;
@@ -738,7 +739,7 @@ fn generate_functions(
         }
     };
     let allow_unnecessary_cast_tokens =
-        contains_a_custom_field(fields).then(get_allow_clippy_unnecessary_cast_tokens);
+        contains_field_requiring_cast_allow(fields).then(get_allow_clippy_unnecessary_cast_tokens);
 
     Ok(quote! {
         #struct_attributes

@@ -707,8 +707,19 @@ pub(crate) fn get_documentation_field_bits_order(
     }
 }
 
+/// Returns true if the generated code may contain a literal-to-type cast that
+/// would trigger `clippy::unnecessary_cast`.
+///
+/// Occurs when there is a custom field or when a field with a default value
+/// has no setter (padding / read-only), causing the default to be emitted
+/// inline as `let value = <literal> as <type>`.
+pub(crate) fn contains_field_requiring_cast_allow(fields: &[BitfieldField]) -> bool {
+    contains_a_custom_field(fields)
+        || fields.iter().any(|f| f.default_value_tokens.is_some() && !does_field_have_setter(f))
+}
+
 /// Returns if any field is a custom type.
-pub(crate) fn contains_a_custom_field(fields: &[BitfieldField]) -> bool {
+fn contains_a_custom_field(fields: &[BitfieldField]) -> bool {
     fields.iter().any(|field| field.field_type == FieldType::CustomFieldType)
 }
 

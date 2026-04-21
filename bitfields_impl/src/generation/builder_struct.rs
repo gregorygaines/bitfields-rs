@@ -3,7 +3,7 @@ use quote::{format_ident, quote};
 use syn::Visibility;
 
 use crate::generation::common::{
-    BitfieldStructReferenceIdent, contains_a_custom_field, does_field_have_setter,
+    BitfieldStructReferenceIdent, contains_field_requiring_cast_allow, does_field_have_setter,
     generate_bitfield_struct_initialization_tokens, generate_setter_impl_tokens,
     generate_setting_fields_default_values_tokens, generate_setting_fields_to_zero_tokens,
     get_allow_clippy_unnecessary_cast_tokens, get_documentation_field_bits_order,
@@ -54,7 +54,7 @@ pub(crate) fn generate_builder_tokens(
         &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
     );
     let allow_unnecessary_cast_tokens =
-        contains_a_custom_field(fields).then(get_allow_clippy_unnecessary_cast_tokens);
+        contains_field_requiring_cast_allow(fields).then(get_allow_clippy_unnecessary_cast_tokens);
 
     quote! {
         #[doc = "A builder for the bitfield."]
