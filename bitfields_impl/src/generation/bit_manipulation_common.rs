@@ -36,7 +36,7 @@ pub(crate) fn generate_mask_implementation_tokens(
     num_bits_to_extract_offset_ident: TokenStream,
 ) -> TokenStream {
     quote! {
-        let mask = #bitfield_type::MAX >> (#bitfield_type::BITS - #num_bits_to_extract_offset_ident);
+        let mask: #bitfield_type = #bitfield_type::MAX >> (#bitfield_type::BITS - #num_bits_to_extract_offset_ident);
     }
 }
 

@@ -3,11 +3,11 @@ use quote::{format_ident, quote};
 use syn::Visibility;
 
 use crate::generation::common::{
-    BitfieldStructReferenceIdent, does_field_have_setter,
+    BitfieldStructReferenceIdent, contains_a_custom_field, does_field_have_setter,
     generate_bitfield_struct_initialization_tokens, generate_setter_impl_tokens,
     generate_setting_fields_default_values_tokens, generate_setting_fields_to_zero_tokens,
-    get_documentation_field_bits_order, get_field_checked_setter_method_identifier,
-    get_field_setter_method_identifier,
+    get_allow_clippy_unnecessary_cast_tokens, get_documentation_field_bits_order,
+    get_field_checked_setter_method_identifier, get_field_setter_method_identifier,
 };
 use crate::parsing::bitfield_attribute::BitfieldAttribute;
 use crate::parsing::bitfield_field::{BitfieldField, FieldAccess};
@@ -53,6 +53,8 @@ pub(crate) fn generate_builder_tokens(
         ignored_fields,
         &BitfieldStructReferenceIdent::NameReference(bitfield_struct_name.to_string()),
     );
+    let allow_unnecessary_cast_tokens =
+        contains_a_custom_field(fields).then(get_allow_clippy_unnecessary_cast_tokens);
 
     quote! {
         #[doc = "A builder for the bitfield."]
@@ -60,6 +62,7 @@ pub(crate) fn generate_builder_tokens(
             this: #bitfield_struct_name,
         }
 
+        #allow_unnecessary_cast_tokens
         impl Default for #builder_name {
             fn default() -> Self {
                 let mut this = #initialize_struct_tokens;
@@ -70,6 +73,7 @@ pub(crate) fn generate_builder_tokens(
             }
         }
 
+        #allow_unnecessary_cast_tokens
         impl #builder_name {
             #[doc = "Creates a new bitfield builder instance."]
             #vis fn new() -> Self {

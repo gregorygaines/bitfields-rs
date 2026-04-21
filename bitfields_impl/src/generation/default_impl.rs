@@ -2,8 +2,9 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
 use crate::generation::common::{
-    BitfieldStructReferenceIdent, generate_bitfield_struct_initialization_tokens,
-    generate_setting_fields_default_values_tokens,
+    BitfieldStructReferenceIdent, contains_a_custom_field,
+    generate_bitfield_struct_initialization_tokens, generate_setting_fields_default_values_tokens,
+    get_allow_clippy_unnecessary_cast_tokens,
 };
 use crate::parsing::bitfield_attribute::BitfieldAttribute;
 use crate::parsing::bitfield_field::BitfieldField;
@@ -26,8 +27,11 @@ pub(crate) fn generate_default_implementation_tokens(
         ignored_fields,
         &BitfieldStructReferenceIdent::SelfReference,
     );
+    let allow_unnecessary_cast_tokens =
+        contains_a_custom_field(fields).then(get_allow_clippy_unnecessary_cast_tokens);
 
     quote! {
+        #allow_unnecessary_cast_tokens
         impl core::default::Default for #bitfield_struct_name {
             fn default() -> Self {
                 let mut this = #initialize_struct_tokens;

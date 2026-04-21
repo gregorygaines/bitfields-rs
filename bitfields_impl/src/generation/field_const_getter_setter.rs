@@ -194,7 +194,7 @@ fn generate_field_getters_functions_tokens_helper(
         let sign_extend_tokens = (!field.unsigned).then(|| {
             quote! {
                 let shift = #field_type_bits_tokens - #field_bits;
-                let this = ((this as #field_type) << shift) >> shift;
+                let this = (this << shift) >> shift;
             }
         });
 
