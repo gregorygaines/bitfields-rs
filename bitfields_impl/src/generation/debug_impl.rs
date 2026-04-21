@@ -42,7 +42,7 @@ pub(crate) fn generate_debug_implementation(
             quote! { #field_bits },
             quote! { #field_offset },
             quote! { this },
-            Some(quote! { #bitfield_type }),
+            /* type_to_cast_output_value_ident= */ None,
             /* negate_source_value= */ false,
         );
 

@@ -486,6 +486,7 @@ pub(crate) fn generate_setter_impl_tokens(
         if check_value_bit_size {
             let set_bits_impl = generate_set_bits_implementation_tokens(
                 quote! { #bitfield_struct_internal_value_identifier_tokens },
+                &field.ty,
                 bitfield_type,
                 quote! { bits as #bitfield_type },
                 quote! { #field_offset },
@@ -501,7 +502,11 @@ pub(crate) fn generate_setter_impl_tokens(
         } else {
             let set_bits_impl = generate_set_bits_implementation_tokens(
                 quote! { #bitfield_struct_internal_value_identifier_tokens },
+                &field.ty,
                 bitfield_type,
+                // When casting the custom type into the bitfield type, if the custom type is the
+                // same as the bitfield, then this is an unnecessary cast, but we
+                // are unable to custom type's type, so we have to keep casting.
                 quote! { #value_ident.into_bits() as #bitfield_type },
                 quote! { #field_offset },
             );
@@ -513,23 +518,28 @@ pub(crate) fn generate_setter_impl_tokens(
     } else {
         let set_bits_impl = generate_set_bits_implementation_tokens(
             quote! { #bitfield_struct_internal_value_identifier_tokens },
+            &field.ty,
             bitfield_type,
             quote! { value },
             quote! { #field_offset },
         );
+        let cast_to_bitfield_type_tokens =
+            should_cast_value_to_bitfield_type(field_type, bitfield_type).then(|| {
+                quote! {
+                     as #bitfield_type
+                }
+            });
         if check_value_bit_size {
             quote! {
                 #mask_tokens
                 #bits_bigger_than_mask_check
-                #[allow(clippy::unnecessary_cast)]
-                let value = #value_ident as #bitfield_type;
+                let value = #value_ident #cast_to_bitfield_type_tokens;
                 #set_bits_impl
             }
         } else {
             quote! {
                 #mask_tokens
-                #[allow(clippy::unnecessary_cast)]
-                let value = #value_ident as #bitfield_type;
+                let value = #value_ident #cast_to_bitfield_type_tokens;
                 #set_bits_impl
             }
         }
@@ -540,13 +550,28 @@ pub(crate) fn generate_setter_impl_tokens(
 /// offset.
 fn generate_set_bits_implementation_tokens(
     target_value_ident: TokenStream,
+    field_type: &Type,
     bitfield_type: &Type,
     source_bits_expr: TokenStream,
     field_offset: TokenStream,
 ) -> TokenStream {
+    let source_bits_masked = if should_cast_value_to_bitfield_type(field_type, bitfield_type) {
+        quote! {
+            (((#source_bits_expr & mask) << #field_offset) as #bitfield_type)
+        }
+    } else {
+        quote! {
+            ((#source_bits_expr & mask) << #field_offset)
+        }
+    };
+
     quote! {
-        #target_value_ident = (#target_value_ident & !(mask << #field_offset)) | (((#source_bits_expr & mask) << #field_offset) as #bitfield_type);
+        #target_value_ident = (#target_value_ident & !(mask << #field_offset)) | #source_bits_masked;
     }
+}
+
+fn should_cast_value_to_bitfield_type(field_type: &Type, bitfield_type: &Type) -> bool {
+    field_type != bitfield_type
 }
 
 /// Returns whether the field has a setter method.
@@ -683,5 +708,28 @@ pub(crate) fn get_documentation_field_bits_order(
         (field_bits_end, field_offset)
     } else {
         (field_offset, field_bits_end)
+    }
+}
+
+/// Returns true if the generated code may contain a literal-to-type cast that
+/// would trigger `clippy::unnecessary_cast`.
+///
+/// Occurs when there is a custom field or when a field with a default value
+/// has no setter (padding / read-only), causing the default to be emitted
+/// inline as `let value = <literal> as <type>`.
+pub(crate) fn contains_field_requiring_cast_allow(fields: &[BitfieldField]) -> bool {
+    contains_a_custom_field(fields)
+        || fields.iter().any(|f| f.default_value_tokens.is_some() && !does_field_have_setter(f))
+}
+
+/// Returns if any field is a custom type.
+fn contains_a_custom_field(fields: &[BitfieldField]) -> bool {
+    fields.iter().any(|field| field.field_type == FieldType::CustomFieldType)
+}
+
+/// Returns clippy unnecessary cast annotation tokens.
+pub(crate) fn get_allow_clippy_unnecessary_cast_tokens() -> TokenStream {
+    quote! {
+        #[allow(clippy::unnecessary_cast)]
     }
 }

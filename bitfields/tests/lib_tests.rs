@@ -2598,4 +2598,31 @@ mod tests {
         let t = trybuild::TestCases::new();
         t.compile_fail("tests/compile_error_cases/bitfield_type_reference_type.rs");
     }
+
+    #[test]
+    fn bitfield_set_bits_with_defaults_all_defaults_ignored_fields() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(default = 1)]
+            a: u8,
+            #[bits(default = 2)]
+            b: u8,
+            #[bits(default = 3)]
+            c: u8,
+            #[bits(default = 4)]
+            d: u8,
+            #[bits(ignore = true)]
+            cache: u32,
+        }
+
+        let mut bitfield = Bitfield::new();
+
+        bitfield.set_bits_with_defaults(0x11223344);
+
+        assert_eq!(bitfield.a(), 1);
+        assert_eq!(bitfield.b(), 2);
+        assert_eq!(bitfield.c(), 3);
+        assert_eq!(bitfield.d(), 4);
+        assert_eq!(bitfield.into_bits(), 0x4030201);
+    }
 }
