@@ -24,6 +24,8 @@ systems (e.g. embedded development or emulators).
 - Efficient and safe code, comparable to handwritten code.
 - Supports **array backed bitfields**, which are useful for large bitfields that
   exceed 128 bits.
+- Supports **array fields**, which are useful for representing fields that are larger than
+  128 bits.
 - Comprehensive testing with over 90% code coverage.
 - Easily create bitflags using enums.
 - No unsafe code, zero-allocations, const functions, no runtime
@@ -93,7 +95,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "2.0.0"
+bitfields = "2.0.2"
 ```
 
 or run the following command:
@@ -2221,8 +2223,8 @@ This lets you generate only the bit-operation APIs you need.
 #### Global Cargo Feature Flags
 
 If you find yourself applying the same configuration arguments to many bitfields
-in your codebase,
-you can set those defaults globally with Cargo features:
+in your codebase, you can set those defaults globally by **disabling default 
+features** and enabling the corresponding Cargo features:
 
 - Constructors: `generate_new` / `disable_new`
 - From/into functions: `generate_from_into_bits` /
@@ -2243,27 +2245,27 @@ you can set those defaults globally with Cargo features:
   `disable_invert_bit_ops`
 - Toggle bit operations: `generate_toggle_bit_ops` /
   `disable_toggle_bit_ops`
+- Array heap storage: `enable_array_heap` / `disable_array_heap`
 
 Endian and order defaults have dedicated feature names:
 
-- `order_lsb` / `order_msb`
-- `from_endian_little` / `from_endian_big`
-- `into_endian_little` / `into_endian_big`
-- `write_endian_little` / `write_endian_big`
+- Bitfield field order: `order_lsb` / `order_msb`
+- Bitfield From operations endian: `from_endian_little` / `from_endian_big`
+- Bitfield Into operations endian: `into_endian_little` / `into_endian_big`
+- Bitfield Write endian: `write_endian_little` / `write_endian_big`
 
 Bitflags can also be configured globally with the following defaults:
 
-- `bitflag_from_endian_little` / `bitflag_from_endian_big`
-- `bitflag_into_endian_little` / `bitflag_into_endian_big`
-- `bitflag_derive_copy` / `bitflag_disable_copy`
-
-Array heap storage can be controlled globally with `enable_array_heap` and
-`disable_array_heap`.
+- from_bits endian: `bitflag_from_endian_little` / `bitflag_from_endian_big`
+- into_bits endian: `bitflag_into_endian_little` / `bitflag_into_endian_big`
+- Copy and Clone: `bitflag_derive_copy` / `bitflag_disable_copy`
 
 ```toml
 [dependencies]
 bitfields = {
-    version = "0.1",
+    version = "2.0.2",
+    # Default features must be disabled.
+    default-features = false,
     features = [
         "generate_builder",
         "generate_set_get_bit_ops",
