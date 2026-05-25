@@ -1,7 +1,7 @@
 #![no_std]
+#![warn(incomplete_features)]
 
-/// Creates a bitfield for the attributed struct.
-///
-/// ## Example
-#[doc = include_str!("../../target/docs_fragment.md")]
+/// Creates a bitfield from the attributed struct.
 pub use bitfields_impl::bitfield;
+/// Creates a bitfield from the attributed enum.
+pub use bitfields_impl::bitflag;

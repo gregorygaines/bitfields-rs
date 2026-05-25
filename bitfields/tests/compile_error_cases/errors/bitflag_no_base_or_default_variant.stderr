@@ -1,0 +1,5 @@
+error: The bitflag must have at least one variant marked with `#[base]` or `#[default]`. If a variant is marked with `#[base]`, it will take precedence over `#[default]`.
+ --> tests/compile_error_cases/errors/bitflag_no_base_or_default_variant.rs:4:6
+  |
+4 | enum Flags {
+  |      ^^^^^

@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'invert_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_invert_bit_ops_value.rs:3:34
+  |
+3 | #[bitfield(u32, invert_bit_ops = 123)]
+  |                                  ^^^
+
+error: Invalid value for boolean argument 'invert_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_invert_bit_ops_value.rs:9:34
+  |
+9 | #[bitfield(u32, invert_bit_ops = invalid)]
+  |                                  ^^^^^^^

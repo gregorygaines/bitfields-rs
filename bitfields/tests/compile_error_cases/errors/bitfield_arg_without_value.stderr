@@ -1,0 +1,5 @@
+error: Expected '=' after argument
+ --> tests/compile_error_cases/errors/bitfield_arg_without_value.rs:3:17
+  |
+3 | #[bitfield(u32, order)]
+  |                 ^^^^^

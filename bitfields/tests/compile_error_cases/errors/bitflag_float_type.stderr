@@ -1,0 +1,7 @@
+error: The bitflag attribute must have an unsigned integer type as its first argument, floats are unsupported.
+ --> tests/compile_error_cases/errors/bitflag_float_type.rs:3:1
+  |
+3 | #[bitflag(f32)]
+  | ^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `bitflag` (in Nightly builds, run with -Z macro-backtrace for more info)

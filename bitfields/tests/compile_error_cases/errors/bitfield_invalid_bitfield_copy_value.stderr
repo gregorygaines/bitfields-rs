@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'copy'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_copy_value.rs:3:24
+  |
+3 | #[bitfield(u32, copy = 123)]
+  |                        ^^^
+
+error: Invalid value for boolean argument 'copy'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_copy_value.rs:9:24
+  |
+9 | #[bitfield(u32, copy = invalid)]
+  |                        ^^^^^^^

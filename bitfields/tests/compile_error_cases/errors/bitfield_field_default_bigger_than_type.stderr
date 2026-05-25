@@ -1,0 +1,11 @@
+error: The default value '68719476735' exceeds the maximum value for the specified '32 bits (4294967295)'.
+ --> tests/compile_error_cases/errors/bitfield_field_default_bigger_than_type.rs:5:22
+  |
+5 |     #[bits(default = 0xFFFFFFFFF)]
+  |                      ^^^^^^^^^^^
+
+error: The default value '4294967295' exceeds the maximum value for the specified '16 bits (65535)'.
+  --> tests/compile_error_cases/errors/bitfield_field_default_bigger_than_type.rs:11:22
+   |
+11 |     #[bits(default = 0xFFFFFFFF)]
+   |                      ^^^^^^^^^^

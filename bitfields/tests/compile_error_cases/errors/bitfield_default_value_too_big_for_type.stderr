@@ -1,0 +1,41 @@
+error: The `isize` and `usize` types are not supported, we cannot guarantee their size at runtime. Switch to a sized integer type like `u8`, `i16`, etc.,
+ --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:6:8
+  |
+6 |     a: isize,
+  |        ^^^^^
+
+error: The negative default value '-129' is below the minimum value for the specified '8 bits (-128)'.
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:11:25
+   |
+11 |     #[bits(8, default = -129)]
+   |                         ^^^^
+
+error: The negative default value '-32769' is below the minimum value for the specified '16 bits (-32768)'.
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:17:26
+   |
+17 |     #[bits(16, default = -32769)]
+   |                          ^^^^^^
+
+error: The negative default value '-2147483649' is below the minimum value for the specified '32 bits (-2147483648)'.
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:23:26
+   |
+23 |     #[bits(32, default = -2147483649)]
+   |                          ^^^^^^^^^^^
+
+error: The negative default value '-9223372036854775809' is below the minimum value for the specified '64 bits (-9223372036854775808)'.
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:29:26
+   |
+29 |     #[bits(64, default = -9223372036854775809)]
+   |                          ^^^^^^^^^^^^^^^^^^^^
+
+error: The `isize` and `usize` types are not supported, we cannot guarantee their size at runtime. Switch to a sized integer type like `u8`, `i16`, etc.,
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:42:8
+   |
+42 |     a: isize,
+   |        ^^^^^
+
+error: The `isize` and `usize` types are not supported, we cannot guarantee their size at runtime. Switch to a sized integer type like `u8`, `i16`, etc.,
+  --> tests/compile_error_cases/errors/bitfield_default_value_too_big_for_type.rs:48:8
+   |
+48 |     a: isize,
+   |        ^^^^^

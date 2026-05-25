@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/compile_error_cases/errors/bitfield_from_trait_data_type_to_bitfield_disabled.rs:12:39
+   |
+12 |     let _b: Bitfield = Bitfield::from(0u64);
+   |                        -------------- ^^^^ expected `Bitfield`, found `u64`
+   |                        |
+   |                        arguments to this function are incorrect
+   |
+note: associated function defined here
+  --> $RUST/core/src/convert/mod.rs
+   |
+   |     fn from(value: T) -> Self;
+   |        ^^^^
+help: try wrapping the expression in `Bitfield`
+   |
+12 |     let _b: Bitfield = Bitfield::from(Bitfield(0u64));
+   |                                       +++++++++    +

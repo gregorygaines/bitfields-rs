@@ -1,0 +1,5 @@
+error: The total bits of the fields (64 bits) exceeds the bit size of the bitfield type (32 bits).
+ --> tests/compile_error_cases/errors/bitfield_msb_field_bits_too_large.rs:6:5
+  |
+6 |     b: u32
+  |     ^^^^^^

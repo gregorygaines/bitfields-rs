@@ -1,0 +1,5 @@
+error: Bitflag variant 'A' must have an explicit value (e.g. `A = 0b0001`).
+ --> tests/compile_error_cases/errors/bitflag_variant_without_explicit_value.rs:7:5
+  |
+7 |     A,
+  |     ^

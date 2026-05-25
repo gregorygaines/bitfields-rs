@@ -1,0 +1,5 @@
+error: Array fields can only have `u8` as their element type.
+ --> tests/compile_error_cases/errors/array_fields/array_field_non_u8_element_type.rs:5:8
+  |
+5 |     a: [u16; 2],
+  |        ^^^^^^^^

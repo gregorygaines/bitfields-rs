@@ -1,0 +1,25 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+name: Big Endian Machine Test
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  miri:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v6
+      - run: rustup toolchain install nightly --component miri
+      - run: rustup override set nightly
+      - run: cargo miri setup
+      - run: cargo miri test --all --target s390x-unknown-linux-gnu

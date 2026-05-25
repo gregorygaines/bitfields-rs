@@ -1,0 +1,5 @@
+error: Invalid bit count, expected an unsigned integer without a suffix.
+ --> tests/compile_error_cases/errors/bitfield_field_bits_with_suffix.rs:5:12
+  |
+5 |     #[bits(8u8)]
+  |            ^^^

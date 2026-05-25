@@ -1,0 +1,5 @@
+error: Invalid bit count, expected an unsigned integer.
+ --> tests/compile_error_cases/errors/bitfield_negative_field_bits.rs:5:12
+  |
+5 |     #[bits(-1)]
+  |            ^

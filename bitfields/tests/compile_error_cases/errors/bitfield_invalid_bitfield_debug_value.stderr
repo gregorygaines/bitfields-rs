@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'debug'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_debug_value.rs:3:25
+  |
+3 | #[bitfield(u32, debug = 123)]
+  |                         ^^^
+
+error: Invalid value for boolean argument 'debug'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_debug_value.rs:9:25
+  |
+9 | #[bitfield(u32, debug = invalid)]
+  |                         ^^^^^^^

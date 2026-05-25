@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'clear_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_clear_bit_ops_value.rs:3:33
+  |
+3 | #[bitfield(u32, clear_bit_ops = 123)]
+  |                                 ^^^
+
+error: Invalid value for boolean argument 'clear_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_clear_bit_ops_value.rs:9:33
+  |
+9 | #[bitfield(u32, clear_bit_ops = invalid)]
+  |                                 ^^^^^^^

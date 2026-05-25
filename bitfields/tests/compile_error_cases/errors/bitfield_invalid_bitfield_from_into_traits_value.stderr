@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'from_traits'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_from_into_traits_value.rs:3:31
+  |
+3 | #[bitfield(u32, from_traits = 123)]
+  |                               ^^^
+
+error: Invalid value for boolean argument 'from_traits'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_from_into_traits_value.rs:9:31
+  |
+9 | #[bitfield(u32, from_traits = invalid)]
+  |                               ^^^^^^^

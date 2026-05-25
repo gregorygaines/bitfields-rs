@@ -1,8 +1,8 @@
 [package]
 name = "bitfields"
-version = "1.0.3"
+version = "2.0.0"
 authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
-description = "Macro for generating flexible bitfields. Useful for low-level code (embedded or emulators)."
+description = "Macro for for generating bitfields from structs and enum bitflags for defining packed binary schemas in low-level systems (e.g. embedded development or emulators)"
 keywords = ["bit" ,"bitfield", "bitfields", "struct"]
 edition = "2021"
 license = "MIT"
@@ -12,7 +12,100 @@ categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 rust-version = "1.83.0"
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "1.0.3" }
+bitfields-impl = { path = "../bitfields_impl", version = "2.0.0" }
 
 [dev-dependencies]
 trybuild = "1.0.116"
+
+# Represents the bitfield arguments the user can enable or disable by default for
+# all bitfields instead of specifying them for each bitfield.
+[features]
+default = [
+    "bitfields-impl/default",
+    # Mirror the bitfields-impl defaults so that cfg(feature = "…") checks in
+    # downstream code and integration tests reflect the real active set.
+    "order_lsb",
+    "generate_new",
+    "generate_from_into_bits",
+    "from_endian_big",
+    "into_endian_big",
+    "generate_from_traits",
+    "generate_default",
+    "generate_debug",
+    "derive_copy",
+    "generate_bit_ops",
+    "generate_write_bit_ops",
+    "write_endian_big",
+    "generate_clear_bit_ops",
+    "generate_set_get_bit_ops",
+    "generate_invert_bit_ops",
+    "generate_toggle_bit_ops",
+    "generate_builder",
+    "bitflag_from_endian_big",
+    "bitflag_into_endian_big",
+    "bitflag_derive_copy",
+    "disable_array_heap",
+]
+
+order_lsb = []
+order_msb = []
+
+generate_new = []
+disable_new = []
+
+generate_from_into_bits = []
+disable_from_into_bits = []
+
+from_endian_little = []
+from_endian_big = []
+
+into_endian_little = []
+into_endian_big = []
+
+generate_from_traits = []
+disable_from_traits = []
+
+generate_default = []
+disable_default = []
+
+generate_debug = []
+disable_debug = []
+
+derive_copy = []
+disable_copy = []
+
+generate_bit_ops = []
+disable_bit_ops = []
+
+generate_write_bit_ops = []
+disable_write_bit_ops = []
+
+write_endian_little = []
+write_endian_big = []
+
+generate_clear_bit_ops = []
+disable_clear_bit_ops = []
+
+generate_set_get_bit_ops = []
+disable_set_get_bit_ops = []
+
+generate_invert_bit_ops = []
+disable_invert_bit_ops = []
+
+generate_toggle_bit_ops = []
+disable_toggle_bit_ops = []
+
+generate_builder = []
+disable_builder = []
+
+enable_array_heap = []
+disable_array_heap = []
+
+bitflag_from_endian_big = []
+bitflag_from_endian_little = []
+
+bitflag_into_endian_big = []
+bitflag_into_endian_little = []
+
+bitflag_derive_copy = []
+bitflag_disable_copy = []

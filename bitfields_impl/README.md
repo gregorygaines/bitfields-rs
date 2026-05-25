@@ -1,3 +1,3 @@
 # Bitfields Impl
 
-The procedural macro implementation for generating bitfields.
+The procedural macro implementation for generating bitfields and bitflags.

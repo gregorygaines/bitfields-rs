@@ -6,5 +6,10 @@ style_edition = "2024"
 newline_style = "Unix"
 wrap_comments = true
 use_small_heuristics = "Max" # "Max" == All granular width settings same as `max_width`.
-group_imports="StdExternalCrate"
-reorder_modules=true
+group_imports = "StdExternalCrate"
+reorder_modules = true
+max_width = 100
+struct_lit_single_line = false
+use_field_init_shorthand = true
+format_strings = true
+match_block_trailing_comma = true

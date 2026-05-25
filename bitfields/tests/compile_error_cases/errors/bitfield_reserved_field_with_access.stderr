@@ -1,0 +1,5 @@
+error: Reserved fields cannot have a defined access.
+ --> tests/compile_error_cases/errors/bitfield_reserved_field_with_access.rs:5:21
+  |
+5 |     #[bits(access = ro)]
+  |                     ^^

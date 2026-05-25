@@ -1,0 +1,5 @@
+error: There can only be one bitflag variant marked as `#[base]`.
+ --> tests/compile_error_cases/errors/bitflag_multiple_base_variants.rs:4:6
+  |
+4 | enum Flags {
+  |      ^^^^^

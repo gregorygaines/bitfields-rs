@@ -1,0 +1,5 @@
+error: The bitfield must have an unsigned integer type as its first argument, 'expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, `dyn`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime' is unsupported.
+ --> tests/compile_error_cases/errors/bitfield_invalid_type.rs:3:12
+  |
+3 | #[bitfield(+--)]
+  |            ^

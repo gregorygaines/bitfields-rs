@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'new'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_boolean_arg.rs:3:23
+  |
+3 | #[bitfield(u32, new = 123)]
+  |                       ^^^
+
+error: Invalid value for boolean argument 'new'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_boolean_arg.rs:9:23
+  |
+9 | #[bitfield(u32, new = invalid)]
+  |                       ^^^^^^^

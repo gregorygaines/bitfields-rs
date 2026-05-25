@@ -1,0 +1,5 @@
+error: Invalid argument, expected an identifier
+ --> tests/compile_error_cases/errors/bitfield_invalid_arg.rs:3:17
+  |
+3 | #[bitfield(u32, +==32 = hello)]
+  |                 ^

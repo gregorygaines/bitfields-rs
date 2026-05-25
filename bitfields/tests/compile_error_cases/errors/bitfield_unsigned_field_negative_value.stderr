@@ -1,0 +1,5 @@
+error: Unsigned fields cannot have negative default values.
+ --> tests/compile_error_cases/errors/bitfield_unsigned_field_negative_value.rs:5:25
+  |
+5 |     #[bits(8, default = -0x1u8)]
+  |                         ^^^^^^

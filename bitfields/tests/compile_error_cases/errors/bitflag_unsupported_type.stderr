@@ -1,0 +1,5 @@
+error: The bitflag attribute must have an unsigned integer type as its first argument, 'i32' is unsupported.
+ --> tests/compile_error_cases/errors/bitflag_unsupported_type.rs:3:11
+  |
+3 | #[bitflag(i32)]
+  |           ^^^

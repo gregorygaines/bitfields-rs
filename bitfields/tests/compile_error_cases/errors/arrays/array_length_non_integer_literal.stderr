@@ -1,0 +1,7 @@
+error: The bitfield must have an unsigned integer type as its first argument.
+ --> tests/compile_error_cases/errors/arrays/array_length_non_integer_literal.rs:5:1
+  |
+5 | #[bitfield([u8; SIZE])]
+  | ^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)

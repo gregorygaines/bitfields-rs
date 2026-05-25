@@ -1,0 +1,5 @@
+error: The negative default value '-90000000' is below the minimum value for the specified '8 bits (-128)'.
+ --> tests/compile_error_cases/errors/bitfield_negative_default_value_too_large_for_bits.rs:5:22
+  |
+5 |     #[bits(default = -90000000)]
+  |                      ^^^^^^^^^

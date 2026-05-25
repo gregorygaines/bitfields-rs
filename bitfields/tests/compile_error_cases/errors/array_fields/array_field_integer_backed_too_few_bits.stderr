@@ -1,0 +1,5 @@
+error: The total number of bits of the fields '16 bits' is less than the number of bits of the bitfield 'u32 (32 bits)', you can add a reserved field (prefixed with '_') to fill the remaining '16 bits'.
+ --> tests/compile_error_cases/errors/array_fields/array_field_integer_backed_too_few_bits.rs:4:12
+  |
+4 | #[bitfield(u32)]
+  |            ^^^

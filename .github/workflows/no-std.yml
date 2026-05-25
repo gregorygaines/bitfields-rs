@@ -7,7 +7,7 @@ on:
       - main
   workflow_dispatch:
 
-name: No-Std Build
+name: No-Std
 
 env:
   RUSTFLAGS: "-Dwarnings"
@@ -15,9 +15,10 @@ env:
 jobs:
   no_std:
     runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: actions/checkout@v6
       - run: cargo install cargo-generate --locked --version 0.23.7
       - run: cargo generate --git https://github.com/gregorygaines/cortex-m-quickstart -n nostd-app
       - run: rustup target add thumbv7em-none-eabihf

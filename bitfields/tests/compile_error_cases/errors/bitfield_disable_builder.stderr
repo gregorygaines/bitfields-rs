@@ -1,0 +1,5 @@
+error[E0433]: cannot find type `BitfieldBuilder` in this scope
+  --> tests/compile_error_cases/errors/bitfield_disable_builder.rs:12:20
+   |
+12 |     let bitfield = BitfieldBuilder::new();
+   |                    ^^^^^^^^^^^^^^^ use of undeclared type `BitfieldBuilder`

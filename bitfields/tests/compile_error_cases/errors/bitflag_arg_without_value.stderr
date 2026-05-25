@@ -1,0 +1,5 @@
+error: Expected '=' after argument
+ --> tests/compile_error_cases/errors/bitflag_arg_without_value.rs:3:15
+  |
+3 | #[bitflag(u8, from_endian)]
+  |               ^^^^^^^^^^^

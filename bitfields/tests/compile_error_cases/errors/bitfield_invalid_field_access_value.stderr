@@ -1,0 +1,11 @@
+error: Invalid field access argument '123'. Valid values are 'ro', 'wo', 'rw', or 'na'.
+ --> tests/compile_error_cases/errors/bitfield_invalid_field_access_value.rs:5:37
+  |
+5 |     #[bits(default = 0x12, access = 123)]
+  |                                     ^^^
+
+error: Invalid field access argument 'invalid'. Valid values are 'ro', 'wo', 'rw', or 'na'.
+  --> tests/compile_error_cases/errors/bitfield_invalid_field_access_value.rs:11:37
+   |
+11 |     #[bits(default = 0x12, access = invalid)]
+   |                                     ^^^^^^^

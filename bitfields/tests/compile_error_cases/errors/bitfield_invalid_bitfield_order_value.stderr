@@ -1,0 +1,11 @@
+error: Invalid order argument '123'. Valid values are 'lsb' or 'msb'.
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_order_value.rs:3:25
+  |
+3 | #[bitfield(u32, order = 123)]
+  |                         ^^^
+
+error: Invalid order argument 'invalid'. Valid values are 'lsb' or 'msb'.
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_order_value.rs:9:25
+  |
+9 | #[bitfield(u32, order = invalid)]
+  |                         ^^^^^^^

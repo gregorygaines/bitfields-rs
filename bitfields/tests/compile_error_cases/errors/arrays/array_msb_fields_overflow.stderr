@@ -1,0 +1,5 @@
+error: The total bits of the fields (24 bits) exceeds the bit size of the bitfield type (16 bits).
+ --> tests/compile_error_cases/errors/arrays/array_msb_fields_overflow.rs:7:5
+  |
+7 |     c: u8,
+  |     ^^^^^

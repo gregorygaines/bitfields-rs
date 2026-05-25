@@ -1,0 +1,5 @@
+error: expected `enum`
+ --> tests/compile_error_cases/errors/bitflag_non_enum.rs:4:5
+  |
+4 | pub struct Flags {
+  |     ^^^^^^

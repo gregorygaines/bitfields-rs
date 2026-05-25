@@ -1,0 +1,5 @@
+error: The default value '4294967295' exceeds the maximum value for the specified '8 bits (255)'.
+ --> tests/compile_error_cases/errors/bitfield_positive_default_value_too_large_for_bits.rs:5:22
+  |
+5 |     #[bits(default = 0xFFFFFFFF)]
+  |                      ^^^^^^^^^^

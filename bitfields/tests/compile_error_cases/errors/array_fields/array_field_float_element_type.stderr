@@ -1,0 +1,5 @@
+error: Floats are not supported as a field type.
+ --> tests/compile_error_cases/errors/array_fields/array_field_float_element_type.rs:5:8
+  |
+5 |     a: [f32; 1],
+  |        ^^^^^^^^

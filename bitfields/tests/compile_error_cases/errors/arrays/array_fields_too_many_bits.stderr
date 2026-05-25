@@ -1,0 +1,5 @@
+error: The total number of bits of the fields '24 bits' is greater than the number of bits of the bitfield '[u8;2] (16 bits)'.
+ --> tests/compile_error_cases/errors/arrays/array_fields_too_many_bits.rs:3:12
+  |
+3 | #[bitfield([u8; 2])]
+  |            ^^^^^^^

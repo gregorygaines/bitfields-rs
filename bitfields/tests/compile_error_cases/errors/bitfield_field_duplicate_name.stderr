@@ -1,0 +1,5 @@
+error: Duplicate field name 'a' found, all fields must have unique names.
+ --> tests/compile_error_cases/errors/bitfield_field_duplicate_name.rs:6:5
+  |
+6 |     a: u8,
+  |     ^^^^^

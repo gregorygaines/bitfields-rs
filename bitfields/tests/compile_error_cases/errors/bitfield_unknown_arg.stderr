@@ -1,0 +1,5 @@
+error: Unknown argument 'deez'. Valid arguments are: 'array_heap', 'bit_ops', 'builder', 'clear_bit_ops', 'copy', 'debug', 'default', 'from_endian', 'from_into_bits', 'from_traits', 'into_endian', 'invert_bit_ops', 'new', 'order', 'set_get_bit_ops', 'toggle_bit_ops', 'write_bit_ops', 'write_endian'.
+ --> tests/compile_error_cases/errors/bitfield_unknown_arg.rs:3:17
+  |
+3 | #[bitfield(u32, deez = what)]
+  |                 ^^^^

@@ -1,0 +1,5 @@
+error: Invalid endian argument 'invalid'. Valid values are 'little' or 'big'.
+ --> tests/compile_error_cases/errors/bitflag_invalid_from_endian_value.rs:3:29
+  |
+3 | #[bitflag(u8, from_endian = invalid)]
+  |                             ^^^^^^^

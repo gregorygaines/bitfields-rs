@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'set_get_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_set_get_bit_ops_value.rs:3:35
+  |
+3 | #[bitfield(u32, set_get_bit_ops = 123)]
+  |                                   ^^^
+
+error: Invalid value for boolean argument 'set_get_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_set_get_bit_ops_value.rs:9:35
+  |
+9 | #[bitfield(u32, set_get_bit_ops = invalid)]
+  |                                   ^^^^^^^

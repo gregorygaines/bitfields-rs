@@ -1,0 +1,11 @@
+error: Invalid endian argument '123'. Valid values are 'little' or 'big'.
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_from_endian_value.rs:3:31
+  |
+3 | #[bitfield(u32, from_endian = 123)]
+  |                               ^^^
+
+error: Invalid endian argument 'invalid'. Valid values are 'little' or 'big'.
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_from_endian_value.rs:9:31
+  |
+9 | #[bitfield(u32, from_endian = invalid)]
+  |                               ^^^^^^^

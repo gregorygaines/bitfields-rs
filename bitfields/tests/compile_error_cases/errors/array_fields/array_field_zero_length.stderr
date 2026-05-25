@@ -1,0 +1,5 @@
+error: Array fields must have a length greater than 0.
+ --> tests/compile_error_cases/errors/array_fields/array_field_zero_length.rs:5:8
+  |
+5 |     a: [u8; 0],
+  |        ^^^^^^^

@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_bit_ops_value.rs:3:27
+  |
+3 | #[bitfield(u32, bit_ops = 123)]
+  |                           ^^^
+
+error: Invalid value for boolean argument 'bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_bit_ops_value.rs:9:27
+  |
+9 | #[bitfield(u32, bit_ops = invalid)]
+  |                           ^^^^^^^

@@ -1,0 +1,5 @@
+error: Unknown argument 'foo'. Valid arguments are: 'copy', 'from_endian', 'into_endian'.
+ --> tests/compile_error_cases/errors/bitflag_unknown_arg.rs:3:15
+  |
+3 | #[bitflag(u8, foo = bar)]
+  |               ^^^

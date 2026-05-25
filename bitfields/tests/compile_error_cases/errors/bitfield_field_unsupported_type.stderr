@@ -1,0 +1,5 @@
+error: A field can only have `#[bits]` attributed custom or integers type.
+ --> tests/compile_error_cases/errors/bitfield_field_unsupported_type.rs:5:8
+  |
+5 |     a: (u8, u8),
+  |        ^^^^^^^^

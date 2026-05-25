@@ -1,0 +1,26 @@
+error: Expected argument value
+ --> tests/compile_error_cases/errors/bitfield_invalid_field_default_path_value.rs:5:20
+  |
+5 |     #[bits(default = create::hello::+=322)]
+  |                    ^
+
+error: Expected argument value
+  --> tests/compile_error_cases/errors/bitfield_invalid_field_default_path_value.rs:11:20
+   |
+11 |     #[bits(default = create::hello::::)]
+   |                    ^
+
+error: expected `,`
+  --> tests/compile_error_cases/errors/bitfield_invalid_field_default_path_value.rs:17:29
+   |
+17 |     #[bits(default = 3create::hello::::)]
+   |                             ^
+
+error[E0606]: casting `&'static str` as `u32` is invalid
+  --> tests/compile_error_cases/errors/bitfield_invalid_field_default_path_value.rs:27:1
+   |
+27 | #[bitfield(u32)]
+   | ^^^^^^^^^^^^^^^^
+   |
+   = help: cast through a raw pointer first
+   = note: this error originates in the attribute macro `bitfield` (in Nightly builds, run with -Z macro-backtrace for more info)

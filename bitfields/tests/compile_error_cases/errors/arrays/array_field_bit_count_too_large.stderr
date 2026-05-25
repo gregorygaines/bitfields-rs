@@ -1,0 +1,5 @@
+error: Bit count '4294967296' is too big, the maximum amount of bits is '4,294,967,295.'
+ --> tests/compile_error_cases/errors/arrays/array_field_bit_count_too_large.rs:5:12
+  |
+5 |     #[bits(4294967296)]
+  |            ^^^^^^^^^^

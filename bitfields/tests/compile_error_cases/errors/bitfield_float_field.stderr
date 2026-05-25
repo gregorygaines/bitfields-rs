@@ -1,0 +1,5 @@
+error: Floats are not supported as a field type.
+ --> tests/compile_error_cases/errors/bitfield_float_field.rs:5:8
+  |
+5 |     a: f32,
+  |        ^^^

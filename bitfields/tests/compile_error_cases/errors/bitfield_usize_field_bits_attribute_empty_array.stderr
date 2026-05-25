@@ -1,0 +1,5 @@
+error: The `isize` and `usize` types are not supported, we cannot guarantee their size at runtime. Switch to a sized integer type like `u8`, `i16`, etc.,
+ --> tests/compile_error_cases/errors/bitfield_usize_field_bits_attribute_empty_array.rs:6:8
+  |
+6 |     a: usize,
+  |        ^^^^^

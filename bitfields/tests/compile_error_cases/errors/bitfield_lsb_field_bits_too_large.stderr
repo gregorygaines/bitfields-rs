@@ -1,0 +1,5 @@
+error: The total number of bits of the fields '64 bits' is greater than the number of bits of the bitfield 'u32 (32 bits)'.
+ --> tests/compile_error_cases/errors/bitfield_lsb_field_bits_too_large.rs:3:12
+  |
+3 | #[bitfield(u32, order = lsb)]
+  |            ^^^

@@ -1,0 +1,11 @@
+error: Invalid value for boolean argument 'toggle_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_toggle_bit_ops_value.rs:3:34
+  |
+3 | #[bitfield(u32, toggle_bit_ops = 123)]
+  |                                  ^^^
+
+error: Invalid value for boolean argument 'toggle_bit_ops'. Valid values are 'true' or 'false'
+ --> tests/compile_error_cases/errors/bitfield_invalid_bitfield_toggle_bit_ops_value.rs:9:34
+  |
+9 | #[bitfield(u32, toggle_bit_ops = invalid)]
+  |                                  ^^^^^^^
