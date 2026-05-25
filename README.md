@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-    <a href="https://github.com/gregorygaines/bitfields-rs"><img src="assets/logo.png" alt="Bitfields" width="160"></a>
+    <a href="https://github.com/gregorygaines/bitfields-rs"><img src="https://raw.githubusercontent.com/gregorygaines/bitfields-rs/refs/heads/main/assets/logo.png" alt="Bitfields" width="160"></a>
   <br>
     Bitfields - Flexible bitfields
   <br>
