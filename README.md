@@ -755,6 +755,9 @@ inaccessible. Meaning the field is always 0, false, or a default value.
 They are useful for reserving the bits of the bitfield, padding fields,
 or for values that are always constant.
 
+If you don't want to give the reserved fields a name, you can use
+`__` as the name for all reserved fields.
+
 ```rust
 use bitfields::bitfield;
 
@@ -767,6 +770,19 @@ struct Bitfield {
     _reserved: u8,
 }
 
+#[bitfield(u16)]
+struct ReservedBitfield {
+    a: u8,
+
+    /// Fills the middle bits of the u16.
+    #[bits(4, default = 0xFF)]
+    __: u8,
+    
+    /// Fils the end bits of the u16.
+    #[bits(4, default = 0xF)]
+    __: u8,
+}
+
 fn main() {
     let bitfield = Bitfield::new();
     assert_eq!(bitfield.a(), 0);
@@ -774,6 +790,13 @@ fn main() {
     // bitfield.set__reserved(0xFF); // Compile error, reserved fields are inaccessible.
     assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted 
     // to bits.
+    
+    let reserved_bitfield = ReservedBitfield::new();
+    assert_eq!(reserved_bitfield.a(), 0);
+    // assert_eq!(reserved_bitfield.__(), 0xFF0); // Compile error, reserved inaccessible.
+    // reserved_bitfield.set__(0xFF); // Compile error, reserved fields are inaccessible.
+    assert_eq!(reserved_bitfield.into_bits(), 0xFF00); // All fields exposed when 
+    // converted to bits.
 }
 ```
 
