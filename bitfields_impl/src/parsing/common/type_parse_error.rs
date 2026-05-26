@@ -20,6 +20,12 @@ pub enum TypeParsingError {
     #[error("Array length must greater than 0")]
     ZeroArrayLength,
 
+    #[error("Invalid array length")]
+    InvalidArrayLength,
+
+    #[error("Array length too large")]
+    ArrayLengthTooLarge,
+
     #[error("unexpected parsing error: {0}")]
     Unexpected(String),
 }

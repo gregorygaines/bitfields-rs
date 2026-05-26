@@ -217,6 +217,15 @@ fn get_field_data_type_spanned_token(
                     field_tokens.ty.span(),
                     "Array fields can only have `u8` as their element type.".to_string(),
                 )),
+                TypeParsingError::InvalidArrayLength => Err(create_user_parsing_compiler_error(
+                    field_tokens.ty.span(),
+                    "Field array length must be a valid unsigned integer literal.",
+                )),
+                TypeParsingError::ArrayLengthTooLarge => Err(create_user_parsing_compiler_error(
+                    field_tokens.ty.span(),
+                    "Field array length is currently capped at 4,294,967,295, please reduce the \
+                     array length.",
+                )),
                 _ => Err(create_user_parsing_compiler_error(
                     field_tokens.ty.span(),
                     "A field can only have `#[bits]` attributed custom or integers type."

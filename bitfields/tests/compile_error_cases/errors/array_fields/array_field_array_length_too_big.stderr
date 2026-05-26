@@ -1,0 +1,5 @@
+error: Field array length is currently capped at 4,294,967,295, please reduce the array length.
+ --> tests/compile_error_cases/errors/array_fields/array_field_array_length_too_big.rs:6:8
+  |
+6 |     a: [u8; 4294967296],
+  |        ^^^^^^^^^^^^^^^^

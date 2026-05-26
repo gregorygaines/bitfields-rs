@@ -73,19 +73,15 @@ impl SpannedDataTypeToken {
 
                 let length = match &type_array.len {
                     syn::Expr::Lit(expr_lit) => match &expr_lit.lit {
-                        syn::Lit::Int(lit_int) => lit_int.base10_parse::<u32>().map_err(|_| {
-                            TypeParsingError::Unexpected("Invalid array length".to_string())
-                        })?,
+                        syn::Lit::Int(lit_int) => lit_int
+                            .base10_parse::<u32>()
+                            .map_err(|_| TypeParsingError::ArrayLengthTooLarge)?,
                         _ => {
-                            return Err(TypeParsingError::Unexpected(
-                                "Array length must be an integer literal".to_string(),
-                            ));
+                            return Err(TypeParsingError::InvalidArrayLength);
                         },
                     },
                     _ => {
-                        return Err(TypeParsingError::Unexpected(
-                            "Array length must be an integer literal".to_string(),
-                        ));
+                        return Err(TypeParsingError::InvalidArrayLength);
                     },
                 };
 

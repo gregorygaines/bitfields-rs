@@ -1,4 +1,4 @@
-error: The bitfield must have an unsigned integer type as its first argument, 'i32' is unsupported.
+error: The bitfield must have an unsigned integer literal as its first argument, 'i32' is unsupported.
  --> tests/compile_error_cases/errors/bitfield_unsupported_type.rs:3:12
   |
 3 | #[bitfield(i32)]

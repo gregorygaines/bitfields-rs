@@ -34,9 +34,9 @@ impl Parse for BitfieldAttribute {
 }
 
 const BITFIELD_ATTRIBUTE_NON_UNSIGNED_INTEGER_FIRST_ARGUMENT_ERROR_MESSAGE: &str =
-    "The bitfield must have an unsigned integer type as its first argument";
+    "The bitfield must have an unsigned integer literal as its first argument";
 const BITFIELD_ATTRIBUTE_FLOAT_FIRST_ARGUMENT_ERROR_MESSAGE: &str =
-    "The bitfield must have an unsigned integer type as its first argument, floats are \
+    "The bitfield must have an unsigned integer literal as its first argument, floats are \
      unsupported.";
 
 impl BitfieldAttribute {
@@ -67,6 +67,14 @@ impl BitfieldAttribute {
                 TypeParsingError::ZeroArrayLength => Err(create_user_parsing_compiler_error(
                     input.span(),
                     "The bitfield array length must be greater than 0.",
+                )),
+                TypeParsingError::InvalidArrayLength => Err(create_user_parsing_compiler_error(
+                    input.span(),
+                    "The bitfield array length must be a valid unsigned integer literal.",
+                )),
+                TypeParsingError::ArrayLengthTooLarge => Err(create_user_parsing_compiler_error(
+                    input.span(),
+                    "The bitfield array length is currently capped at 4,294,967,295, please reduce the array length.",
                 )),
             },
         }
