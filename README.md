@@ -7,7 +7,7 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/gregorygaines/bitfields-rs/actions/workflows/ci.yml"><img src="https://github.com/gregorygaines/bitfields-rs/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/gregorygaines/bitfields-rs/actions/workflows/build.yml"><img src="https://github.com/gregorygaines/bitfields-rs/actions/workflows/build.yml/badge.svg" alt="Build"></a>
   <a href="https://codecov.io/gh/gregorygaines/bitfields-rs" ><img src="https://codecov.io/gh/gregorygaines/bitfields-rs/graph/badge.svg?token=QBGYJGKNQ5" alt="Code Coverage" /></a>
   <a href="https://crates.io/crates/bitfields"><img src="https://img.shields.io/crates/v/bitfields" alt="Version"></a>
   <a href="https://docs.rs/bitfields"><img src="https://docs.rs/bitfields/badge.svg" alt="Docs"></a>
