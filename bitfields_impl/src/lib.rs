@@ -582,7 +582,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     a: u8,
 ///
 ///     /// Fills the middle bits of the u16.
-///     #[bits(4, default = 0xFF)]
+///     #[bits(4, default = 0xF)]
 ///     __: u8,
 ///     
 ///     /// Fils the end bits of the u16.
