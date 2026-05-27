@@ -18,7 +18,7 @@ pub fn parse_bitflag_enum(args: TokenStream, input: TokenStream) -> syn::Result<
         enum_tokens.attrs.iter().map(quote::ToTokens::into_token_stream).collect();
     let visibility = Visibility::new(&enum_tokens.vis);
     let bitflag_attribute = parse_bitflag_attribute(args)?;
-    let name = enum_tokens.ident.to_string();
+    let name_ident = enum_tokens.ident.clone();
     let variants = parse_variants(&enum_tokens.variants)?;
 
     check_base_bitflag_variants(&enum_tokens, &variants)?;
@@ -27,7 +27,7 @@ pub fn parse_bitflag_enum(args: TokenStream, input: TokenStream) -> syn::Result<
         user_attributes_tokens,
         bitflag_attribute.spanned_data_type_token(),
         visibility,
-        name,
+        name_ident,
         variants,
         bitflag_attribute.arguments(),
     ))
@@ -61,7 +61,7 @@ fn parse_variant_helper(variant: &Variant) -> syn::Result<BitflagVariant> {
         .map(quote::ToTokens::into_token_stream)
         .collect();
 
-    let name = variant.ident.to_string();
+    let name_ident = variant.ident.clone();
 
     let value = match variant.discriminant.clone() {
         Some((_, expr)) => {
@@ -74,14 +74,14 @@ fn parse_variant_helper(variant: &Variant) -> syn::Result<BitflagVariant> {
             return Err(create_user_parsing_compiler_error(
                 variant.ident.span(),
                 format!(
-                    "Bitflag variant '{name}' must have an explicit value (e.g. `{name} = \
-                     0b0001`)."
+                    "Bitflag variant '{}' must have an explicit value (e.g. `{} = 0b0001`).",
+                    name_ident, name_ident
                 ),
             ));
         },
     };
 
-    Ok(BitflagVariant::new(user_attributes_tokens, name, value, base, default))
+    Ok(BitflagVariant::new(user_attributes_tokens, name_ident, value, base, default))
 }
 
 fn check_base_bitflag_variants(

@@ -1,6 +1,6 @@
 use getset::{CloneGetters, Getters};
-use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident};
+use proc_macro2::{Ident, TokenStream};
+use quote::ToTokens;
 
 use crate::parsing::bitflags::bitflag_arguments::BitflagArguments;
 use crate::parsing::common::const_expr::ConstExpr;
@@ -20,8 +20,9 @@ pub struct Bitflag {
     /// The visibility of the bitflag.
     visibility: Visibility,
 
-    /// The name of the bitflag.
-    name: String,
+    /// The bitflag ident.
+    #[getset(skip)]
+    name_ident: Ident,
 
     /// The variants of the bitflag.
     variants: Vec<BitflagVariant>,
@@ -32,19 +33,20 @@ pub struct Bitflag {
 
 impl Bitflag {
     /// Creates a new [`Bitflag`] instance.
-    pub const fn new(
+    pub fn new(
         user_attributes_tokens: Vec<TokenStream>,
         spanned_data_type_token: SpannedDataTypeToken,
         visibility: Visibility,
-        name: String,
+        name_ident: Ident,
         variants: Vec<BitflagVariant>,
         arguments: BitflagArguments,
     ) -> Self {
+        let _name = name_ident.to_string();
         Self {
             user_attributes_tokens,
             spanned_data_type_token,
             visibility,
-            name,
+            name_ident,
             variants,
             arguments,
         }
@@ -52,7 +54,7 @@ impl Bitflag {
 
     /// Returns the name as tokens.
     pub fn name_tokens(&self) -> TokenStream {
-        format_ident!("{}", self.name).to_token_stream()
+        self.name_ident.to_token_stream()
     }
 }
 
@@ -63,8 +65,9 @@ pub struct BitflagVariant {
     /// The user defined attributes of the bitflag variant.
     user_attributes_tokens: Vec<TokenStream>,
 
-    /// The name of the bitflag variant.
-    name: String,
+    /// The ident of the bitflag variant.
+    #[getset(skip)]
+    name_ident: Ident,
 
     /// The value of the bitflag variant.
     value: ConstExpr,
@@ -78,16 +81,16 @@ pub struct BitflagVariant {
 
 impl BitflagVariant {
     /// Creates a new [`BitflagVariant`] instance.
-    pub const fn new(
+    pub fn new(
         user_attributes_tokens: Vec<TokenStream>,
-        name: String,
+        name_ident: Ident,
         value: ConstExpr,
         base: bool,
         default: bool,
     ) -> Self {
         Self {
             user_attributes_tokens,
-            name,
+            name_ident,
             value,
             base,
             default,
@@ -96,6 +99,6 @@ impl BitflagVariant {
 
     /// Returns the name as tokens.
     pub fn name_tokens(&self) -> TokenStream {
-        format_ident!("{}", self.name).to_token_stream()
+        self.name_ident.to_token_stream()
     }
 }
