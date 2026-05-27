@@ -1,6 +1,6 @@
 use getset::{CloneGetters, Getters};
-use proc_macro2::TokenStream;
-use quote::{ToTokens, format_ident};
+use proc_macro2::{Ident, TokenStream};
+use quote::ToTokens;
 
 use crate::parsing::bitfields::bitfield_attribute::bitfield_arguments::BitfieldArguments;
 use crate::parsing::bitfields::bits_attribute::bits_arguments::{BitsArguments, FieldAccess};
@@ -21,6 +21,9 @@ pub struct Bitfield {
     /// The name of the bitfield.
     name: String,
 
+    /// The ident of the bitfield
+    name_ident: Ident,
+
     /// The type of the bitfield.
     spanned_data_type_token: SpannedDataTypeToken,
 
@@ -36,19 +39,21 @@ pub struct Bitfield {
 
 impl Bitfield {
     /// Creates a new [`Bitfield`] instance.
-    pub const fn new(
+    pub fn new(
         user_attributes_tokens: Vec<TokenStream>,
         visibility: Visibility,
-        name: String,
+        name_ident: Ident,
         spanned_data_type_token: SpannedDataTypeToken,
         fields: Vec<Field>,
         ignored_fields: Vec<Field>,
         arguments: BitfieldArguments,
     ) -> Self {
+        let name = name_ident.to_string();
         Self {
             user_attributes_tokens,
             visibility,
             name,
+            name_ident,
             spanned_data_type_token,
             fields,
             ignored_fields,
@@ -63,7 +68,7 @@ impl Bitfield {
 
     /// Returns the name as tokens.
     pub fn name_tokens(&self) -> TokenStream {
-        format_ident!("{}", self.name).to_token_stream()
+        self.name_ident.to_token_stream()
     }
 
     pub const fn is_integer_backed(&self) -> bool {
@@ -81,6 +86,10 @@ pub struct Field {
 
     /// The name of the field.
     name: String,
+
+    /// The ident of the field.
+    #[getset(skip)]
+    name_ident: Ident,
 
     /// The type of the field.
     spanned_data_type_token: SpannedDataTypeToken,
@@ -107,9 +116,9 @@ pub struct Field {
 impl Field {
     /// Creates a new `[Field]` instance.
     #[allow(clippy::too_many_arguments)]
-    pub const fn new(
+    pub fn new(
         visibility: Visibility,
-        name: String,
+        name_ident: Ident,
         spanned_data_type_token: SpannedDataTypeToken,
         bits: u32,
         offset: u32,
@@ -118,9 +127,11 @@ impl Field {
         arguments: Option<BitsArguments>,
         ignored: bool,
     ) -> Self {
+        let name = name_ident.to_string();
         Self {
             visibility,
             name,
+            name_ident,
             spanned_data_type_token,
             bits,
             offset,
@@ -144,7 +155,12 @@ impl Field {
 
     /// Returns the name as tokens.
     pub fn name_tokens(&self) -> TokenStream {
-        format_ident!("{}", self.name).to_token_stream()
+        self.name_ident.to_token_stream()
+    }
+
+    /// Returns the name ident.
+    pub fn name_ident(&self) -> &Ident {
+        &self.name_ident
     }
 
     /// Returns if the field has a default value.

@@ -24,14 +24,14 @@ pub fn parse_bitfield_struct(args: TokenStream, input: TokenStream) -> syn::Resu
     let visibility = Visibility::new(&struct_tokens.vis);
     let bitfield_attribute = parse_bitfield_attribute(args)?;
     let parsed_fields = parse_fields(&bitfield_attribute, &visibility, &struct_tokens)?;
-    let name = struct_tokens.ident.to_string();
+    let name_ident = struct_tokens.ident.clone();
 
     check_fields_fit_in_bitfield_type(&bitfield_attribute, &parsed_fields.non_ignored)?;
 
     Ok(Bitfield::new(
         user_attributes_tokens,
         visibility,
-        name,
+        name_ident,
         bitfield_attribute.spanned_data_type_token(),
         parsed_fields.non_ignored,
         parsed_fields.ignored,
@@ -133,11 +133,11 @@ fn parse_field_helper(
 
     let offset = calculate_field_offset(bitfield_attribute, field_tokens, bits, prev_fields)?;
     let access = get_field_access(bits_attribute.as_ref(), reserved)?;
-    let name = field_tokens.ident.as_ref().expect("Expected field identifier").to_string();
+    let name_ident = field_tokens.ident.as_ref().expect("Expected field identifier").clone();
     let arguments = bits_attribute.map(|attr| attr.arguments());
     Ok(Field::new(
         visibility,
-        name,
+        name_ident,
         spanned_data_type_token,
         bits,
         offset,
@@ -151,9 +151,10 @@ fn parse_field_helper(
 fn parse_ignored_field(field_tokens: &syn::Field) -> Field {
     let spanned_data_type_token = SpannedDataTypeToken::new(&field_tokens.ty)
         .expect("Expected field type kind for ignored field");
+    let name_ident = field_tokens.ident.as_ref().expect("Expected field identifier").clone();
     Field::new(
         Visibility::new(&field_tokens.vis),
-        field_tokens.ident.as_ref().expect("Expected field identifier").to_string(),
+        name_ident,
         spanned_data_type_token,
         0,
         0,

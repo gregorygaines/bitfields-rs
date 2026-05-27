@@ -40,7 +40,9 @@ impl Feature for BuilderFeature {
 
 impl BuilderFeature {
     fn generate_builder_feature_tokens(bitfield: &Bitfield) -> TokenStream {
-        let builder_ident_tokens = format_ident!("{}Builder", bitfield.name()).to_token_stream();
+        let builder_ident_tokens =
+            format_ident!("{}Builder", bitfield.name(), span = bitfield.name_ident().span())
+                .to_token_stream();
         let visibility_tokens = bitfield.visibility().to_tokens();
         let bitfield_name_tokens = bitfield.name_tokens();
         let function_modifier_tokens = get_function_modifier_tokens(bitfield);
@@ -140,9 +142,11 @@ impl BuilderFeature {
         let function_modifier_tokens = get_function_modifier_tokens(bitfield);
         let data_type_tokens = field.spanned_data_type_token().to_tokens();
         let builder_setter_name_token_stream =
-            format_ident!("with_{}", field.name()).to_token_stream();
+            format_ident!("with_{}", field.name(), span = field.name_ident().span())
+                .to_token_stream();
         let builder_checked_setter_name_token_stream =
-            format_ident!("checked_with_{}", field.name()).to_token_stream();
+            format_ident!("checked_with_{}", field.name(), span = field.name_ident().span())
+                .to_token_stream();
         let set_bits_logic_tokens = generate_setting_field_from_variable_tokens(
             bitfield, field, /* use_setter= */ true, /* cast_bits= */ true,
             /* check_bit_size= */ false, /* builder_caller= */ true,

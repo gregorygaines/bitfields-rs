@@ -93,7 +93,7 @@ impl ClearBitOpsFeature {
                 let visibility_tokens = bitfield.visibility().to_tokens();
                 let function_modifier_tokens = get_function_modifier_tokens(bitfield);
                 let documentation = Self::get_clear_field_documentation(bitfield, field);
-                let clear_field_ident_tokens = format_ident!("clear_{}", field.name()).to_token_stream();
+                let clear_field_ident_tokens = format_ident!("clear_{}", field.name(), span = field.name_ident().span()).to_token_stream();
                 let clear_field_implementation_tokens =
                     generate_setting_field_to_zero_tokens(bitfield, field);
                 quote! {
@@ -113,7 +113,7 @@ impl ClearBitOpsFeature {
 
         bitfield.fields().iter().filter(|field| field.has_setter()).filter(|field: &&Field| field.has_default_value()).map(|field| {
             let documentation = Self::get_clear_field_documentation(bitfield, field);
-            let clear_field_to_default_ident_tokens =  format_ident!("clear_{}_to_default", field.name()).to_token_stream();
+            let clear_field_to_default_ident_tokens = format_ident!("clear_{}_to_default", field.name(), span = field.name_ident().span()).to_token_stream();
             let clear_field_to_default_implementation_tokens = generate_setting_field_to_default_tokens(bitfield, field);
             quote! {
                 #[doc = #documentation]

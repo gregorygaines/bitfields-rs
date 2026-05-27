@@ -118,7 +118,7 @@ impl InvertBitOpsFeature {
             .map(|field| {
                 let field_setter_ident_tokens = field.setter_ident_tokens();
                 let field_invert_ident_tokens =
-                    format_ident!("invert_{}", field.name()).to_token_stream();
+                    format_ident!("invert_{}", field.name(), span = field.name_ident().span()).to_token_stream();
                 let documentation = Self::get_invert_field_documentation(bitfield, field);
                 let extract_field_bits_from_source_into_variable_tokens =
                     generate_extract_field_bits_from_source_into_variable_tokens(
@@ -154,7 +154,7 @@ impl InvertBitOpsFeature {
             .filter(|field| field.has_getter())
             .map(|field| {
                 let field_inverted_ident_tokens =
-                    format_ident!("{}_inverted", field.name()).to_token_stream();
+                    format_ident!("{}_inverted", field.name(), span = field.name_ident().span()).to_token_stream();
                 let documentation = Self::get_invert_field_documentation(bitfield, field);
                 let value_to_field_tokens = Self::generate_value_to_field_tokens(bitfield, field);
                 let field_data_type_tokens = field.spanned_data_type_token().to_tokens();
