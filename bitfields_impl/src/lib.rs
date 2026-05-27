@@ -561,6 +561,9 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// They are useful for reserving the bits of the bitfield, padding fields,
 /// or for values that are always constant.
 ///
+/// If you don't want to give the reserved fields a name, you can use
+/// `__` as the name for all reserved fields.
+///
 /// ```rust
 /// # use bitfields_impl as bitfields;
 /// use bitfields::bitfield;
@@ -574,6 +577,19 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     _reserved: u8,
 /// }
 ///
+/// #[bitfield(u16)]
+/// struct ReservedBitfield {
+///     a: u8,
+///
+///     /// Fills the middle bits of the u16.
+///     #[bits(4, default = 0xFF)]
+///     __: u8,
+///     
+///     /// Fils the end bits of the u16.
+///     #[bits(4, default = 0xF)]
+///     __: u8,
+/// }
+///
 /// fn main() {
 ///     let bitfield = Bitfield::new();
 ///     assert_eq!(bitfield.a(), 0);
@@ -581,6 +597,13 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     // bitfield.set__reserved(0xFF); // Compile error, reserved fields are inaccessible.
 ///     assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted 
 ///     // to bits.
+///     
+///     let reserved_bitfield = ReservedBitfield::new();
+///     assert_eq!(reserved_bitfield.a(), 0);
+///     // assert_eq!(reserved_bitfield.__(), 0xFF0); // Compile error, reserved inaccessible.
+///     // reserved_bitfield.set__(0xFF); // Compile error, reserved fields are inaccessible.
+///     assert_eq!(reserved_bitfield.into_bits(), 0xFF00); // All fields exposed when 
+///     // converted to bits.
 /// }
 /// ```
 ///
@@ -2060,8 +2083,8 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// #### Global Cargo Feature Flags
 ///
 /// If you find yourself applying the same configuration arguments to many bitfields
-/// in your codebase,
-/// you can set those defaults globally with Cargo features:
+/// in your codebase, you can set those defaults globally by **disabling default 
+/// features** and enabling the corresponding Cargo features:
 ///
 /// - Constructors: `generate_new` / `disable_new`
 /// - From/into functions: `generate_from_into_bits` /
@@ -2082,27 +2105,27 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///   `disable_invert_bit_ops`
 /// - Toggle bit operations: `generate_toggle_bit_ops` /
 ///   `disable_toggle_bit_ops`
+/// - Array heap storage: `enable_array_heap` / `disable_array_heap`
 ///
 /// Endian and order defaults have dedicated feature names:
 ///
-/// - `order_lsb` / `order_msb`
-/// - `from_endian_little` / `from_endian_big`
-/// - `into_endian_little` / `into_endian_big`
-/// - `write_endian_little` / `write_endian_big`
+/// - Bitfield field order: `order_lsb` / `order_msb`
+/// - Bitfield From operations endian: `from_endian_little` / `from_endian_big`
+/// - Bitfield Into operations endian: `into_endian_little` / `into_endian_big`
+/// - Bitfield Write endian: `write_endian_little` / `write_endian_big`
 ///
 /// Bitflags can also be configured globally with the following defaults:
 ///
-/// - `bitflag_from_endian_little` / `bitflag_from_endian_big`
-/// - `bitflag_into_endian_little` / `bitflag_into_endian_big`
-/// - `bitflag_derive_copy` / `bitflag_disable_copy`
-///
-/// Array heap storage can be controlled globally with `enable_array_heap` and
-/// `disable_array_heap`.
+/// - from_bits endian: `bitflag_from_endian_little` / `bitflag_from_endian_big`
+/// - into_bits endian: `bitflag_into_endian_little` / `bitflag_into_endian_big`
+/// - Copy and Clone: `bitflag_derive_copy` / `bitflag_disable_copy`
 ///
 /// ```toml
 /// [dependencies]
 /// bitfields = {
-///     version = "0.1",
+///     version = "2.0.4",
+///     # Default features must be disabled.
+///     default-features = false,
 ///     features = [
 ///         "generate_builder",
 ///         "generate_set_get_bit_ops",

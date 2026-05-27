@@ -26,13 +26,13 @@ systems (e.g. embedded development or emulators).
   exceed 128 bits.
 - Supports **array fields**, which are useful for representing fields that are larger than
   128 bits.
-- Comprehensive testing with over 90% code coverage.
 - Easily create bitflags using enums.
-- No unsafe code, zero-allocations, const functions, no runtime
-  dependencies, and constant memory usage for primitive bitfields.
-- Fully flexible code generation.
-- Supports user-defined custom types and nested bitfields.
 - Usable in `no_std` environments.
+- No unsafe code, zero-allocations, const functions, no runtime dependencies, and constant memory usage for primitive bitfields.
+- Comprehensive testing with over 90% code coverage.
+- Fully flexible code generation.
+- Syntax highlighting on annotated structs and enums.
+- Supports user-defined custom types and nested bitfields.
 - Compile-time checks for types, size, and bounds checking.
 - Supports endian conversion for either little or big endian.
 - Signed fields are treated as 2's complement data types, where you can specify
