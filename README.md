@@ -21,7 +21,7 @@ A Rust crate that provides a procedural macro for generating bitfields from
 structs and enum bitflags for defining packed binary schemas in low-level
 systems (e.g. embedded development or emulators).
 
-### 🛠️ Core Features
+#### 🛠️ Core Features
 
 - **Custom & Nested Bitfield Types**: Supports user-defined types, nested bitfields, and enum-based bitflags.
 - **Bitflags**: Easily define bitflags using enums.
@@ -29,19 +29,19 @@ systems (e.g. embedded development or emulators).
 - **Endianness & Signed Data**: Built-in support for little/big endian conversions and 2's complement signed fields.
 - **Flexible Fields**: Field defaults and ignored fields.
 
-### ⚡ Performance
+#### ⚡ Performance
 
 - **Safe & Lightweight**: No `unsafe`, zero allocations, no runtime dependencies, and constant memory usage for primitive bitfields.
 - **`no_std` Compatible**: Works in embedded and standard library-free environments.
 - **Efficient**: Generates efficient, `const`-friendly code comparable to handwritten implementations.
 
-### 🛡️ Safety & Reliability
+#### 🛡️ Safety & Reliability
 
 - **Compile-Time Validation**: Type, size, and bounds checks are validated at compile time.
 - **Checked Accessors**: Optional checked accesses help catch out-of-bounds errors.
 - **Well Tested**: Comprehensive testing with over 90% code coverage.
 
-### 💻 Developer Experience
+#### 💻 Developer Experience
 
 - **Generated Bit Operations**: Automatically generates operations such as `get`, `set`, and `invert`.
 - **Flexible Code Generation**: Configurable generation for different schema layouts and use cases.
