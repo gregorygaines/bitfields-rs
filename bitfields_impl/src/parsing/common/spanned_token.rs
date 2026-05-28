@@ -1,8 +1,5 @@
 use getset::{CloneGetters, Getters};
-use proc_macro2::{Span, TokenStream};
-use quote::quote;
-
-use crate::parsing::common::to_tokens::ToTokens;
+use proc_macro2::Span;
 
 /// Represents a token and its span for error reporting.
 #[derive(Clone, Debug, Getters, CloneGetters)]
@@ -19,12 +16,5 @@ impl SpannedToken {
             token,
             span,
         }
-    }
-}
-
-impl ToTokens for SpannedToken {
-    fn to_tokens(&self) -> TokenStream {
-        let ty = syn::parse_str::<syn::Type>(&self.token).expect("Expected type");
-        quote! { #ty }
     }
 }
