@@ -21,26 +21,36 @@ A Rust crate that provides a procedural macro for generating bitfields from
 structs and enum bitflags for defining packed binary schemas in low-level
 systems (e.g. embedded development or emulators).
 
-- Efficient and safe code, comparable to handwritten code.
-- Supports **array backed bitfields**, which are useful for large bitfields that
-  exceed 128 bits.
-- Supports **array fields**, which are useful for representing fields that are larger than
-  128 bits.
-- Easily create bitflags using enums.
-- Usable in `no_std` environments.
-- No unsafe code, zero-allocations, const functions, no runtime dependencies, and constant memory usage for primitive bitfields.
-- Comprehensive testing with over 90% code coverage.
-- Fully flexible code generation.
-- Syntax highlighting on annotated structs and enums.
-- Supports user-defined custom types and nested bitfields.
-- Compile-time checks for types, size, and bounds checking.
-- Supports endian conversion for either little or big endian.
-- Signed fields are treated as 2's complement data types, where you can specify
-  the sign bit by the number of bits.
-- Supports field default values.
-- Checked accesses to catch bound errors.
-- Generates bit operations (get/set/invert bits).
-- Ability to ignore fields.
+### 🛠️ Core Features
+
+- **Custom & Nested Bitfield Types**: Supports user-defined types, nested bitfields, and enum-based bitflags.
+- **Bitflags**: Easily define bitflags using enums.
+- **Array Support**: Supports array-backed bitfields and array fields, ideal for representing data exceeding 128 bits.
+- **Endianness & Signed Data**: Built-in support for little/big endian conversions and 2's complement signed fields.
+- **Flexible Fields**: Field defaults and ignored fields.
+
+### ⚡ Performance
+
+- **Safe & Lightweight**: No `unsafe`, zero allocations, no runtime dependencies, and constant memory usage for primitive bitfields.
+- **`no_std` Compatible**: Works in embedded and standard library-free environments.
+- **Efficient**: Generates efficient, `const`-friendly code comparable to handwritten implementations.
+
+### 🛡️ Safety & Reliability
+
+- **Compile-Time Validation**: Type, size, and bounds checks are validated at compile time.
+- **Checked Accessors**: Optional checked accesses help catch out-of-bounds errors.
+- **Well Tested**: Comprehensive testing with over 90% code coverage.
+
+### 💻 Developer Experience
+
+- **Generated Bit Operations**: Automatically generates operations such as `get`, `set`, and `invert`.
+- **Flexible Code Generation**: Configurable generation for different schema layouts and use cases.
+- **Editor-Friendly**: Preserves syntax highlighting on annotated structs and enums.
+- **Documentation & Examples**: Comprehensive documentation that compiles and examples.
+
+- **Powerful Code Generation**: Fully flexible generation that automatically implements standard bit operations (get, set, invert).
+- **Editor Support**: Preserves syntax highlighting on annotated structs and enums.
+- **Comprehensive Documentation**: Detailed docs with examples and guides for all features.
 
 ## 📖 Table of Contents
 
