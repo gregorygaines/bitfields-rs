@@ -48,10 +48,6 @@ systems (e.g. embedded development or emulators).
 - **Editor-Friendly**: Preserves syntax highlighting on annotated structs and enums.
 - **Documentation & Examples**: Comprehensive documentation that compiles and examples.
 
-- **Powerful Code Generation**: Fully flexible generation that automatically implements standard bit operations (get, set, invert).
-- **Editor Support**: Preserves syntax highlighting on annotated structs and enums.
-- **Comprehensive Documentation**: Detailed docs with examples and guides for all features.
-
 ## 📖 Table of Contents
 
 - [Installation](#-installation)
