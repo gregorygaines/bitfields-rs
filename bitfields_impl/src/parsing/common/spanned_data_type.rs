@@ -16,6 +16,7 @@ use crate::parsing::common::type_parse_error::TypeParsingError;
 pub struct SpannedDataTypeToken {
     data_type: DataType,
     spanned_token: SpannedToken,
+    original_type_tokens: TokenStream,
 }
 
 impl SpannedDataTypeToken {
@@ -23,10 +24,12 @@ impl SpannedDataTypeToken {
     pub fn new(syn_type: &Type) -> Result<Self, TypeParsingError> {
         let str_repr = Self::get_syn_type_string(syn_type);
         let data_type = Self::get_data_type(syn_type)?;
+        let original_type_tokens = quote! { #syn_type };
 
         Ok(Self {
             data_type,
             spanned_token: SpannedToken::new(str_repr, syn_type.span()),
+            original_type_tokens,
         })
     }
 
@@ -131,13 +134,13 @@ impl SpannedDataTypeToken {
             };
         }
 
-        self.spanned_token.to_tokens()
+        self.original_type_tokens.clone()
     }
 }
 
 impl ToTokens for SpannedDataTypeToken {
     fn to_tokens(&self) -> TokenStream {
-        self.spanned_token.to_tokens()
+        self.original_type_tokens.clone()
     }
 }
 
