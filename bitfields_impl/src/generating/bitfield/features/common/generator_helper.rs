@@ -381,6 +381,7 @@ pub fn generate_extract_field_bits_from_source_into_variable_tokens(
                     (bits_source == BitsSource::IntegerVariable && cast_bits).then(|| {
                         if matches!(field.spanned_data_type_token().data_type(), DataType::Custom) {
                             quote! {
+                                #[allow(clippy::unnecessary_cast)]
                                 let bits = bits.into_bits() as #bitfield_data_type_tokens;
                             }
                         } else if let DataType::Array {
@@ -672,6 +673,7 @@ fn generate_setting_field_without_setter_tokens(
     if matches!(field.spanned_data_type_token().data_type(), DataType::Custom) {
         return quote! {
             let mask = #bitfield_data_type_tokens::MAX >> (#bitfield_data_type_tokens::BITS - #field_bits_tokens);
+            #[allow(clippy::unnecessary_cast)]
             let field_bits = #value_tokens.into_bits() as #bitfield_data_type_tokens;
             #bitfield_internal_value_ident_tokens = (#bitfield_internal_value_ident_tokens & !(mask << #field_offset_tokens)) | ((field_bits & mask) << #field_offset_tokens);
         };

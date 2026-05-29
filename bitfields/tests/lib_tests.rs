@@ -5659,4 +5659,33 @@ mod tests {
             "clear_bits: _reserved must retain its default 0x78"
         );
     }
+
+    #[test]
+    fn bitfields_into_bits_unnecessary_cast() {
+        #[bitfield(u8)]
+        struct TimerControl {
+            #[bits(5)]
+            __: u8,
+            #[bits(1)]
+            timer_stop: TimerStop,
+            #[bits(2)]
+            clock_select: ClockSelect,
+        }
+
+        #[bitflag(u8)]
+        enum TimerStop {
+            #[base]
+            Stop = 0x0,
+            Start = 0x1,
+        }
+
+        #[bitflag(u8)]
+        enum ClockSelect {
+            #[base]
+            _4096Hz = 0x00,
+            _262144Hz = 0x01,
+            _65536Hz = 0x02,
+            _16384Hz = 0x03,
+        }
+    }
 }
