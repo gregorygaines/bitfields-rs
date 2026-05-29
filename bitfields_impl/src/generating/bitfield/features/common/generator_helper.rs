@@ -266,12 +266,7 @@ pub fn generate_setting_field_from_variable_tokens(
 
     let value_variable_tokens = get_value_variable_tokens(field);
     let set_field_to_extracted_bits_from_variable_tokens = if using_setter {
-        generate_field_setter_call_tokens(
-            bitfield,
-            field,
-            value_variable_tokens,
-            builder_caller,
-        )
+        generate_field_setter_call_tokens(bitfield, field, value_variable_tokens, builder_caller)
     } else {
         generate_setting_field_without_setter_tokens(
             bitfield,
