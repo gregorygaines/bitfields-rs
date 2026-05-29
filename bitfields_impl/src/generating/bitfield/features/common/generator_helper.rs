@@ -148,7 +148,6 @@ pub fn generate_setting_field_to_default_tokens(bitfield: &Bitfield, field: &Fie
             bitfield,
             field,
             field_default_value_tokens,
-            /* check_bit_size= */ false,
             /* builder_caller= */ false,
         );
     }
@@ -210,7 +209,6 @@ pub fn generate_setting_field_to_zero_tokens(bitfield: &Bitfield, field: &Field)
             bitfield,
             field,
             value_tokens,
-            /* check_bit_size= */ false,
             /* builder_caller= */ false,
         )
     } else {
@@ -272,7 +270,6 @@ pub fn generate_setting_field_from_variable_tokens(
             bitfield,
             field,
             value_variable_tokens,
-            /* check_bit_size= */ false,
             builder_caller,
         )
     } else {
@@ -583,7 +580,6 @@ fn generate_field_setter_call_tokens(
     bitfield: &Bitfield,
     field: &Field,
     value_tokens: TokenStream,
-    check_bit_size: bool,
     builder_caller: bool,
 ) -> TokenStream {
     let bitfield_variable_reference = if builder_caller {
@@ -592,11 +588,7 @@ fn generate_field_setter_call_tokens(
         quote! { this }
     };
 
-    let field_setter_ident_tokens = if check_bit_size {
-        field.checked_setter_ident_tokens()
-    } else {
-        field.setter_ident_tokens()
-    };
+    let field_setter_ident_tokens = field.setter_ident_tokens();
 
     match field.spanned_data_type_token().data_type() {
         DataType::Integer(integer_type) => {

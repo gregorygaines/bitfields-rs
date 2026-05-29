@@ -2244,7 +2244,7 @@ mod tests {
     }
 
     #[test]
-    fn bitfield_builder_checked_with() {
+    fn bitfield_builder_read_only_checked_with() {
         #[bitfield(u32)]
         pub struct Bitfield {
             #[bits(2, access = ro)]
