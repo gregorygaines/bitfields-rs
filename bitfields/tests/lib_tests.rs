@@ -1008,6 +1008,87 @@ mod tests {
     }
 
     #[test]
+    fn bitfield_builder_checked_setters_unsigned_overflow() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: u8,
+            #[bits(12)]
+            b: u16,
+            #[bits(8)]
+            c: u8,
+            #[bits(8)]
+            d: u8,
+        }
+
+        let result = BitfieldBuilder::new().checked_with_a(0x10);
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains("Value is too big to fit within the field bits."));
+        let result = BitfieldBuilder::new().checked_with_b(0x1000);
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains("Value is too big to fit within the field bits."));
+        let result = BitfieldBuilder::new()
+            .checked_with_a(0xF)
+            .and_then(|b| b.checked_with_b(0xFFF))
+            .and_then(|b| b.checked_with_c(0xFF))
+            .and_then(|b| b.checked_with_d(0xAB));
+        assert!(result.is_ok());
+        let bitfield = result.unwrap().build();
+        assert_eq!(bitfield.a(), 0xF);
+        assert_eq!(bitfield.b(), 0xFFF);
+        assert_eq!(bitfield.c(), 0xFF);
+        assert_eq!(bitfield.d(), 0xAB);
+    }
+
+    #[test]
+    fn bitfield_builder_checked_setters_signed_overflow() {
+        #[bitfield(u32)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: i8,
+            #[bits(12)]
+            b: i16,
+            #[bits(16)]
+            c: i16,
+        }
+
+        let result = BitfieldBuilder::new().checked_with_a(8);
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains("Value is too big to fit within the field bits."));
+        let result = BitfieldBuilder::new().checked_with_a(-9);
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains("Value is too big to fit within the field bits."));
+        let result = BitfieldBuilder::new().checked_with_b(2048);
+        assert!(result.is_err());
+        assert!(result.err().unwrap().contains("Value is too big to fit within the field bits."));
+        let result = BitfieldBuilder::new()
+            .checked_with_a(7)
+            .and_then(|b| b.checked_with_b(-2048))
+            .and_then(|b| b.checked_with_c(-1));
+        assert!(result.is_ok());
+        let bitfield = result.unwrap().build();
+        assert_eq!(bitfield.a(), 7);
+        assert_eq!(bitfield.b(), -2048);
+        assert_eq!(bitfield.c(), -1);
+    }
+
+    #[test]
+    fn bitfield_builder_unchecked_setters_truncate() {
+        #[bitfield(u16)]
+        pub struct Bitfield {
+            #[bits(4)]
+            a: u8,
+            #[bits(4)]
+            b: u8,
+            #[bits(8)]
+            c: u8,
+        }
+
+        let bitfield = BitfieldBuilder::new().with_a(0x1F).with_b(0x0).with_c(0x00).build();
+        assert_eq!(bitfield.a(), 0xF);
+    }
+
+    #[test]
     fn bitfield_from_bits() {
         #[bitfield(u32)]
         pub struct Bitfield {

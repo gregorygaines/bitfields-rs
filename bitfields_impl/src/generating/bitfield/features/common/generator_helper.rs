@@ -148,6 +148,7 @@ pub fn generate_setting_field_to_default_tokens(bitfield: &Bitfield, field: &Fie
             bitfield,
             field,
             field_default_value_tokens,
+            /* check_bit_size= */ false,
             /* builder_caller= */ false,
         );
     }
@@ -209,6 +210,7 @@ pub fn generate_setting_field_to_zero_tokens(bitfield: &Bitfield, field: &Field)
             bitfield,
             field,
             value_tokens,
+            /* check_bit_size= */ false,
             /* builder_caller= */ false,
         )
     } else {
@@ -240,6 +242,10 @@ pub fn generate_setting_field_from_variable_tokens(
 
     let using_setter = field.has_setter() && use_setter;
 
+    if builder_caller && using_setter {
+        return generate_builder_direct_setter_call_tokens(field, check_bit_size);
+    }
+
     let pre_extract_check_tokens = (!using_setter && check_bit_size && is_signed_integer)
         .then(|| generate_signed_bit_size_check_tokens(field));
 
@@ -262,7 +268,13 @@ pub fn generate_setting_field_from_variable_tokens(
 
     let value_variable_tokens = get_value_variable_tokens(field);
     let set_field_to_extracted_bits_from_variable_tokens = if using_setter {
-        generate_field_setter_call_tokens(bitfield, field, value_variable_tokens, builder_caller)
+        generate_field_setter_call_tokens(
+            bitfield,
+            field,
+            value_variable_tokens,
+            /* check_bit_size= */ false,
+            builder_caller,
+        )
     } else {
         generate_setting_field_without_setter_tokens(
             bitfield,
@@ -277,6 +289,40 @@ pub fn generate_setting_field_from_variable_tokens(
         #extract_field_bits_into_variable_tokens
         #post_extract_check_tokens
         #set_field_to_extracted_bits_from_variable_tokens
+    }
+}
+
+fn generate_builder_direct_setter_call_tokens(field: &Field, check_bit_size: bool) -> TokenStream {
+    let setter_ident = if check_bit_size {
+        field.checked_setter_ident_tokens()
+    } else {
+        field.setter_ident_tokens()
+    };
+
+    let call = match field.spanned_data_type_token().data_type() {
+        // Bool, custom types, and array fields: pass `bits` directly without casting.
+        DataType::Integer(IntegerType::Bool)
+        | DataType::Custom
+        | DataType::Array {
+            ..
+        } => {
+            quote! { self.this.#setter_ident(bits) }
+        },
+        // Integer fields: use `as _` cast (identity when bits is already the right type).
+        DataType::Integer(_) => {
+            quote! { self.this.#setter_ident(bits as _) }
+        },
+    };
+
+    if check_bit_size {
+        quote! {
+            match #call {
+                Ok(()) => {},
+                Err(e) => return Err(e),
+            }
+        }
+    } else {
+        quote! { #call; }
     }
 }
 
@@ -537,14 +583,19 @@ fn generate_field_setter_call_tokens(
     bitfield: &Bitfield,
     field: &Field,
     value_tokens: TokenStream,
+    check_bit_size: bool,
     builder_caller: bool,
 ) -> TokenStream {
-    let field_setter_ident_tokens = field.setter_ident_tokens();
-
     let bitfield_variable_reference = if builder_caller {
         quote! { self.this }
     } else {
         quote! { this }
+    };
+
+    let field_setter_ident_tokens = if check_bit_size {
+        field.checked_setter_ident_tokens()
+    } else {
+        field.setter_ident_tokens()
     };
 
     match field.spanned_data_type_token().data_type() {
