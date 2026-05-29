@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "bitfields"
-version = "2.0.7"
+version = "2.0.8"
 dependencies = [
  "bitfields-impl",
  "trybuild",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "bitfields-impl"
-version = "2.0.7"
+version = "2.0.8"
 dependencies = [
  "derive_more",
  "getset",

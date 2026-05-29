@@ -1,6 +1,6 @@
 [package]
 name = "bitfields"
-version = "2.0.7"
+version = "2.0.8"
 authors = ["Gregory Gaines <gainesagregory@gmail.com>"]
 description = "Macro for for generating bitfields from structs and enum bitflags for defining packed binary schemas in low-level systems (e.g. embedded development or emulators)"
 keywords = ["bit" ,"bitfield", "bitfields", "struct"]
@@ -12,7 +12,7 @@ categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
 rust-version = "1.83.0"
 
 [dependencies]
-bitfields-impl = { path = "../bitfields_impl", version = "2.0.7" }
+bitfields-impl = { path = "../bitfields_impl", version = "2.0.8" }
 
 [dev-dependencies]
 trybuild = "1.0.116"
