@@ -106,7 +106,7 @@ impl BitfieldStructFeatureGenerator {
     fn get_backing_field_type_tokens(bitfield: &Bitfield) -> TokenStream {
         let inner = bitfield.spanned_data_type_token().to_tokens();
         if bitfield.arguments().array_heap() && !bitfield.is_integer_backed() {
-            quote! { ::alloc::boxed::Box<#inner> }
+            quote! { ::std::boxed::Box<#inner> }
         } else {
             inner
         }
