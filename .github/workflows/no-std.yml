@@ -25,4 +25,41 @@ jobs:
       - run: |
           cd nostd-app
           cargo add bitfields --path ../bitfields --package nostd-app
+      - run: |
+          cat > nostd-app/src/main.rs << 'EOF'
+          #![no_std]
+          #![no_main]
+
+          use bitfields::{bitfield, bitflag};
+
+          // pick a panicking behavior
+          use panic_halt as _; // you can put a breakpoint on `rust_begin_unwind` to catch panics
+          // use panic_abort as _; // requires nightly
+          // use panic_itm as _; // logs messages over ITM; requires ITM support
+          // use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
+
+          use cortex_m_rt::entry;
+
+          #[entry]
+          fn main() -> ! {
+              loop {
+                  #[bitfield(u32)]
+                  pub struct Bitfield {
+                      a: u8,
+                      b: u8,
+                      c: u8,
+                      d: u8,
+                  }
+
+                  #[bitflag(u8)]
+                  #[derive(Debug, PartialEq)]
+                  enum Flags {
+                      #[base]
+                      Unknown = 0,
+                      A = 1,
+                      B = 2,
+                  }
+              }
+          }
+          EOF
       - run: cargo build --target thumbv7em-none-eabihf
