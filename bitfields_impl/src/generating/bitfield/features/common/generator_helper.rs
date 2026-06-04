@@ -57,7 +57,7 @@ pub fn generate_bitfield_struct_initialization_tokens(
             let length = length as usize;
             if bitfield.arguments().array_heap() {
                 quote! {
-                    ::std::boxed::Box::new([0u8; #length])
+                    ::alloc::boxed::Box::new([0u8; #length])
                 }
             } else {
                 quote! {

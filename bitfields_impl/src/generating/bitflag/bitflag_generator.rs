@@ -40,7 +40,7 @@ fn generate_repr_tokens(bitflag: &Bitflag) -> TokenStream {
 fn generate_copy_derive_tokens(bitflag: &Bitflag) -> TokenStream {
     if bitflag.arguments().derive_copy() {
         quote! {
-            #[derive(std::marker::Copy, core::clone::Clone)]
+            #[derive(core::marker::Copy, core::clone::Clone)]
         }
     } else {
         quote! {}
