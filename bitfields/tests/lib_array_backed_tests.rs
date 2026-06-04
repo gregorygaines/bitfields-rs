@@ -4977,4 +4977,38 @@ mod tests {
             "clear_bytes: _reserved must retain its default 0x78"
         );
     }
+
+    #[test]
+    fn bitfield_array_heap_std_true() {
+        #[bitfield([u8; 4], array_heap_std = true)]
+        struct Bitfield {
+            a: u8,
+            b: u8,
+            c: u8,
+            d: u8,
+        }
+
+        let bitfield = Bitfield::from_slice(&[0x11, 0x22, 0x33, 0x44]);
+        assert_eq!(bitfield.a(), 0x44);
+        assert_eq!(bitfield.b(), 0x33);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.d(), 0x11);
+    }
+
+    #[test]
+    fn bitfield_array_heap_std_false() {
+        #[bitfield([u8; 4], array_heap_std = false)]
+        struct Bitfield {
+            a: u8,
+            b: u8,
+            c: u8,
+            d: u8,
+        }
+
+        let bitfield = Bitfield::from_slice(&[0x11, 0x22, 0x33, 0x44]);
+        assert_eq!(bitfield.a(), 0x44);
+        assert_eq!(bitfield.b(), 0x33);
+        assert_eq!(bitfield.c(), 0x22);
+        assert_eq!(bitfield.d(), 0x11);
+    }
 }
