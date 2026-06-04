@@ -25,6 +25,7 @@ jobs:
       - run: |
           cd nostd-app
           cargo add bitfields --path ../bitfields --package nostd-app
+          cargo add buddy_system_allocator --path ../buddy_system_allocator --package nostd-app
       - run: |
           cat > nostd-app/src/main.rs << 'EOF'
           #![no_std]
@@ -39,7 +40,11 @@ jobs:
           // use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
 
           use cortex_m_rt::entry;
+          use buddy_system_allocator::LockedHeap;
           extern crate alloc;
+          
+          #[global_allocator]
+          static HEAP_ALLOCATOR: LockedHeap<32> = LockedHeap::empty();
 
           #[entry]
           fn main() -> ! {
