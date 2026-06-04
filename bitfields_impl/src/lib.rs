@@ -2133,7 +2133,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// ```toml
 /// [dependencies]
 /// bitfields = {
-///     version = "2.0.8",
+///     version = "3.0.0",
 ///     # Default features must be disabled.
 ///     default-features = false,
 ///     features = [
