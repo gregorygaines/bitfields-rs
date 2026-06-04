@@ -25,7 +25,7 @@ jobs:
       - run: |
           cd nostd-app
           cargo add bitfields --path ../bitfields --package nostd-app
-          cargo add buddy_system_allocator --path ../buddy_system_allocator --package nostd-app
+          cargo add buddy_system_allocator --package nostd-app
       - run: |
           cat > nostd-app/src/main.rs << 'EOF'
           #![no_std]
