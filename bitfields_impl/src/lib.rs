@@ -44,10 +44,11 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// field bits must add up to the exact number of bits of the bitfield type.
 ///
 /// If you have an array backed bitfield that may overflow the stack, you can pass
-/// the optional argument `#[bitfield(array_heap = true)]` to the bitfield, which
-/// will box the array on the heap instead of the stack. Keep in mind that you
-/// **lose constant memory, zero-allocation, and no_std guarantees when using heap
-/// array bitfields**.
+/// the optional argument `#[bitfield(array_heap_std = true)]` or
+/// `#[bitfield(array_heap_no_std = true)]` (depending on your environment) to the
+/// bitfield, which will box the array on the heap instead of the stack. Keep in
+/// mind that you **lose constant memory and zero-allocation when using heap array
+/// bitfields**.
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;
@@ -59,8 +60,9 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     b: u8,
 /// }
 ///
-/// #[bitfield([u8; 96], array_heap = true
-/// )] /// Allocated on the heap, 768 bits (96 bytes).
+/// #[bitfield(
+///   [u8; 96], array_heap_std = true)
+/// ] /// Allocated on the heap, 768 bits (96 bytes).
 /// struct HeapArrayBitfield {
 ///     a: u128,
 ///     b: u128,
@@ -167,7 +169,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///
 /// Fields can have a default value, which must fit in the field type or the
 /// specified bits of the field. A default value must be a const variable or
-/// a const function. Just be aware that const function and variable 
+/// a const function. Just be aware that const function and variable
 /// defaults lose their compile-time field size checks, so it's
 /// up to you to make sure they fit.
 ///
@@ -214,7 +216,8 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///
 /// A bitfield can have signed (`i8`, `i16`, `i32`, `i64`, `i128`) types. Signed
 /// types are treated as 2's complement data types, where the most significant bit
-/// representing the sign bit. For example, if you had a field with 5 bits, the value
+/// representing the sign bit. For example, if you had a field with 5 bits, the
+/// value
 /// range would be `-16` to `15`. The more bits you include, the larger the range!
 ///
 /// ```rust
@@ -322,7 +325,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///   fields. But use a **reserved field** when you want to pad/fill bits that have
 ///   no user-facing identity (hardware reserved bits, alignment gaps). Use
 ///   **`access = na`** when the field is a real, named field that you want to
-///   completely lock down from the API while still keeping it distinguishable 
+///   completely lock down from the API while still keeping it distinguishable
 ///   by name. Later on, if you want to expose the field, you can just change
 ///   the access level without having to change the field name.
 ///
@@ -584,7 +587,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     /// Fills the middle bits of the u16.
 ///     #[bits(4, default = 0xF)]
 ///     __: u8,
-///     
+///
 ///     /// Fils the end bits of the u16.
 ///     #[bits(4, default = 0xF)]
 ///     __: u8,
@@ -597,7 +600,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     // bitfield.set__reserved(0xFF); // Compile error, reserved fields are inaccessible.
 ///     assert_eq!(bitfield.into_bits(), 0xFF00); // All fields exposed when converted 
 ///     // to bits.
-///     
+///
 ///     let reserved_bitfield = ReservedBitfield::new();
 ///     assert_eq!(reserved_bitfield.a(), 0);
 ///     // assert_eq!(reserved_bitfield.__(), 0xFF0); // Compile error, reserved inaccessible.
@@ -617,8 +620,10 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// automatically.
 ///
 /// Bitflags only supports unsigned types (`u8`, `u16`, `u32`, `u64`, `u128`) and
-/// the one of the variants must be annotated with `#[base]` or `#[default]` which represents the
-/// base value of the bitflag. If `#[base]` and `#[default]` are both present, `#[base]` takes precedence.
+/// the one of the variants must be annotated with `#[base]` or `#[default]` which
+/// represents the
+/// base value of the bitflag. If `#[base]` and `#[default]` are both present,
+/// `#[base]` takes precedence.
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;
@@ -697,7 +702,8 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///
 /// #### Bitflag Configuration
 ///
-/// Bitflags can be configured with arguments passed to the `#[bitflag(...)]` attribute (the first argument is always the backing unsigned integer type):
+/// Bitflags can be configured with arguments passed to the `#[bitflag(...)]`
+/// attribute (the first argument is always the backing unsigned integer type):
 ///
 /// | Argument         | Values                            | Default  | Description                                                                                          |
 /// |------------------|-----------------------------------|----------|------------------------------------------------------------------------------------------------------|
@@ -1097,7 +1103,8 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// Sometimes the outside world is outside our control, like the endianness of how
 /// systems export data. Luckily, the endianness of the bitfield conversions can
 /// be controlled by specifying the `#[bitfield(from_endian = N, into_endian = N)]`
-/// args. The possible endianness options are `little` or `big`. By default, the endianness
+/// args. The possible endianness options are `little` or `big`. By default, the
+/// endianness
 /// of both is `big`.
 ///
 /// This arg controls the endianness of the `from`, `into`, and `From` trait
@@ -1996,34 +2003,35 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     set_get_bit_ops = true,
 ///     invert_bit_ops = true,
 ///     toggle_bit_ops = true,
-///     array_heap = false,
+///     array_heap_std = false,
 /// )]
 /// struct Example {
 ///     a: u32,
 /// }
 /// ```
 ///
-/// | Argument          | Values                                          | Default  | Description                                                                                                                                                                                                                                                                                                      |
-/// |-------------------|-------------------------------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-/// | `<backing type>`  | `u8`, `u16`, `u32`, `u64`, `u128`, or `[u8; N]` | Required | The storage used by the generated bitfield. Primitive backing types support bitfields up to 128 bits. `[u8; N]` creates an array-backed bitfield for larger layouts. Field bit widths, excluding ignored fields, must add up exactly to the backing storage size.                                                |
-/// | `order`           | `lsb`, `msb`                                    | `lsb`    | Controls how struct fields are assigned to bit offsets. `lsb` assigns the first non-ignored field to the least-significant bits. `msb` assigns the first non-ignored field to the most-significant bits.                                                                                                         |
-/// | `from_endian`     | `big`, `little`                                 | `big`    | Default endian used by `from_bits`, `from_bytes`, `from_slice`, and `From<Backing> for Bitfield`. Explicit helpers such as `from_le_bits` and `from_be_bytes` ignore this setting.                                                                                                                               |
-/// | `into_endian`     | `big`, `little`                                 | `big`    | Default endian used by `into_bits`, `into_bytes`, `into_slice`, and `From<Bitfield> for Backing`. Explicit helpers such as `into_le_bits` and `into_be_bytes` ignore this setting.                                                                                                                               |
-/// | `write_endian`    | `big`, `little`                                 | `big`    | Default endian used by whole-bitfield write helpers such as `write_bits` and `write_bytes`. Explicit helpers such as `write_le_bits` and `write_be_bytes` ignore this setting.                                                                                                                                   |
-/// | `new`             | `true`, `false`                                 | `true`   | Generates `new()` and `new_without_defaults()` constructors. Other generated features that need construction logic, such as `Default` and the builder, still inline equivalent initialization logic when this is disabled.                                                                                       |
-/// | `from_into_bits`  | `true`, `false`                                 | `true`   | Generates backing-data conversion functions. Primitive bitfields get `from_bits`, `from_bits_with_defaults`, endian-specific `from_*_bits` helpers, `into_bits`, and endian-specific `into_*_bits` helpers. Array-backed bitfields get the corresponding `bytes` and `slice` APIs.                               |
-/// | `from_traits`     | `true`, `false`                                 | `true`   | Generates `From<Backing> for Bitfield` and `From<Bitfield> for Backing`. These conversions use `from_endian` and `into_endian`.                                                                                                                                                                                  |
-/// | `default`         | `true`, `false`                                 | `true`   | Generates `Default` for the bitfield. The default value is equivalent to `new()`: zero-initialized storage with field defaults applied.                                                                                                                                                                          |
-/// | `debug`           | `true`, `false`                                 | `true`   | Generates `core::fmt::Debug` for the bitfield. The implementation prints readable fields and their values.                                                                                                                                                                                                       |
-/// | `copy`            | `true`, `false`                                 | `true`   | Derives `Copy` and `Clone` for primitive and stack array-backed bitfields. Heap array-backed bitfields derive `Clone` only because `Box<[u8; N]>` is not `Copy`.                                                                                                                                                 |
-/// | `builder`         | `true`, `false`                                 | `true`   | Generates the `<Bitfield>Builder` type, `new`, `new_without_defaults`, `with_<field>`, `checked_with_<field>`, and `build`. Reserved fields do not get builder setters.                                                                                                                                          |
-/// | `bit_ops`         | `true`, `false`                                 | `true`   | Master switch for bit operation groups. When `false`, all bit operation groups are disabled unless a specific bit operation group is explicitly set to `true`.                                                                                                                                                   |
-/// | `write_bit_ops`   | `true`, `false`                                 | `true`   | Generates whole-bitfield write helpers such as `write_bits`, `write_bits_with_defaults`, `write_le_bits`, `write_be_bits`, and `write_defaults` for primitive bitfields, or the corresponding `bytes` helpers for array-backed bitfields.                                                                        |
-/// | `clear_bit_ops`   | `true`, `false`                                 | `true`   | Generates whole-bitfield clear helpers such as `clear_bits` / `clear_bytes`, `clear_bits_with_defaults` / `clear_bytes_with_defaults`, plus per-field helpers like `clear_<field>()` and `clear_<field>_to_default()`.                                                                                           |
-/// | `set_get_bit_ops` | `true`, `false`                                 | `true`   | Generates individual bit helpers (`get_bit`, `checked_get_bit`, `set_bit`, `checked_set_bit`) and range helpers (`get_bits_range` / `set_bits_range` for primitive bitfields, `get_bytes_range` / `set_bytes_range` for array-backed bitfields, plus checked variants).                                          |
-/// | `invert_bit_ops`  | `true`, `false`                                 | `true`   | Generates inversion helpers such as `invert_bits` / `invert_bytes`, per-field `invert_<field>()`, and readable-field `<field>_inverted()` getters.                                                                                                                                                               |
-/// | `toggle_bit_ops`  | `true`, `false`                                 | `true`   | Accepted as a bit-operation group flag for configuration compatibility. In this version, there are no separate `toggle_*` APIs; use the generated invert helpers to toggle bits.                                                                                                                                 |
-/// | `array_heap`      | `true`, `false`                                 | `false`  | For array-backed bitfields only, stores the backing `[u8; N]` in a `Box` instead of inline in the struct. This helps avoid large stack values but requires heap allocation and therefore gives up the zero-allocation and `no_std` guarantees for that bitfield. It has no effect on primitive-backed bitfields. |
+/// | Argument            | Values                                          | Default  | Description                                                                                                                                                                                                                                                                                                                |
+/// |---------------------|-------------------------------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+/// | `<backing type>`    | `u8`, `u16`, `u32`, `u64`, `u128`, or `[u8; N]` | Required | The storage used by the generated bitfield. Primitive backing types support bitfields up to 128 bits. `[u8; N]` creates an array-backed bitfield for larger layouts. Field bit widths, excluding ignored fields, must add up exactly to the backing storage size.                                                          |
+/// | `order`             | `lsb`, `msb`                                    | `lsb`    | Controls how struct fields are assigned to bit offsets. `lsb` assigns the first non-ignored field to the least-significant bits. `msb` assigns the first non-ignored field to the most-significant bits.                                                                                                                   |
+/// | `from_endian`       | `big`, `little`                                 | `big`    | Default endian used by `from_bits`, `from_bytes`, `from_slice`, and `From<Backing> for Bitfield`. Explicit helpers such as `from_le_bits` and `from_be_bytes` ignore this setting.                                                                                                                                         |
+/// | `into_endian`       | `big`, `little`                                 | `big`    | Default endian used by `into_bits`, `into_bytes`, `into_slice`, and `From<Bitfield> for Backing`. Explicit helpers such as `into_le_bits` and `into_be_bytes` ignore this setting.                                                                                                                                         |
+/// | `write_endian`      | `big`, `little`                                 | `big`    | Default endian used by whole-bitfield write helpers such as `write_bits` and `write_bytes`. Explicit helpers such as `write_le_bits` and `write_be_bytes` ignore this setting.                                                                                                                                             |
+/// | `new`               | `true`, `false`                                 | `true`   | Generates `new()` and `new_without_defaults()` constructors. Other generated features that need construction logic, such as `Default` and the builder, still inline equivalent initialization logic when this is disabled.                                                                                                 |
+/// | `from_into_bits`    | `true`, `false`                                 | `true`   | Generates backing-data conversion functions. Primitive bitfields get `from_bits`, `from_bits_with_defaults`, endian-specific `from_*_bits` helpers, `into_bits`, and endian-specific `into_*_bits` helpers. Array-backed bitfields get the corresponding `bytes` and `slice` APIs.                                         |
+/// | `from_traits`       | `true`, `false`                                 | `true`   | Generates `From<Backing> for Bitfield` and `From<Bitfield> for Backing`. These conversions use `from_endian` and `into_endian`.                                                                                                                                                                                            |
+/// | `default`           | `true`, `false`                                 | `true`   | Generates `Default` for the bitfield. The default value is equivalent to `new()`: zero-initialized storage with field defaults applied.                                                                                                                                                                                    |
+/// | `debug`             | `true`, `false`                                 | `true`   | Generates `core::fmt::Debug` for the bitfield. The implementation prints readable fields and their values.                                                                                                                                                                                                                 |
+/// | `copy`              | `true`, `false`                                 | `true`   | Derives `Copy` and `Clone` for primitive and stack array-backed bitfields. Heap array-backed bitfields derive `Clone` only because `Box<[u8; N]>` is not `Copy`.                                                                                                                                                           |
+/// | `builder`           | `true`, `false`                                 | `true`   | Generates the `<Bitfield>Builder` type, `new`, `new_without_defaults`, `with_<field>`, `checked_with_<field>`, and `build`. Reserved fields do not get builder setters.                                                                                                                                                    |
+/// | `bit_ops`           | `true`, `false`                                 | `true`   | Master switch for bit operation groups. When `false`, all bit operation groups are disabled unless a specific bit operation group is explicitly set to `true`.                                                                                                                                                             |
+/// | `write_bit_ops`     | `true`, `false`                                 | `true`   | Generates whole-bitfield write helpers such as `write_bits`, `write_bits_with_defaults`, `write_le_bits`, `write_be_bits`, and `write_defaults` for primitive bitfields, or the corresponding `bytes` helpers for array-backed bitfields.                                                                                  |
+/// | `clear_bit_ops`     | `true`, `false`                                 | `true`   | Generates whole-bitfield clear helpers such as `clear_bits` / `clear_bytes`, `clear_bits_with_defaults` / `clear_bytes_with_defaults`, plus per-field helpers like `clear_<field>()` and `clear_<field>_to_default()`.                                                                                                     |
+/// | `set_get_bit_ops`   | `true`, `false`                                 | `true`   | Generates individual bit helpers (`get_bit`, `checked_get_bit`, `set_bit`, `checked_set_bit`) and range helpers (`get_bits_range` / `set_bits_range` for primitive bitfields, `get_bytes_range` / `set_bytes_range` for array-backed bitfields, plus checked variants).                                                    |
+/// | `invert_bit_ops`    | `true`, `false`                                 | `true`   | Generates inversion helpers such as `invert_bits` / `invert_bytes`, per-field `invert_<field>()`, and readable-field `<field>_inverted()` getters.                                                                                                                                                                         |
+/// | `toggle_bit_ops`    | `true`, `false`                                 | `true`   | Accepted as a bit-operation group flag for configuration compatibility. In this version, there are no separate `toggle_*` APIs; use the generated invert helpers to toggle bits.                                                                                                                                           |
+/// | `array_heap_std`    | `true`, `false`                                 | `false`  | For array-backed bitfields only, stores the backing `[u8; N]` in a `Box` instead of inline in the struct. This helps avoid large stack values but requires heap allocation and therefore gives up the zero-allocation and `no_std` guarantees for that bitfield. It has no effect on primitive-backed bitfields.           |
+/// | `array_heap_no_std` | `true`, `false`                                 | `false`  | For array-backed bitfields only, stores the backing `[u8; N]` in a `Box` instead of inline in the struct. This helps avoid large stack values but requires heap allocation and therefore gives up the zero-allocation but **keeps** `no_std` guarantees for that bitfield. It has no effect on primitive-backed bitfields. |
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;
@@ -2083,7 +2091,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// #### Global Cargo Feature Flags
 ///
 /// If you find yourself applying the same configuration arguments to many bitfields
-/// in your codebase, you can set those defaults globally by **disabling default 
+/// in your codebase, you can set those defaults globally by **disabling default
 /// features** and enabling the corresponding Cargo features:
 ///
 /// - Constructors: `generate_new` / `disable_new`
@@ -2105,7 +2113,9 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///   `disable_invert_bit_ops`
 /// - Toggle bit operations: `generate_toggle_bit_ops` /
 ///   `disable_toggle_bit_ops`
-/// - Array heap storage: `enable_array_heap` / `disable_array_heap`
+/// - Array heap std storage: `enable_array_heap_std` / `disable_array_heap_std`
+/// - Array heap no_std storage: `enable_array_heap_no_std` /
+///   `disable_array_heap_no_std`
 ///
 /// Endian and order defaults have dedicated feature names:
 ///
@@ -2172,8 +2182,10 @@ fn check_force_panic(bitfield: &Bitfield) {
 /// automatically.
 ///
 /// Bitflags only supports unsigned types (`u8`, `u16`, `u32`, `u64`, `u128`) and
-/// the one of the variants must be annotated with `#[base]` or `#[default]` which represents the
-/// base value of the bitflag. If `#[base]` and `#[default]` are both present, `#[base]` takes precedence.
+/// the one of the variants must be annotated with `#[base]` or `#[default]` which
+/// represents the
+/// base value of the bitflag. If `#[base]` and `#[default]` are both present,
+/// `#[base]` takes precedence.
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;
@@ -2252,7 +2264,8 @@ fn check_force_panic(bitfield: &Bitfield) {
 ///
 /// #### Bitflag Configuration
 ///
-/// Bitflags can be configured with arguments passed to the `#[bitflag(...)]` attribute (the first argument is always the backing unsigned integer type):
+/// Bitflags can be configured with arguments passed to the `#[bitflag(...)]`
+/// attribute (the first argument is always the backing unsigned integer type):
 ///
 /// | Argument         | Values                            | Default  | Description                                                                                          |
 /// |------------------|-----------------------------------|----------|------------------------------------------------------------------------------------------------------|
