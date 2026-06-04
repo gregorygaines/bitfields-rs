@@ -16,6 +16,7 @@ bitfields-impl = { path = "../bitfields_impl", version = "2.0.8" }
 
 [dev-dependencies]
 trybuild = "1.0.116"
+dummy-alloc = "1.0.0"
 
 # Represents the bitfield arguments the user can enable or disable by default for
 # all bitfields instead of specifying them for each bitfield.
