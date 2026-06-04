@@ -65,8 +65,11 @@ const DISABLE_TOGGLE_BIT_OPS_FEATURE_ENABLED: bool = cfg!(feature = "disable_tog
 const GENERATE_BUILDER_FEATURE_ENABLED: bool = cfg!(feature = "generate_builder");
 const DISABLE_BUILDER_FEATURE_ENABLED: bool = cfg!(feature = "disable_builder");
 
-const ENABLE_ARRAY_HEAP_FEATURE_ENABLED: bool = cfg!(feature = "enable_array_heap");
-const DISABLE_ARRAY_HEAP_FEATURE_ENABLED: bool = cfg!(feature = "disable_array_heap");
+const ENABLE_ARRAY_HEAP_STD_FEATURE_ENABLED: bool = cfg!(feature = "enable_array_heap_std");
+const DISABLE_ARRAY_HEAP_STD_FEATURE_ENABLED: bool = cfg!(feature = "disable_array_heap_std");
+
+const ENABLE_ARRAY_HEAP_NO_STD_FEATURE_ENABLED: bool = cfg!(feature = "enable_array_heap_no_std");
+const DISABLE_ARRAY_HEAP_NO_STD_FEATURE_ENABLED: bool = cfg!(feature = "disable_array_heap_no_std");
 
 /// The order of the bits in the bitfield.
 ///
@@ -165,11 +168,18 @@ pub struct BitfieldArguments {
     /// Whether a bitfield builder should be generated.
     generate_builder: bool,
 
-    /// Whether to allocate array-backed bitfield storage on the heap.
+    /// Whether to allocate array-backed bitfield storage on the heap using std.
     ///
     /// Useful when the array would be too large to live on the stack and has no
     /// effect on integer-backed bitfields.
-    array_heap: bool,
+    array_heap_std: bool,
+
+    /// Whether to allocate array-backed bitfield storage on the heap using
+    /// alloc.
+    ///
+    /// Useful when the array would be too large to live on the stack and has no
+    /// effect on integer-backed bitfields.
+    array_heap_no_std: bool,
 
     /// Whether to force a panic during macro generation.
     force_panic: bool,
@@ -251,7 +261,10 @@ impl Default for BitfieldArguments {
                 GENERATE_BUILDER_FEATURE_ENABLED,
                 DISABLE_BUILDER_FEATURE_ENABLED,
             ),
-            array_heap: ENABLE_ARRAY_HEAP_FEATURE_ENABLED && !DISABLE_ARRAY_HEAP_FEATURE_ENABLED,
+            array_heap_std: ENABLE_ARRAY_HEAP_STD_FEATURE_ENABLED
+                && !DISABLE_ARRAY_HEAP_STD_FEATURE_ENABLED,
+            array_heap_no_std: ENABLE_ARRAY_HEAP_NO_STD_FEATURE_ENABLED
+                && !DISABLE_ARRAY_HEAP_NO_STD_FEATURE_ENABLED,
             user_set_generate_write_bit_ops: false,
             force_panic: false,
         }
@@ -333,8 +346,11 @@ enum BitfieldArgumentKey {
     #[strum(serialize = "builder")]
     Builder,
 
-    #[strum(serialize = "array_heap")]
-    ArrayHeap,
+    #[strum(serialize = "array_heap_std")]
+    ArrayHeapStd,
+
+    #[strum(serialize = "array_heap_no_std")]
+    ArrayHeapNoStd,
 
     #[strum(serialize = "force_panic")]
     ForcePanic,
@@ -430,8 +446,12 @@ impl Parse for BitfieldArguments {
                     bitfield_arguments.generate_builder =
                         parse_boolean_attribute_argument(argument)?;
                 },
-                BitfieldArgumentKey::ArrayHeap => {
-                    bitfield_arguments.array_heap = parse_boolean_attribute_argument(argument)?;
+                BitfieldArgumentKey::ArrayHeapStd => {
+                    bitfield_arguments.array_heap_std = parse_boolean_attribute_argument(argument)?;
+                },
+                BitfieldArgumentKey::ArrayHeapNoStd => {
+                    bitfield_arguments.array_heap_no_std =
+                        parse_boolean_attribute_argument(argument)?;
                 },
                 BitfieldArgumentKey::Copy => {
                     bitfield_arguments.derive_copy = parse_boolean_attribute_argument(argument)?;

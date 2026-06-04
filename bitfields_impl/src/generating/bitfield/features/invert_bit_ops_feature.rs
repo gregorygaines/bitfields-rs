@@ -84,7 +84,7 @@ impl InvertBitOpsFeature {
                 .array_length()
                 .expect("array-backed bitfield must have a known length");
 
-            let bits_init_tokens = if bitfield.arguments().array_heap() {
+            let bits_init_tokens = if bitfield.is_array_heap() {
                 quote! { let mut bits = *#bitfield_internal_value_ident_tokens; }
             } else {
                 quote! { let mut bits = #bitfield_internal_value_ident_tokens; }

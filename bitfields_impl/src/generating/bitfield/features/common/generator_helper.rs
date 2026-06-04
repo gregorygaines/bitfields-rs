@@ -17,8 +17,7 @@ pub enum BitsSource {
 
 /// Returns the function modifiers for generated functions (e.g., `const`).
 pub fn get_function_modifier_tokens(bitfield: &Bitfield) -> Option<TokenStream> {
-    let is_heap_array = bitfield.arguments().array_heap() && !bitfield.is_integer_backed();
-    (!bitfield.has_ignored_fields() && !is_heap_array && supports_const_mut_refs())
+    (!bitfield.has_ignored_fields() && !bitfield.is_array_heap() && supports_const_mut_refs())
         .then(|| quote::quote! { const })
 }
 
@@ -55,14 +54,20 @@ pub fn generate_bitfield_struct_initialization_tokens(
             length,
         } => {
             let length = length as usize;
-            if bitfield.arguments().array_heap() {
-                quote! {
-                    ::std::boxed::Box::new([0u8; #length])
-                }
-            } else {
+            if !bitfield.is_array_heap() {
                 quote! {
                     [0u8; #length]
                 }
+            } else if bitfield.arguments().array_heap_std() {
+                quote! {
+                    ::std::boxed::Box::new([0u8; #length])
+                }
+            } else if bitfield.arguments().array_heap_no_std() {
+                quote! {
+                    ::alloc::boxed::Box::new([0u8; #length])
+                }
+            } else {
+                unreachable!()
             }
         },
         DataType::Custom => {
@@ -1004,6 +1009,6 @@ pub fn generate_backing_data_param_ident(bitfield: &Bitfield) -> TokenStream {
 }
 
 /// Returns the term used for the backing data of a bitfield.
-pub const fn get_bits_or_bytes_term(bitfield: &Bitfield) -> &'static str {
+pub fn get_bits_or_bytes_term(bitfield: &Bitfield) -> &'static str {
     if bitfield.is_integer_backed() { "bits" } else { "bytes" }
 }

@@ -53,7 +53,9 @@ impl BitfieldAttribute {
                 | TypeParsingError::SizeTypeNotSupported => {
                     Err(create_user_parsing_compiler_error(
                         input.span(),
-                        format!("{BITFIELD_ATTRIBUTE_NON_UNSIGNED_INTEGER_FIRST_ARGUMENT_ERROR_MESSAGE}."),
+                        format!(
+                            "{BITFIELD_ATTRIBUTE_NON_UNSIGNED_INTEGER_FIRST_ARGUMENT_ERROR_MESSAGE}."
+                        ),
                     ))
                 },
                 TypeParsingError::UnexpectedFloat => Err(create_user_parsing_compiler_error(
