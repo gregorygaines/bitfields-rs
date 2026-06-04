@@ -87,7 +87,7 @@ impl BitfieldStructFeatureGenerator {
                 });
             } else {
                 attributes_tokens.push(quote! {
-                    #[derive(std::marker::Copy, core::clone::Clone)]
+                    #[derive(core::marker::Copy, core::clone::Clone)]
                 });
             }
         }
