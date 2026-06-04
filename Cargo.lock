@@ -7,6 +7,7 @@ name = "bitfields"
 version = "2.0.8"
 dependencies = [
  "bitfields-impl",
+ "dummy-alloc",
  "trybuild",
 ]
 
@@ -56,6 +57,12 @@ dependencies = [
  "syn",
  "unicode-xid",
 ]
+
+[[package]]
+name = "dummy-alloc"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fadb95bab5cf4a3b4d608255efdb2493a7755ba6e602bd88c95a6912609d2550"
 
 [[package]]
 name = "equivalent"

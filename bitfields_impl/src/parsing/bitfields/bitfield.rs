@@ -71,8 +71,15 @@ impl Bitfield {
         self.name_ident.to_token_stream()
     }
 
-    pub const fn is_integer_backed(&self) -> bool {
+    /// Returns if the bitfield is array backed.
+    pub fn is_integer_backed(&self) -> bool {
         matches!(self.spanned_data_type_token.data_type(), DataType::Integer(_))
+    }
+
+    /// Returns if the bitfield is heap array backed.
+    pub fn is_array_heap(&self) -> bool {
+        (self.arguments().array_heap_std() || self.arguments().array_heap_no_std())
+            && !self.is_integer_backed()
     }
 }
 

@@ -16,6 +16,7 @@ bitfields-impl = { path = "../bitfields_impl", version = "2.0.8" }
 
 [dev-dependencies]
 trybuild = "1.0.116"
+dummy-alloc = "1.0.0"
 
 # Represents the bitfield arguments the user can enable or disable by default for
 # all bitfields instead of specifying them for each bitfield.
@@ -44,7 +45,8 @@ default = [
     "bitflag_from_endian_big",
     "bitflag_into_endian_big",
     "bitflag_derive_copy",
-    "disable_array_heap",
+    "disable_array_heap_no_std",
+    "disable_array_heap_std",
 ]
 
 order_lsb = []
@@ -98,8 +100,11 @@ disable_toggle_bit_ops = []
 generate_builder = []
 disable_builder = []
 
-enable_array_heap = []
-disable_array_heap = []
+enable_array_heap_std = []
+disable_array_heap_std = []
+
+enable_array_heap_no_std = []
+disable_array_heap_no_std = []
 
 bitflag_from_endian_big = []
 bitflag_from_endian_little = []

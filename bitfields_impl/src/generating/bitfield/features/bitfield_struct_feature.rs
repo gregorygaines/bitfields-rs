@@ -80,8 +80,7 @@ impl BitfieldStructFeatureGenerator {
         }
 
         if bitfield.arguments().derive_copy() {
-            let is_heap_array = bitfield.arguments().array_heap() && !bitfield.is_integer_backed();
-            if is_heap_array {
+            if bitfield.is_array_heap() {
                 attributes_tokens.push(quote! {
                     #[derive(core::clone::Clone)]
                 });
@@ -105,10 +104,14 @@ impl BitfieldStructFeatureGenerator {
     /// Returns the backing storage type tokens for the bitfield struct field.
     fn get_backing_field_type_tokens(bitfield: &Bitfield) -> TokenStream {
         let inner = bitfield.spanned_data_type_token().to_tokens();
-        if bitfield.arguments().array_heap() && !bitfield.is_integer_backed() {
-            quote! { ::std::boxed::Box<#inner> }
-        } else {
+        if !bitfield.is_array_heap() {
             inner
+        } else if bitfield.arguments().array_heap_std() {
+            quote! { ::std::boxed::Box<#inner> }
+        } else if bitfield.arguments().array_heap_no_std() {
+            quote! { ::alloc::boxed::Box<#inner> }
+        } else {
+            unreachable!()
         }
     }
 

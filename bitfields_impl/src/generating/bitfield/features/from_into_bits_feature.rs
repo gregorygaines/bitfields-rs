@@ -517,7 +517,7 @@ impl FromIntoBitsFeature {
         let half_len = array_len / 2;
         let last_idx = array_len - 1;
 
-        let is_heap = bitfield.arguments().array_heap();
+        let is_heap = bitfield.is_array_heap();
 
         let into_bits_convert_tokens = |endian| match endian {
             ConversionEndian::Little => {
@@ -601,7 +601,7 @@ impl FromIntoBitsFeature {
         let half_len = array_len / 2;
         let last_idx = array_len - 1;
 
-        let bits_access_tokens = if bitfield.arguments().array_heap() {
+        let bits_access_tokens = if bitfield.is_array_heap() {
             quote! { *#bitfield_internal_value_ident_tokens }
         } else {
             quote! { #bitfield_internal_value_ident_tokens }

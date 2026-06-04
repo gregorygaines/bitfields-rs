@@ -116,8 +116,7 @@ impl FromTraitsFeature {
             bitfield.arguments().from_endian()
         };
 
-        let is_heap_array =
-            into_bits && bitfield.arguments().array_heap() && !bitfield.is_integer_backed();
+        let is_heap_array = into_bits && bitfield.is_array_heap() && !bitfield.is_integer_backed();
 
         match conversion_endian {
             ConversionEndian::Little => {
