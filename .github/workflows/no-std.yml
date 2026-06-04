@@ -39,6 +39,7 @@ jobs:
           // use panic_semihosting as _; // logs messages to the host stderr; requires a debugger
 
           use cortex_m_rt::entry;
+          extern crate alloc;
 
           #[entry]
           fn main() -> ! {
