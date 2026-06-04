@@ -50,6 +50,14 @@ jobs:
                       c: u8,
                       d: u8,
                   }
+          
+                  #[bitfield([u8; 4], array_heap_no_std = true)]
+                  pub struct ArrayHeapBitfield {
+                    a: u8,
+                    b: u8,
+                    c: u8,
+                    d: u8,
+                  }
 
                   #[bitflag(u8)]
                   #[derive(Debug, PartialEq)]
