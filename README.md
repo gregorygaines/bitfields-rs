@@ -113,7 +113,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bitfields = "3.0.0"
+bitfields = "3.1.0"
 ```
 
 or run the following command:
@@ -2354,7 +2354,7 @@ Bitflags can also be configured globally with the following defaults:
 ```toml
 [dependencies]
 bitfields = {
-    version = "3.0.0",
+    version = "3.1.0",
     # Default features must be disabled.
     default-features = false,
     features = [
