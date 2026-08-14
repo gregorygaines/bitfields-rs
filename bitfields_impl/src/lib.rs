@@ -399,15 +399,14 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// ```rust
 /// # use bitfields_impl as bitfields;
 /// use bitfields::bitfield;
-///
-/// #[derive(Clone, Copy, PartialEq, Eq)]
-/// enum ClkSel {
-///     Internal,
-///     External,
-/// }
+/// use clock_types::ClkSel;
 ///
 /// const fn clk_sel_from_bits(bits: u8) -> ClkSel {
-///     if bits & 1 == 0 { ClkSel::Internal } else { ClkSel::External }
+///     if bits & 1 == 0 {
+///         ClkSel::Internal
+///     } else {
+///         ClkSel::External
+///     }
 /// }
 ///
 /// const fn clk_sel_into_bits(value: ClkSel) -> u8 {
@@ -424,11 +423,10 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     #[bits(7)]
 ///     _reserved: u8,
 /// }
-///
-/// let mut cfg = Cfg::new();
-/// cfg.set_clk_sel(ClkSel::External);
-/// assert_eq!(cfg.into_bits(), 1);
 /// ```
+///
+/// `from` and `into` can be specified independently. An omitted direction falls
+/// back to `CustomType::from_bits` or `value.into_bits()`, respectively.
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;
