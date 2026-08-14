@@ -399,7 +399,12 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// ```rust
 /// # use bitfields_impl as bitfields;
 /// use bitfields::bitfield;
-/// use clock_types::ClkSel;
+///
+/// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// enum ClkSel {
+///     Internal, 
+///     External,
+/// }
 ///
 /// const fn clk_sel_from_bits(bits: u8) -> ClkSel {
 ///     if bits & 1 == 0 {
