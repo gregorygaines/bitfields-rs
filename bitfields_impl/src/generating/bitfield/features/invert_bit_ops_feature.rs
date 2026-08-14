@@ -3,7 +3,7 @@ use quote::{ToTokens as QuoteToTokens, format_ident, quote};
 
 use crate::generating::bitfield::feature::{Feature, FeaturePosition, is_bit_ops_feature_enabled};
 use crate::generating::bitfield::features::common::generator_helper::{
-    BitsSource, ProtectionType,
+    BitsSource, ProtectionType, generate_custom_field_from_bits_tokens,
     generate_extract_all_field_bits_from_variable_into_variable_tokens_and_set_fields_tokens,
     generate_extract_field_bits_from_source_into_variable_tokens,
     generate_protected_bits_mask_tokens, get_bits_or_bytes_term, get_field_unit_terms,
@@ -180,12 +180,9 @@ impl InvertBitOpsFeature {
     }
 
     fn generate_value_to_field_tokens(bitfield: &Bitfield, field: &Field) -> TokenStream {
-        let custom_field_data_type_tokens = field.spanned_data_type_token().to_tokens();
         match field.spanned_data_type_token().data_type() {
             DataType::Custom => {
-                quote! {
-                    #custom_field_data_type_tokens::from_bits(value as _)
-                }
+                generate_custom_field_from_bits_tokens(field, quote! { value as _ })
             },
             DataType::Integer(IntegerType::Bool) => {
                 quote! { value != 0 }

@@ -1,4 +1,4 @@
-error: Unknown argument 'deez'. Valid arguments are: 'access', 'default', 'ignore'.
+error: Unknown argument 'deez'. Valid arguments are: 'access', 'default', 'from', 'ignore', 'into'.
  --> tests/compile_error_cases/errors/bitfield_unknown_field_arg.rs:5:28
   |
 5 |     #[bits(default = 0x12, deez = what)]

@@ -677,6 +677,117 @@ mod tests {
         assert_eq!(bitfield.into_bits(), 0x312)
     }
 
+    #[test]
+    fn bitfield_field_custom_conversion_functions() {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        enum ClkSel {
+            Internal,
+            External,
+        }
+
+        struct ClkSelCodec;
+
+        impl ClkSelCodec {
+            const fn from_bits(bits: u8) -> ClkSel {
+                if bits & 1 == 0 { ClkSel::Internal } else { ClkSel::External }
+            }
+
+            const fn into_bits(value: ClkSel) -> u8 {
+                match value {
+                    ClkSel::Internal => 0,
+                    ClkSel::External => 1,
+                }
+            }
+        }
+
+        #[bitfield(u8)]
+        struct Cfg {
+            #[bits(
+                1,
+                from = ClkSelCodec::from_bits,
+                into = ClkSelCodec::into_bits
+            )]
+            clk_sel: ClkSel,
+            dac_resetb: bool,
+            dac_sleep: bool,
+            dac_txena: bool,
+            trf0_ps: bool,
+            trf1_ps: bool,
+            att0_rstn: bool,
+            att1_rstn: bool,
+        }
+
+        let mut cfg = Cfg::new();
+        assert_eq!(cfg.clk_sel(), ClkSel::Internal);
+
+        cfg.set_clk_sel(ClkSel::External);
+        assert_eq!(cfg.clk_sel(), ClkSel::External);
+        assert_eq!(cfg.into_bits(), 1);
+
+        cfg.invert_clk_sel();
+        assert_eq!(cfg.clk_sel(), ClkSel::Internal);
+        assert_eq!(cfg.into_bits(), 0);
+
+        let cfg = Cfg::from_bits(0);
+        assert_eq!(cfg.clk_sel(), ClkSel::Internal);
+
+        let cfg = CfgBuilder::new().with_clk_sel(ClkSel::External).build();
+        assert_eq!(cfg.into_bits(), 1);
+    }
+
+    #[test]
+    fn bitfield_field_external_crate_conversion_functions() {
+        mod external_crate {
+            #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+            pub enum ClkSel {
+                Internal,
+                External,
+            }
+        }
+
+        use external_crate::ClkSel;
+
+        const fn clk_sel_from_bits(bits: u8) -> ClkSel {
+            if bits & 1 == 0 { ClkSel::Internal } else { ClkSel::External }
+        }
+
+        const fn clk_sel_into_bits(value: ClkSel) -> u8 {
+            match value {
+                ClkSel::Internal => 0,
+                ClkSel::External => 1,
+            }
+        }
+
+        #[bitfield(u8)]
+        #[derive(Eq, PartialEq)]
+        struct Cfg {
+            #[bits(1, from = clk_sel_from_bits, into = clk_sel_into_bits)]
+            clk_sel: ClkSel,
+            dac_resetb: bool,
+            dac_sleep: bool,
+            dac_txena: bool,
+            trf0_ps: bool,
+            trf1_ps: bool,
+            att0_rstn: bool,
+            att1_rstn: bool,
+        }
+
+        let mut cfg = Cfg::from_bits(1);
+        assert_eq!(cfg.clk_sel(), ClkSel::External);
+        assert_eq!(cfg.into_bits(), 1);
+
+        cfg.set_clk_sel(ClkSel::Internal);
+        assert_eq!(cfg.clk_sel(), ClkSel::Internal);
+        assert_eq!(cfg.into_bits(), 0);
+
+        assert!(cfg.checked_set_clk_sel(ClkSel::External).is_ok());
+        assert_eq!(cfg.into_bits(), 1);
+
+        cfg.clear_bits();
+        assert_eq!(cfg.clk_sel(), ClkSel::Internal);
+        assert_eq!(Cfg::default().clk_sel(), ClkSel::Internal);
+    }
+
     #[allow(dead_code)]
     #[test]
     fn bitfield_field_struct_custom_type() {

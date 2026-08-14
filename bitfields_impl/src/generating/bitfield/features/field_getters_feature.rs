@@ -3,7 +3,8 @@ use quote::quote;
 
 use crate::generating::bitfield::feature::{Feature, FeaturePosition};
 use crate::generating::bitfield::features::common::generator_helper::{
-    BitsSource, generate_extract_field_bits_from_source_into_variable_tokens,
+    BitsSource, generate_custom_field_from_bits_tokens,
+    generate_extract_field_bits_from_source_into_variable_tokens,
     generate_sign_extend_bit_operation_tokens, get_field_unit_terms, get_function_modifier_tokens,
 };
 use crate::parsing::bitfields::bitfield::{Bitfield, Field};
@@ -85,10 +86,7 @@ impl FieldGettersFeature {
                 }
             },
             DataType::Custom => {
-                let custom_field_data_type_tokens = field.spanned_data_type_token().to_tokens();
-                quote! {
-                    #custom_field_data_type_tokens::from_bits(value as _)
-                }
+                generate_custom_field_from_bits_tokens(field, quote! { value as _ })
             },
             DataType::Array {
                 length,

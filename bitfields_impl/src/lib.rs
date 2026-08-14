@@ -390,7 +390,45 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// A bitfield field can be a user-defined custom types, but the bits of the field
 /// must be specified since the macro has no way of knowing how many bits the custom
 /// type occupies. To interface with a bitfield, the custom types must implement the
-/// const functions `from_bits` and `into_bits`.
+/// const functions `from_bits` and `into_bits` by default.
+///
+/// Custom types can have their `from_bits` and `into_bits` associated functions
+/// specified by the `#[bits(from = external_from_bits, into = external_into_bits)]`
+/// attribute.
+///
+/// ```rust
+/// # use bitfields_impl as bitfields;
+/// use bitfields::bitfield;
+///
+/// #[derive(Clone, Copy, PartialEq, Eq)]
+/// enum ClkSel {
+///     Internal,
+///     External,
+/// }
+///
+/// const fn clk_sel_from_bits(bits: u8) -> ClkSel {
+///     if bits & 1 == 0 { ClkSel::Internal } else { ClkSel::External }
+/// }
+///
+/// const fn clk_sel_into_bits(value: ClkSel) -> u8 {
+///     match value {
+///         ClkSel::Internal => 0,
+///         ClkSel::External => 1,
+///     }
+/// }
+///
+/// #[bitfield(u8)]
+/// struct Cfg {
+///     #[bits(1, from = clk_sel_from_bits, into = clk_sel_into_bits)]
+///     clk_sel: ClkSel,
+///     #[bits(7)]
+///     _reserved: u8,
+/// }
+///
+/// let mut cfg = Cfg::new();
+/// cfg.set_clk_sel(ClkSel::External);
+/// assert_eq!(cfg.into_bits(), 1);
+/// ```
 ///
 /// ```rust
 /// # use bitfields_impl as bitfields;

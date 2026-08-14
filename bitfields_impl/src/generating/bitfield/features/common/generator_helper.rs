@@ -193,10 +193,7 @@ pub fn generate_setting_field_to_zero_tokens(bitfield: &Bitfield, field: &Field)
                 quote! { 0 }
             }
         },
-        DataType::Custom => {
-            let custom_field_data_type_tokens = field.spanned_data_type_token().to_tokens();
-            quote! { #custom_field_data_type_tokens::from_bits(0) }
-        },
+        DataType::Custom => generate_custom_field_from_bits_tokens(field, quote! { 0 }),
         DataType::Array {
             length,
         } => {
@@ -324,13 +321,8 @@ fn generate_builder_direct_setter_call_tokens(field: &Field, check_bit_size: boo
 }
 
 fn get_value_variable_tokens(field: &Field) -> TokenStream {
-    let custom_field_data_type_tokens = field.spanned_data_type_token().to_tokens();
     match field.spanned_data_type_token().data_type() {
-        DataType::Custom => {
-            quote! {
-                #custom_field_data_type_tokens::from_bits(value as _)
-            }
-        },
+        DataType::Custom => generate_custom_field_from_bits_tokens(field, quote! { value as _ }),
         DataType::Integer(IntegerType::Bool) => {
             quote! { value != 0 }
         },
@@ -423,9 +415,11 @@ pub fn generate_extract_field_bits_from_source_into_variable_tokens(
                 let casting_bits_to_bitfield_data_type_tokens =
                     (bits_source == BitsSource::IntegerVariable && cast_bits).then(|| {
                         if matches!(field.spanned_data_type_token().data_type(), DataType::Custom) {
+                            let into_bits_tokens =
+                                generate_custom_field_into_bits_tokens(field, quote! { bits });
                             quote! {
                                 #[allow(clippy::unnecessary_cast)]
-                                let bits = bits.into_bits() as #bitfield_data_type_tokens;
+                                let bits = #into_bits_tokens as #bitfield_data_type_tokens;
                             }
                         } else if let DataType::Array {
                             length,
@@ -485,8 +479,10 @@ pub fn generate_extract_field_bits_from_source_into_variable_tokens(
                     };
                 }
                 if matches!(field.spanned_data_type_token().data_type(), DataType::Custom) {
+                    let into_bits_tokens =
+                        generate_custom_field_into_bits_tokens(field, quote! { bits });
                     return quote! {
-                        let bits = bits.into_bits() as u128;
+                        let bits = #into_bits_tokens as u128;
                         let mask = if #field_bits_tokens == 128 { u128::MAX } else { (1u128 << #field_bits_tokens) - 1 };
                         let value = {
                             let val = bits & mask;
@@ -675,8 +671,12 @@ fn generate_setting_field_without_setter_tokens(
             DataType::Integer(IntegerType::Bool) => quote! {
                 if #value_tokens { 1u128 } else { 0u128 }
             },
-            DataType::Custom => quote! {
-                #value_tokens.into_bits() as u128
+            DataType::Custom => {
+                let into_bits_tokens =
+                    generate_custom_field_into_bits_tokens(field, value_tokens.clone());
+                quote! {
+                    #into_bits_tokens as u128
+                }
             },
             _ => quote! {
                 #value_tokens as u128
@@ -714,10 +714,11 @@ fn generate_setting_field_without_setter_tokens(
     }
 
     if matches!(field.spanned_data_type_token().data_type(), DataType::Custom) {
+        let into_bits_tokens = generate_custom_field_into_bits_tokens(field, value_tokens.clone());
         return quote! {
             let mask = #bitfield_data_type_tokens::MAX >> (#bitfield_data_type_tokens::BITS - #field_bits_tokens);
             #[allow(clippy::unnecessary_cast)]
-            let field_bits = #value_tokens.into_bits() as #bitfield_data_type_tokens;
+            let field_bits = #into_bits_tokens as #bitfield_data_type_tokens;
             #bitfield_internal_value_ident_tokens = (#bitfield_internal_value_ident_tokens & !(mask << #field_offset_tokens)) | ((field_bits & mask) << #field_offset_tokens);
         };
     }
@@ -727,6 +728,31 @@ fn generate_setting_field_without_setter_tokens(
         let field_bits = #value_tokens;
         #bitfield_internal_value_ident_tokens = (#bitfield_internal_value_ident_tokens & !(mask << #field_offset_tokens)) | ((field_bits & mask) << #field_offset_tokens);
     }
+}
+
+/// Generates a custom field's conversion from its raw bit representation.
+pub fn generate_custom_field_from_bits_tokens(
+    field: &Field,
+    bits_tokens: TokenStream,
+) -> TokenStream {
+    if let Some(from_function) = field.arguments().and_then(|arguments| arguments.from_function()) {
+        return quote! { #from_function(#bits_tokens) };
+    }
+
+    let field_data_type_tokens = field.spanned_data_type_token().to_tokens();
+    quote! { #field_data_type_tokens::from_bits(#bits_tokens) }
+}
+
+/// Generates a custom field's conversion into its raw bit representation.
+pub fn generate_custom_field_into_bits_tokens(
+    field: &Field,
+    value_tokens: TokenStream,
+) -> TokenStream {
+    if let Some(into_function) = field.arguments().and_then(|arguments| arguments.into_function()) {
+        return quote! { #into_function(#value_tokens) };
+    }
+
+    quote! { (#value_tokens).into_bits() }
 }
 
 /// Specifies which fields to protect during an operation.

@@ -5,6 +5,7 @@ use getset::{CloneGetters, CopyGetters, Getters};
 use proc_macro2::Span;
 use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter, EnumString};
+use syn::ExprPath;
 use syn::parse::{Parse, ParseStream};
 
 use crate::parsing::common::attribute_argument_parser::{
@@ -65,6 +66,14 @@ pub struct BitsArguments {
     /// The field default value expression.
     #[getset(get_clone = "pub")]
     default_value_expr: Option<ConstExpr>,
+
+    /// The function used to convert bits into the custom field type.
+    #[getset(get_clone = "pub")]
+    from_function: Option<ExprPath>,
+
+    /// The function used to convert the custom field type into bits.
+    #[getset(get_clone = "pub")]
+    into_function: Option<ExprPath>,
 }
 
 impl Default for BitsArguments {
@@ -75,6 +84,8 @@ impl Default for BitsArguments {
             user_set_access: false,
             ignored: false,
             default_value_expr: None,
+            from_function: None,
+            into_function: None,
         }
     }
 }
@@ -89,6 +100,12 @@ enum BitsArgumentKey {
 
     #[strum(serialize = "default")]
     Default,
+
+    #[strum(serialize = "from")]
+    From,
+
+    #[strum(serialize = "into")]
+    Into,
 }
 
 impl Parse for BitsArguments {
@@ -120,9 +137,29 @@ impl Parse for BitsArguments {
                 BitsArgumentKey::Default => {
                     bits_arguments.default_value_expr = Some(ConstExpr::new(&argument.value())?);
                 },
+                BitsArgumentKey::From => {
+                    bits_arguments.from_function = Some(parse_function_path(&argument)?);
+                },
+                BitsArgumentKey::Into => {
+                    bits_arguments.into_function = Some(parse_function_path(&argument)?);
+                },
             }
         }
 
         Ok(bits_arguments)
     }
+}
+
+fn parse_function_path(
+    argument: &crate::parsing::common::attribute_argument_parser::AttributeArgument,
+) -> syn::Result<ExprPath> {
+    syn::parse_str::<ExprPath>(argument.value().token().as_str()).map_err(|_| {
+        create_user_parsing_compiler_error(
+            argument.value().span(),
+            format!(
+                "Invalid value for '{}' conversion function, expected a function path.",
+                argument.key().token()
+            ),
+        )
+    })
 }
