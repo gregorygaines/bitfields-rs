@@ -313,9 +313,9 @@ mod tests {
             d: u64,
             #[bits(6, default = 0x5)]
             e: u128,
-            #[bits(5, default = 0x10)]
+            #[bits(5, default = -0x10)]
             f: i8,
-            #[bits(8, default = 0xF_F)]
+            #[bits(8, default = -0x1)]
             g: i16,
             #[bits(8, default = 0x23)]
             h: i32,
@@ -519,7 +519,7 @@ mod tests {
             b: i8,
             #[bits(5, default = 0xF)]
             c: i8,
-            #[bits(5, default = 0x1F)]
+            #[bits(5, default = -0x1)]
             d: i8,
             #[bits(6)]
             _reserved: u16,

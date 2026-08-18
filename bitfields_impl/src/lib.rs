@@ -232,7 +232,7 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 ///     /// Sign-extended by the most significant bit of 4 bits. Also treated as 2's
 ///     /// complement, meaning this field with 4 bits has the value range of
 ///     /// `-8` to `7`. You can add more bits to increase this range!
-///     #[bits(4, default = 9)]
+///     #[bits(4, default = -7)]
 ///     b_sign_extended: i8,
 ///
 ///     #[bits(4)]

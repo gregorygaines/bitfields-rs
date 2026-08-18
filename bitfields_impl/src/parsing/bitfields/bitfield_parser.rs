@@ -318,9 +318,8 @@ fn check_default_value_fit_in_field(
         ));
     }
 
-    // If checked_shl returns None, bits == 128 and no field type can exceed the
-    // bit range.
-    let (negative_bits_min_value, positive_bits_max_value) = min_max_for_bits(bits);
+    let (negative_bits_min_value, positive_bits_max_value) =
+        min_max_for_bits(bits, spanned_data_type_token.data_type().unsigned());
 
     if *negative_sign {
         let negative_default_value = (*number as i128)
@@ -338,13 +337,20 @@ fn check_default_value_fit_in_field(
             ));
         }
     } else if *number > positive_bits_max_value {
-        return Err(create_user_parsing_compiler_error(
-            default_value_expr.span(),
+        let message = if spanned_data_type_token.data_type().unsigned() {
             format!(
                 "The default value '{number}' exceeds the maximum value for the specified '{bits} \
                  bits ({positive_bits_max_value})'.",
-            ),
-        ));
+            )
+        } else {
+            format!(
+                "The default value '{number}' is outside the valid range for the specified signed \
+                 '{bits} bits' (minimum: {negative_bits_min_value}, maximum: \
+                 {positive_bits_max_value}).",
+            )
+        };
+
+        return Err(create_user_parsing_compiler_error(default_value_expr.span(), message));
     }
 
     Ok(())
@@ -375,11 +381,17 @@ fn check_field_data_type_can_hold_bits(
     Ok(())
 }
 
-/// Compute the minimum and maximum representable signed/unsigned values for
-/// a given number of bits.
-const fn min_max_for_bits(bits: u32) -> (i128, u128) {
-    let max: u128 = if bits == 128 { u128::MAX } else { (1u128 << bits) - 1 };
+/// Compute the minimum and maximum representable values for a given number of
+/// bits. Signed values use their two's-complement range.
+const fn min_max_for_bits(bits: u32, unsigned: bool) -> (i128, u128) {
     let min: i128 = if bits == 128 { i128::MIN } else { -(1i128 << (bits - 1)) };
+    let max: u128 = if unsigned {
+        if bits == 128 { u128::MAX } else { (1u128 << bits) - 1 }
+    } else if bits == 128 {
+        i128::MAX as u128
+    } else {
+        (1u128 << (bits - 1)) - 1
+    };
     (min, max)
 }
 

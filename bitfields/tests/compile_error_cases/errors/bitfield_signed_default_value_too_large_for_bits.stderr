@@ -1,0 +1,5 @@
+error: The default value '9' is outside the valid range for the specified signed '4 bits' (minimum: -8, maximum: 7).
+ --> tests/compile_error_cases/errors/bitfield_signed_default_value_too_large_for_bits.rs:5:25
+  |
+5 |     #[bits(4, default = 9)]
+  |                         ^
