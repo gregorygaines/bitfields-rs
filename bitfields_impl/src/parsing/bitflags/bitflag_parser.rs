@@ -1,13 +1,14 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{ItemEnum, Token, Variant};
+use syn::{Attribute, ItemEnum, Meta, Token, Variant};
 
 use crate::parsing::bitflags::bitflag::{Bitflag, BitflagVariant};
 use crate::parsing::bitflags::bitflag_attribute_parser::BitflagAttribute;
 use crate::parsing::common::compiler_error::create_user_parsing_compiler_error;
 use crate::parsing::common::const_expr::ConstExpr;
+use crate::parsing::common::spanned_data_type::{DataType, IntegerType, SpannedDataTypeToken};
 use crate::parsing::common::spanned_token::SpannedToken;
 use crate::parsing::common::visibility::Visibility;
 
@@ -18,6 +19,10 @@ pub fn parse_bitflag_enum(args: TokenStream, input: TokenStream) -> syn::Result<
         enum_tokens.attrs.iter().map(quote::ToTokens::into_token_stream).collect();
     let visibility = Visibility::new(&enum_tokens.vis);
     let bitflag_attribute = parse_bitflag_attribute(args)?;
+    let repr_type = parse_repr_type(&enum_tokens.attrs)?;
+    let has_integer_repr = repr_type.is_some();
+    let spanned_data_type_token =
+        resolve_bitflag_type(bitflag_attribute.spanned_data_type_token(), repr_type)?;
     let name_ident = enum_tokens.ident.clone();
     let variants = parse_variants(&enum_tokens.variants)?;
 
@@ -25,7 +30,8 @@ pub fn parse_bitflag_enum(args: TokenStream, input: TokenStream) -> syn::Result<
 
     Ok(Bitflag::new(
         user_attributes_tokens,
-        bitflag_attribute.spanned_data_type_token(),
+        spanned_data_type_token,
+        has_integer_repr,
         visibility,
         name_ident,
         variants,
@@ -39,6 +45,73 @@ fn parse_enum_tokens(input: &TokenStream) -> syn::Result<ItemEnum> {
 
 fn parse_bitflag_attribute(args: TokenStream) -> syn::Result<BitflagAttribute> {
     syn::parse2(args)
+}
+
+/// Finds an integer representation while preserving other hints, such as
+/// alignment.
+fn parse_repr_type(attributes: &[Attribute]) -> syn::Result<Option<SpannedDataTypeToken>> {
+    let mut repr_type = None;
+    for attribute in attributes.iter().filter(|attribute| attribute.path().is_ident("repr")) {
+        let hints = attribute.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
+        for hint in hints {
+            let Meta::Path(path) = hint else { continue };
+            let Some(ident) = path.get_ident() else { continue };
+            let Ok(DataType::Integer(integer_type)) = DataType::new(&ident.to_string()) else {
+                continue;
+            };
+            if integer_type == IntegerType::Bool {
+                continue;
+            }
+            if !matches!(
+                integer_type,
+                IntegerType::U8
+                    | IntegerType::U16
+                    | IntegerType::U32
+                    | IntegerType::U64
+                    | IntegerType::U128
+            ) {
+                return Err(create_user_parsing_compiler_error(
+                    ident.span(),
+                    format!(
+                        "Bitflag representation '{ident}' is unsupported; use u8, u16, u32, u64, \
+                         or u128."
+                    ),
+                ));
+            }
+            if repr_type.is_some() {
+                return Err(create_user_parsing_compiler_error(
+                    ident.span(),
+                    "Multiple integer representations are not supported for a bitflag.",
+                ));
+            }
+            repr_type = Some(
+                SpannedDataTypeToken::new(&syn::parse_quote!(#path))
+                    .expect("Supported integer representation"),
+            );
+        }
+    }
+    Ok(repr_type)
+}
+
+/// Resolves the backing type and checks that explicit and inferred types agree.
+fn resolve_bitflag_type(
+    explicit_type: Option<SpannedDataTypeToken>,
+    repr_type: Option<SpannedDataTypeToken>,
+) -> syn::Result<SpannedDataTypeToken> {
+    match (explicit_type, repr_type) {
+        (Some(explicit), Some(repr)) if explicit.data_type() != repr.data_type() => {
+            Err(create_user_parsing_compiler_error(
+                repr.span(),
+                format!("Bitflag type '{explicit}' does not match #[repr({repr})]."),
+            ))
+        },
+        (Some(data_type), _) | (None, Some(data_type)) => Ok(data_type),
+        (None, None) => Err(create_user_parsing_compiler_error(
+            Span::call_site(),
+            "The bitflag attribute requires an unsigned integer type as its first argument or in \
+             #[repr(...)].",
+        )),
+    }
 }
 
 /// Parses each enum variant into a [`BitflagVariant`].

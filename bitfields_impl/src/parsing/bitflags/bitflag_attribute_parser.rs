@@ -3,6 +3,7 @@
 use getset::{CloneGetters, Getters};
 use proc_macro2::Span;
 use syn::parse::{Parse, ParseStream};
+use syn::{Ident, Token};
 
 use crate::parsing::bitflags::bitflag_arguments::BitflagArguments;
 use crate::parsing::common::compiler_error::create_user_parsing_compiler_error;
@@ -13,8 +14,8 @@ use crate::parsing::common::type_parse_error::TypeParsingError;
 #[derive(Clone, Debug, Getters, CloneGetters)]
 #[getset(get_clone = "pub")]
 pub struct BitflagAttribute {
-    /// The type of the bitflag.
-    spanned_data_type_token: SpannedDataTypeToken,
+    /// The explicit type of the bitflag, if not inferred from `#[repr(...)]`.
+    spanned_data_type_token: Option<SpannedDataTypeToken>,
 
     /// The arguments of the bitflag.
     arguments: BitflagArguments,
@@ -23,8 +24,14 @@ pub struct BitflagAttribute {
 impl Parse for BitflagAttribute {
     /// Parse the `Bitflag` from a token stream.
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let spanned_data_type_token = Self::parse_bitflag_type(input)?;
-        Self::check_supported_bitflag_type(&spanned_data_type_token)?;
+        let spanned_data_type_token =
+            if input.is_empty() || (input.peek(Ident) && input.peek2(Token![=])) {
+                None
+            } else {
+                let data_type = Self::parse_bitflag_type(input)?;
+                Self::check_supported_bitflag_type(&data_type)?;
+                Some(data_type)
+            };
         let arguments = BitflagArguments::parse(input)?;
         Ok(Self {
             spanned_data_type_token,

@@ -31,6 +31,10 @@ pub fn generate_bitflag(bitflag: &Bitflag) -> TokenStream {
 }
 
 fn generate_repr_tokens(bitflag: &Bitflag) -> TokenStream {
+    if bitflag.has_integer_repr() {
+        return TokenStream::new();
+    }
+
     let data_type_tokens = bitflag.spanned_data_type_token().to_tokens();
     quote! {
         #[repr(#data_type_tokens)]

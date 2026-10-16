@@ -17,6 +17,9 @@ pub struct Bitflag {
     /// The type of the bitfield.
     spanned_data_type_token: SpannedDataTypeToken,
 
+    /// Whether the user supplied an integer representation for the enum.
+    has_integer_repr: bool,
+
     /// The visibility of the bitflag.
     visibility: Visibility,
 
@@ -36,6 +39,7 @@ impl Bitflag {
     pub fn new(
         user_attributes_tokens: Vec<TokenStream>,
         spanned_data_type_token: SpannedDataTypeToken,
+        has_integer_repr: bool,
         visibility: Visibility,
         name_ident: Ident,
         variants: Vec<BitflagVariant>,
@@ -45,6 +49,7 @@ impl Bitflag {
         Self {
             user_attributes_tokens,
             spanned_data_type_token,
+            has_integer_repr,
             visibility,
             name_ident,
             variants,

@@ -1,0 +1,5 @@
+error: Multiple integer representations are not supported for a bitflag.
+ --> tests/compile_error_cases/errors/bitflag_repr_multiple_integer_types.rs:5:8
+  |
+5 | #[repr(u16)]
+  |        ^^^

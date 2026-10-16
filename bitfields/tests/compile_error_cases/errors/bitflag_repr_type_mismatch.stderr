@@ -1,0 +1,5 @@
+error: Bitflag type 'u8' does not match #[repr(u16)].
+ --> tests/compile_error_cases/errors/bitflag_repr_type_mismatch.rs:4:8
+  |
+4 | #[repr(u16)]
+  |        ^^^

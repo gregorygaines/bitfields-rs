@@ -1,0 +1,5 @@
+error: Bitflag representation 'usize' is unsupported; use u8, u16, u32, u64, or u128.
+ --> tests/compile_error_cases/errors/bitflag_repr_size_type.rs:4:8
+  |
+4 | #[repr(usize)]
+  |        ^^^^^

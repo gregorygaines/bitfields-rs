@@ -212,6 +212,26 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// }
 /// ```
 ///
+/// #### Raw Identifiers
+///
+/// Field names can use raw identifiers to avoid Rust keyword conflicts. Getters
+/// keep the raw identifier, while generated method and constant names omit `r#`.
+///
+/// ```rust
+/// # use bitfields_impl as bitfields;
+/// use bitfields::bitfield;
+///
+/// #[bitfield(u8)]
+/// pub struct Message {
+///     pub r#type: u8,
+/// }
+///
+/// let mut message = Message::new();
+/// message.set_type(42);
+/// assert_eq!(message.r#type(), 42);
+/// assert_eq!(Message::TYPE_BITS, 8);
+/// ```
+///
 /// #### Signed Bitfield Fields
 ///
 /// A bitfield can have signed (`i8`, `i16`, `i32`, `i64`, `i128`) types. Signed
@@ -744,11 +764,34 @@ const INTERNAL_ERROR_MESSAGE: &str = "A major unexpected error has occurred. If 
 /// #### Bitflag Configuration
 ///
 /// Bitflags can be configured with arguments passed to the `#[bitflag(...)]`
-/// attribute (the first argument is always the backing unsigned integer type):
+/// attribute. The backing unsigned integer type can be supplied as the first
+/// argument or inferred from an explicit `#[repr(...)]` attribute. If both are
+/// provided, they must match. An existing integer representation is preserved
+/// without emitting a second one.
+///
+/// Use an explicit `repr` when other derives need to inspect the enum's
+/// representation. Both `#[bitflag]` and `#[bitflag()]` can infer the type:
+///
+/// ```rust
+/// # use bitfields_impl as bitfields;
+/// use bitfields::bitflag;
+///
+/// #[derive(Debug, PartialEq)]
+/// #[bitflag(from_endian = big)]
+/// #[repr(u8)]
+/// pub enum Status {
+///     #[base]
+///     Unknown = 0,
+///     Ready = 1,
+/// }
+///
+/// assert_eq!(Status::from_bits(1), Status::Ready);
+/// assert_eq!(Status::Ready.into_bits(), 1_u8);
+/// ```
 ///
 /// | Argument         | Values                            | Default  | Description                                                                                          |
 /// |------------------|-----------------------------------|----------|------------------------------------------------------------------------------------------------------|
-/// | `<backing type>` | `u8`, `u16`, `u32`, `u64`, `u128` | Required | The storage used by the generated bitflag. Primitive backing types support bitfields up to 128 bits. |
+/// | `<backing type>` | `u8`, `u16`, `u32`, `u64`, `u128` | Inferred from integer `repr`, otherwise required | The storage used by the generated bitflag. Primitive backing types support bitfields up to 128 bits. |
 /// | `from_endian`    | `big`, `little`                   | `big`    | Default endianness used by the generated `from_bits` function.                                       |
 /// | `into_endian`    | `big`, `little`                   | `big`    | Default endianness used by the generated `into_bits` function.                                       |
 /// | `copy`           | `true`, `false`                   | `true`   | Determines whether to derive `Copy` and `Clone` automatically for the enum.                          |
@@ -2306,11 +2349,34 @@ fn check_force_panic(bitfield: &Bitfield) {
 /// #### Bitflag Configuration
 ///
 /// Bitflags can be configured with arguments passed to the `#[bitflag(...)]`
-/// attribute (the first argument is always the backing unsigned integer type):
+/// attribute. The backing unsigned integer type can be supplied as the first
+/// argument or inferred from an explicit `#[repr(...)]` attribute. If both are
+/// provided, they must match. An existing integer representation is preserved
+/// without emitting a second one.
+///
+/// Use an explicit `repr` when other derives need to inspect the enum's
+/// representation. Both `#[bitflag]` and `#[bitflag()]` can infer the type:
+///
+/// ```rust
+/// # use bitfields_impl as bitfields;
+/// use bitfields::bitflag;
+///
+/// #[derive(Debug, PartialEq)]
+/// #[bitflag(from_endian = big)]
+/// #[repr(u8)]
+/// pub enum Status {
+///     #[base]
+///     Unknown = 0,
+///     Ready = 1,
+/// }
+///
+/// assert_eq!(Status::from_bits(1), Status::Ready);
+/// assert_eq!(Status::Ready.into_bits(), 1_u8);
+/// ```
 ///
 /// | Argument         | Values                            | Default  | Description                                                                                          |
 /// |------------------|-----------------------------------|----------|------------------------------------------------------------------------------------------------------|
-/// | `<backing type>` | `u8`, `u16`, `u32`, `u64`, `u128` | Required | The storage used by the generated bitflag. Primitive backing types support bitfields up to 128 bits. |
+/// | `<backing type>` | `u8`, `u16`, `u32`, `u64`, `u128` | Inferred from integer `repr`, otherwise required | The storage used by the generated bitflag. Primitive backing types support bitfields up to 128 bits. |
 /// | `from_endian`    | `big`, `little`                   | `big`    | Default endianness used by the generated `from_bits` function.                                       |
 /// | `into_endian`    | `big`, `little`                   | `big`    | Default endianness used by the generated `into_bits` function.                                       |
 /// | `copy`           | `true`, `false`                   | `true`   | Determines whether to derive `Copy` and `Clone` automatically for the enum.                          |
