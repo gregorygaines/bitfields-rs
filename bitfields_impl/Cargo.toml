@@ -15,15 +15,15 @@ rust-version = "1.83.0"
 proc-macro = true
 
 [dependencies]
-quote = "1.0.45"
+quote = "1.0.47"
 proc-macro2 = "1.0"
-syn = { version = "2.0.117", features = ["full", "extra-traits"] }
-thiserror = "2.0.18"
-strum = "0.28"
-strum_macros = "0.28"
+syn = { version = "3.0.9", features = ["full", "extra-traits"] }
+thiserror = "2.0.21"
+strum = "0.28.0"
+strum_macros = "0.28.0"
 derive_more = { version = "2.1.1", features = ["display"] }
-getset = "0.1.6"
-rustversion = "1.0.22"
+getset = "0.1.7"
+rustversion = "1.0.23"
 
 # Represents the bitfield arguments the user can enable or disable by default for
 # all bitfields instead of specifying them for each bitfield.
