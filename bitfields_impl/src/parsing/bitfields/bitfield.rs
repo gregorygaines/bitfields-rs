@@ -1,6 +1,7 @@
 use getset::{CloneGetters, Getters};
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
+use syn::ext::IdentExt;
 
 use crate::parsing::bitfields::bitfield_attribute::bitfield_arguments::BitfieldArguments;
 use crate::parsing::bitfields::bits_attribute::bits_arguments::{BitsArguments, FieldAccess};
@@ -91,7 +92,7 @@ pub struct Field {
     #[getset(skip)]
     visibility: Visibility,
 
-    /// The name of the field.
+    /// The name of the field without a raw identifier prefix.
     name: String,
 
     /// The ident of the field.
@@ -134,7 +135,9 @@ impl Field {
         arguments: Option<BitsArguments>,
         ignored: bool,
     ) -> Self {
-        let name = name_ident.to_string();
+        // Derived identifiers such as `set_type` must not contain the `r#` prefix.
+        // Keep the original identifier for getters and direct field access.
+        let name = name_ident.unraw().to_string();
         Self {
             visibility,
             name,

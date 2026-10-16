@@ -4,6 +4,70 @@ mod tests {
     use bitfields::bitflag;
 
     #[test]
+    fn bitfield_raw_identifier() {
+        #[bitfield(u8)]
+        pub struct Fails {
+            pub r#type: u8,
+        }
+
+        let mut bitfield = Fails::new();
+        bitfield.set_type(42);
+        assert_eq!(bitfield.r#type(), 42);
+        assert_eq!(Fails::TYPE_BITS, 8);
+        assert_eq!(Fails::TYPE_OFFSET, 0);
+    }
+
+    #[test]
+    fn bitfield_raw_identifier_generated_methods() {
+        #[bitfield(u8, order = lsb, debug = true, builder = true, bit_ops = true)]
+        pub struct Bitfield {
+            #[bits(4, default = 3)]
+            pub r#type: u8,
+            #[bits(4)]
+            pub r#value: u8,
+        }
+
+        let mut bitfield = BitfieldBuilder::new().with_type(5).with_value(9).build();
+        assert_eq!(bitfield.r#type(), 5);
+        assert_eq!(bitfield.r#value(), 9);
+        assert_eq!(Bitfield::TYPE_BITS, 4);
+        assert_eq!(Bitfield::VALUE_OFFSET, 4);
+        assert_eq!(format!("{bitfield:?}"), "Bitfield { type: 5, value: 9 }");
+
+        assert!(bitfield.checked_set_type(16).is_err());
+        assert!(bitfield.checked_set_type(6).is_ok());
+        assert_eq!(bitfield.type_inverted(), 9);
+        bitfield.invert_type();
+        assert_eq!(bitfield.r#type(), 9);
+        bitfield.clear_type();
+        assert_eq!(bitfield.r#type(), 0);
+        bitfield.clear_type_to_default();
+        assert_eq!(bitfield.r#type(), 3);
+        assert_eq!(bitfield.r#value(), 9);
+
+        assert!(BitfieldBuilder::new().checked_with_type(16).is_err());
+        let bitfield = BitfieldBuilder::new().checked_with_type(7).unwrap().build();
+        assert_eq!(bitfield.r#type(), 7);
+    }
+
+    #[test]
+    fn bitfield_raw_identifier_array_backed_and_ignored() {
+        #[bitfield([u8; 1], builder = true)]
+        pub struct Bitfield {
+            pub r#type: [u8; 1],
+            #[bits(ignore = true)]
+            pub r#match: u8,
+        }
+
+        let mut bitfield = BitfieldBuilder::new().with_type([42]).build();
+        assert_eq!(bitfield.r#type(), [42]);
+        bitfield.set_type([24]);
+        assert_eq!(bitfield.r#type(), [24]);
+        bitfield.r#match = 7;
+        assert_eq!(bitfield.r#match, 7);
+    }
+
+    #[test]
     fn bitfield_arguments() {
         #[bitfield(
             u8,

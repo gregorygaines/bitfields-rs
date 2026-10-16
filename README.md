@@ -71,6 +71,7 @@ systems (e.g. embedded development or emulators).
         - [Bitfield Constructor](#bitfield-constructor)
         - [Bitfield Builder](#bitfield-builder)
     - [Bitfield Field Types](#bitfield-field-types)
+        - [Raw Identifiers](#raw-identifiers)
         - [Signed Bitfield Fields](#signed-bitfield-fields)
         - [Array Bitfield Fields](#array-bitfield-fields)
         - [Checked Setters](#checked-setters)
@@ -428,6 +429,25 @@ fn main() {
     assert_eq!(bitfield.const_var_default(), 0x2);
     assert_eq!(bitfield.const_fn_default(), 0x1);
 }
+```
+
+#### Raw Identifiers
+
+Field names can use raw identifiers to avoid Rust keyword conflicts. Getters
+keep the raw identifier, while generated method and constant names omit `r#`.
+
+```rust
+use bitfields::bitfield;
+
+#[bitfield(u8)]
+pub struct Message {
+    pub r#type: u8,
+}
+
+let mut message = Message::new();
+message.set_type(42);
+assert_eq!(message.r#type(), 42);
+assert_eq!(Message::TYPE_BITS, 8);
 ```
 
 #### Signed Bitfield Fields
