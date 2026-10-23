@@ -154,9 +154,7 @@ impl Field {
 
     /// Returns the visibility of the field.
     pub fn visibility(&self) -> Visibility {
-        let has_public_access =
-            matches!(self.access, FieldAccess::ReadWrite | FieldAccess::ReadOnly);
-        if !has_public_access {
+        if matches!(self.access, FieldAccess::NoAccess) {
             return Visibility::Private;
         }
 

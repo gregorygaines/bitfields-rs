@@ -1522,6 +1522,34 @@ mod tests {
     }
 
     #[test]
+    fn bitfield_field_access_write_only_can_write_from_another_module() {
+        mod frames {
+            use bitfields::bitfield;
+
+            #[bitfield(u8, order = msb)]
+            pub struct Frame {
+                pub running: bool,
+                #[bits(access = wo)]
+                pub stop_now: bool,
+                #[bits(6)]
+                _reserved: u8,
+            }
+        }
+
+        let mut frame = frames::FrameBuilder::new().with_running(true).with_stop_now(true).build();
+        assert_eq!(frame.into_bits(), 0b1100_0000);
+
+        frame.set_stop_now(false);
+        assert_eq!(frame.into_bits(), 0b1000_0000);
+
+        frame.checked_set_stop_now(true).unwrap();
+        assert_eq!(frame.into_bits(), 0b1100_0000);
+
+        let frame = frames::FrameBuilder::new().checked_with_stop_now(true).unwrap().build();
+        assert_eq!(frame.into_bits(), 0b0100_0000);
+    }
+
+    #[test]
     fn bitfield_field_access_read_only_can_read() {
         #[bitfield(u32)]
         pub struct Bitfield {
