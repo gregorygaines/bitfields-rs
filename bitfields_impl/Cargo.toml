@@ -6,6 +6,7 @@ description = "Macro for generating flexible bitfields. Useful for low-level cod
 keywords = ["bit", "bitfield", "bitfields", "struct"]
 edition = "2021"
 license = "MIT"
+license-file.workspace = true
 repository = "https://github.com/gregorygaines/bitfields-rs"
 readme = "../README.md"
 categories = ["data-structures", "embedded", "emulators", "encoding", "no-std"]
