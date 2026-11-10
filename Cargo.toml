@@ -8,3 +8,4 @@ resolver = "2"
 
 [workspace.package]
 license-file = "LICENSE"
+license = "MIT"
